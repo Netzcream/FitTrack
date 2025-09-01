@@ -6,7 +6,7 @@
     <title>FitTrack para Personal Trainers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('storage/images/fittrack-icon-only.png') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/fittrack-icon-only.png') }}" />
 
 
 
@@ -20,7 +20,6 @@
             const saved = localStorage.theme; // 'dark' | 'light' | undefined
             const system = window.matchMedia('(prefers-color-scheme: dark)').matches;
             root.classList.toggle('dark', saved ? saved === 'dark' : system);
-
             window.FitTheme = {
                 toggle() {
                     const dark = !root.classList.contains('dark');
@@ -28,13 +27,25 @@
                     localStorage.theme = dark ? 'dark' : 'light';
                 }
             };
-
-            // Livewire SPA: en cada navegación, re-aplica según lo guardado
             window.addEventListener('livewire:navigated', () => {
                 const s = localStorage.theme;
                 root.classList.toggle('dark', s ? s === 'dark' : system);
             });
         })();
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-theme-toggle], #themeToggle');
+            if (!btn) return;
+            e.preventDefault();
+            if (window.FitTheme?.toggle) window.FitTheme.toggle();
+        });
+
+        // Cuando Livewire navega, re-aplicamos el tema guardado
+        window.addEventListener('livewire:navigated', () => {
+            const root = document.documentElement;
+            const saved = localStorage.theme; // 'dark' | 'light' | undefined
+            const system = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            root.classList.toggle('dark', saved ? saved === 'dark' : system);
+        });
     </script>
 </head>
 

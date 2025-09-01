@@ -18,7 +18,8 @@
 
                 <div class="text-lg font-semibold">{{ __('Clientes') }}</div>
                 <div class="text-xs text-neutral-500 mt-1">
-{{ \App\Models\Tenant::where('status', \App\Enums\TenantStatus::ACTIVE)->count() }} {{ __('activos') }}
+                    {{ \App\Models\Tenant::where('status', \App\Enums\TenantStatus::ACTIVE)->count() }}
+                    {{ __('activos') }}
                 </div>
             </a>
 
