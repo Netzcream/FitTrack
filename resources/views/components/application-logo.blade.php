@@ -1,4 +1,4 @@
-<svg viewBox="5 50 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+<svg {{ $attributes }} viewBox="5 50 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
     aria-labelledby="Logo Fit Track">
     <title id="title">FitTrack icon</title>
     <desc id="desc">Blue circle with white checkmark and motion lines to the left.</desc>
@@ -15,3 +15,4 @@
     <path d="M105 128 L135 158 L183 100" stroke="white" stroke-width="18" fill="none" stroke-linecap="round"
         stroke-linejoin="round" />
 </svg>
+

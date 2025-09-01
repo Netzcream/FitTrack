@@ -21,12 +21,21 @@ foreach (config('tenancy.central_domains') as $domain) {
     Route::domain($domain)->as($prefix)->group(function () {
 
         Route::get('/', function () {
-            return view('welcome');
+            return view('central.landing');
         })->name('home');
+
+        Route::get('/contact', function () {
+            return view('central.pages.contact');
+        })->name('central.contact');
+
+        Route::get('/terms', function () {
+            return view('central.pages.terms');
+        })->name('central.terms');
+
 
         Route::view('dashboard', 'dashboard')
             ->middleware(['auth'])
-            ->name('dashboard'); // → "127-0-0-1.dashboard"
+            ->name('dashboard');
 
         Route::middleware(['auth'])->group(function () {
 
