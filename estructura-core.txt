@@ -1,0 +1,214 @@
+
+CLINK C:\laragon\www\fittrack>(echo ==== app\Models ====   & tree app\Models /A ) 
+==== app\Models ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\APP\MODELS
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== app\Livewire ====   & tree app\Livewire /A ) 
+==== app\Livewire ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\APP\LIVEWIRE
++---Actions
++---Auth
+|   \---Tenant
++---Central
+|   \---Dashboard
+|       \---Clients
++---Settings
++---Tenant
+|   +---Components
+|   +---Configuration
+|   +---Contacts
+|   +---Dashboard
+|   +---Landing
+|   +---Roles
+|   +---Settings
+|   \---Users
+\---Traits
+
+CLINK C:\laragon\www\fittrack>(echo ==== app\Http\Controllers ====   & tree app\Http\Controllers /A ) 
+==== app\Http\Controllers ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\APP\HTTP\CONTROLLERS
++---Auth
++---Central
+\---Tenant
+
+CLINK C:\laragon\www\fittrack>(echo ==== app\Providers ====   & tree app\Providers /A ) 
+==== app\Providers ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\APP\PROVIDERS
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== routes ====   & tree routes /A ) 
+==== routes ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\ROUTES
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== resources\views ====   & tree resources\views /A ) 
+==== resources\views ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\RESOURCES\VIEWS
++---central
+|   +---clients
+|   +---pages
+|   +---partials
+|   \---_
++---components
+|   +---form
+|   +---layouts
+|   |   +---app
+|   |   +---auth
+|   |   |   \---tenant
+|   |   \---tenant
+|   +---preline
+|   +---settings
+|   +---tenant
+|   |   +---button
+|   |   +---configuration
+|   |   +---landing
+|   |   +---layouts
+|   |   |   +---app
+|   |   |   +---auth
+|   |   |   \---tenant
+|   |   \---settings
+|   \---ui
++---emails
+|   \---tenant
++---flux
+|   +---avatar
+|   +---badge
+|   +---breadcrumbs
+|   +---button
+|   +---checkbox
+|   |   +---group
+|   |   |   \---variants
+|   |   \---variants
+|   +---icon
+|   +---input
+|   |   \---group
+|   +---menu
+|   |   +---checkbox
+|   |   \---radio
+|   +---modal
+|   +---navbar
+|   +---navlist
+|   +---navmenu
+|   +---radio
+|   |   +---group
+|   |   |   \---variants
+|   |   \---variants
+|   +---select
+|   |   +---option
+|   |   |   \---variants
+|   |   \---variants
+|   +---sidebar
+|   \---tooltip
++---layouts
++---livewire
+|   +---auth
+|   |   \---tenant
+|   +---central
+|   |   \---dashboard
+|   |       \---clients
+|   |           \---partials
+|   +---settings
+|   \---tenant
+|       +---auth
+|       +---components
+|       +---configuration
+|       +---contacts
+|       +---dashboard
+|       +---landing
+|       +---roles
+|       +---settings
+|       \---users
++---partials
++---tenant
+|   \---partials
+\---vendor
+    \---livewire-tables
+        +---components
+        |   +---external
+        |   |   \---filters
+        |   +---forms
+        |   +---includes
+        |   +---table
+        |   |   +---td
+        |   |   +---th
+        |   |   \---tr
+        |   \---tools
+        |       +---filter-pills
+        |       |   \---buttons
+        |       +---filters
+        |       \---toolbar
+        |           \---items
+        |               +---filter-popover
+        |               \---search
+        +---includes
+        |   +---actions
+        |   \---columns
+        +---specific
+        |   +---bootstrap-4
+        |   \---tailwind
+        \---stubs
+
+CLINK C:\laragon\www\fittrack>(echo ==== config ====   & tree config /A ) 
+==== config ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\CONFIG
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== database\migrations ====   & tree database\migrations /A ) 
+==== database\migrations ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\DATABASE\MIGRATIONS
+\---tenant
+
+CLINK C:\laragon\www\fittrack>(echo ==== database\migrations-tenant ====   & tree database\migrations-tenant /A ) 
+==== database\migrations-tenant ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\DATABASE\MIGRATIONS-TENANT
+Ruta de acceso no válida: \LARAGON\WWW\FITTRACK\DATABASE\MIGRATIONS-TENANT
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== packages\lnq\core\src ====   & tree packages\lnq\core\src /A ) 
+==== packages\lnq\core\src ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\PACKAGES\LNQ\CORE\SRC
++---Support
++---Tenancy
+\---UI
+
+CLINK C:\laragon\www\fittrack>(echo ==== packages\lnq\core\routes ====   & tree packages\lnq\core\routes /A ) 
+==== packages\lnq\core\routes ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\PACKAGES\LNQ\CORE\ROUTES
+No existe ninguna subcarpeta 
+
+
+CLINK C:\laragon\www\fittrack>(echo ==== packages\lnq\core\config ====   & tree packages\lnq\core\config /A ) 
+==== packages\lnq\core\config ==== 
+Listado de rutas de carpetas
+El número de serie del volumen es B0A8-11E3
+C:\LARAGON\WWW\FITTRACK\PACKAGES\LNQ\CORE\CONFIG
+No existe ninguna subcarpeta 
+

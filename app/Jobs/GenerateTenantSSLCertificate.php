@@ -39,9 +39,9 @@ class GenerateTenantSSLCertificate implements ShouldQueue
             $conf = <<<CONF
 <VirtualHost *:80>
     ServerName {$this->domain}
-    DocumentRoot /var/www/fittrack.com.ar/public
+    DocumentRoot /var/www/luniqo.com/public
 
-    <Directory /var/www/fittrack.com.ar/public>
+    <Directory /var/www/luniqo.com/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -58,7 +58,7 @@ CONF;
 
 
 
-        $cmd = "sudo certbot certonly --apache -d {$this->domain} --non-interactive --agree-tos --email admin@fittrack.com.ar";
+        $cmd = "sudo certbot certonly --apache -d {$this->domain} --non-interactive --agree-tos --email admin@luniqo.com";
         Log::info("[SSL] Ejecutando certbot: {$cmd}");
         exec($cmd, $output, $code);
 
@@ -74,13 +74,13 @@ CONF;
 <IfModule mod_ssl.c>
 <VirtualHost *:443>
     ServerName {$this->domain}
-    DocumentRoot /var/www/fittrack.com.ar/public
+    DocumentRoot /var/www/luniqo.com/public
 
     SSLEngine on
     SSLCertificateFile /etc/letsencrypt/live/{$this->domain}/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/{$this->domain}/privkey.pem
 
-    <Directory /var/www/fittrack.com.ar/public>
+    <Directory /var/www/luniqo.com/public>
         AllowOverride All
         Require all granted
     </Directory>

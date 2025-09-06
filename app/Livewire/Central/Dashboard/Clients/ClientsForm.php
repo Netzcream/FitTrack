@@ -161,7 +161,7 @@ class ClientsForm extends Component
 
     public function getFullDomainProperty(): string
     {
-        $root = env('APP_DOMAIN', 'fittrack.com.ar');
+        $root = env('APP_DOMAIN', 'luniqo.com');
         return $this->slug ? "{$this->slug}.{$root}" : "—";
     }
 
@@ -195,7 +195,7 @@ class ClientsForm extends Component
                 'admin_email' => $this->admin_email,
                 'status' => $this->status,
             ]);
-            $subdomain = $id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+            $subdomain = $id . '.' . env('APP_DOMAIN', 'luniqo.com');
             $tenant->domains()->create([
                 'domain' => $subdomain,
             ]);
@@ -241,7 +241,7 @@ class ClientsForm extends Component
         if ($domain === '') return;
 
         // Evitar que agreguen subdominios de tu root en esta pantalla
-        $root = env('APP_DOMAIN', 'fittrack.com.ar');
+        $root = env('APP_DOMAIN', 'luniqo.com');
         if (Str::endsWith($domain, '.' . $root)) {
             $this->addError('new_domain', 'Usá esta pantalla solo para dominios propios del cliente (no subdominios de ' . $root . ').');
             return;
@@ -279,7 +279,7 @@ class ClientsForm extends Component
         if (!$record) return;
 
         // No eliminar el principal
-        $main = $this->client->id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+        $main = $this->client->id . '.' . env('APP_DOMAIN', 'luniqo.com');
         if ($record->domain === $main) {
             $this->addError('new_domain', 'No podés eliminar el subdominio principal (' . $main . ').');
             return;

@@ -1,6 +1,6 @@
 <svg {{ $attributes }} viewBox="5 50 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
     aria-labelledby="Logo Fit Track">
-    <title id="title">FitTrack icon</title>
+    <title id="title">{{env('APP_NAME','LNQ-Core')}} icon</title>
     <desc id="desc">Blue circle with white checkmark and motion lines to the left.</desc>
 
     <!-- Motion lines -->

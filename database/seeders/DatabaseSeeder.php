@@ -25,13 +25,13 @@ class DatabaseSeeder extends Seeder
 
         // Crear o encontrar el usuario Admin y asignarle el rol
         $adminUser = User::firstOrCreate(
-            ['email' => 'admin@fittrack.com.ar'],
+            ['email' => 'admin@luniqo.com'],
             [
                 'name' => 'Admin User',
                 'password' => Hash::make('4y8Zi_9f&7Nx'), // Contraseña genérica
             ]
         );
         $adminUser->assignRole($adminRole);
-        User::firstOrCreate(['email' => 'user@fittrack.com.ar'],['name' => 'User','password' => Hash::make('password123')]);
+        User::firstOrCreate(['email' => 'user@luniqo.com'],['name' => 'User','password' => Hash::make('password123')]);
     }
 }

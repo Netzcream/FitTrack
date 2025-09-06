@@ -55,7 +55,7 @@ class SendContactFormMail implements ShouldQueue
                 $initialized = true;
             }
 
-            $recipient = tenant('contact_email') ?? 'services@fittrack.com.ar';
+            $recipient = tenant('contact_email') ?? 'services@luniqo.com';
 
             Log::info('[MAIL] Enviando ContactFormSubmitted', [
                 'tenant'   => $this->tenantId,

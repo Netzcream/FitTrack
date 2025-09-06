@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Configuración
-REPO_DIR="/var/repository/fittrack.com.ar"
-TARGET_DIR="/var/www/fittrack.com.ar"
+REPO_DIR="/var/repository/luniqo.com"
+TARGET_DIR="/var/www/luniqo.com"
 BRANCH="main"
-BACKUP_DIR="/var/backups/fittrack.com.ar"
+BACKUP_DIR="/var/backups/luniqo.com"
 NOW=$(date +"%Y-%m-%d_%H%M")
 
 echo "🚀 Deploy iniciado..."

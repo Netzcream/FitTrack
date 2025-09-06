@@ -8,7 +8,7 @@
             text-indigo-700 dark:text-indigo-500"
         wire:navigate>
         <x-application-logo class="h-9 w-9" />
-        FitTrack
+        {{env('APP_NAME','LNQ-Core')}}
     </a>
 
     <nav class="flex items-center gap-3 md:gap-6">

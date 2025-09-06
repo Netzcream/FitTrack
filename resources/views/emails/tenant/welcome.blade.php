@@ -1,5 +1,5 @@
 @component('mail::message')
-# ¡Bienvenido a FitTrack!
+# ¡Bienvenido a {{env('APP_NAME','LNQ-Core')}} !
 
 Tu sitio ya está disponible en:
 

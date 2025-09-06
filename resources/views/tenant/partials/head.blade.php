@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 
-<title>@yield('title', __('site.dashboard')) - {{ tenant()->name ?? 'FitTrack' }}</title>
+<title>@yield('title', __('site.dashboard')) - {{ tenant()->name ?? env('APP_NAME','LNQ-Core') }}</title>
 
 <x-tenant.favicon />
 

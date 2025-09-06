@@ -2,7 +2,7 @@
 <section id="funciona" class="py-14 sm:py-16 bg-gray-50 dark:bg-slate-950">
     <div class="max-w-6xl mx-auto px-6 sm:px-8">
         <h2 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-12">¿Cómo funciona
-            FitTrack?</h2>
+            LNQ-Core?</h2>
         <div class="grid md:grid-cols-3 gap-6 md:gap-8">
             <!-- Card 1 -->
             <div
@@ -25,8 +25,7 @@
 
                 </span>
                 <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Registrate gratis</h3>
-                <p class="text-slate-700 dark:text-slate-300 text-center">Creá tu cuenta, configurá tu perfil y subí tu
-                    logo/foto profesional.</p>
+                <p class="text-slate-700 dark:text-slate-300 text-center">Creá tu cuenta, configurá tu sitio profesional.</p>
             </div>
             <!-- Card 2 -->
             <div
@@ -47,9 +46,8 @@
                         </g>
                     </svg>
                 </span>
-                <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Cargá tus alumnos</h3>
-                <p class="text-slate-700 dark:text-slate-300 text-center">Sumá alumnos manualmente o invitalos con un
-                    enlace único.</p>
+
+
             </div>
             <!-- Card 3 -->
             <div

@@ -2,27 +2,27 @@
 
     <style>
         :root {
-            --ftt-color-base: {{ tenant_config('color_base', '#263d83') }};
-            --ftt-color-dark: {{ tenant_config('color_dark', '#263d83') }};
-            --ftt-color-light: {{ tenant_config('color_light', '#fafafa') }};
-            --ftt-color-base-transparent: {{ tenant_config('color_base', '#263d83') }}55;
-            --ftt-color-base-bright: {{ tenant_config('color_base', '#263d83') }}CC;
-            --ftt-color-dark-transparent: {{ tenant_config('color_dark', '#263d83') }}55;
-            --ftt-color-light-transparent: {{ tenant_config('color_light', '#fafafa') }}55;
-            --ftt-color-text-footer: {{ tenant_config('footer_text_color', '#000000') }};
-            --ftt-color-background-footer: {{ tenant_config('footer_background_color', '#ffffff') }}55;
+            --LNQ-color-base: {{ tenant_config('color_base', '#263d83') }};
+            --LNQ-color-dark: {{ tenant_config('color_dark', '#263d83') }};
+            --LNQ-color-light: {{ tenant_config('color_light', '#fafafa') }};
+            --LNQ-color-base-transparent: {{ tenant_config('color_base', '#263d83') }}55;
+            --LNQ-color-base-bright: {{ tenant_config('color_base', '#263d83') }}CC;
+            --LNQ-color-dark-transparent: {{ tenant_config('color_dark', '#263d83') }}55;
+            --LNQ-color-light-transparent: {{ tenant_config('color_light', '#fafafa') }}55;
+            --LNQ-color-text-footer: {{ tenant_config('footer_text_color', '#000000') }};
+            --LNQ-color-background-footer: {{ tenant_config('footer_background_color', '#ffffff') }}55;
         }
 
         .btn-outline-white:hover {
-            color: var(--ftt-color-base) !important;
+            color: var(--LNQ-color-base) !important;
         }
 
         .card-colored {
-            background-color: var(--ftt-color-base);
+            background-color: var(--LNQ-color-base);
         }
 
         .card-colored:hover {
-            background-color: var(--ftt-color-dark);
+            background-color: var(--LNQ-color-dark);
         }
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />

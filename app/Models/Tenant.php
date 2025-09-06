@@ -69,7 +69,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function mainDomain(): string
     {
-        return $this->id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+        return $this->id . '.' . env('APP_DOMAIN', 'luniqo.com');
     }
 
     protected static function getSslCertificateInfo(string $domain): ?array
@@ -112,7 +112,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             return true;
         }
 
-        // wildcard como *.fittrack.com.ar
+        // wildcard como *.luniqo.com
         if (str_starts_with($cn, '*.') && str_ends_with($domain, substr($cn, 1))) {
             return true;
         }

@@ -9,7 +9,7 @@ use Symfony\Component\Process\Process;
 class RunDeployScript extends Command
 {
     protected $signature = 'app:run-deploy';
-    protected $description = 'Ejecuta el script de deploy-fittrack.sh';
+    protected $description = 'Ejecuta el script de deploy-lnq.sh';
 
     public function handle(): int
     {
@@ -24,7 +24,7 @@ class RunDeployScript extends Command
 
         $startTime = now();
 
-        $process = Process::fromShellCommandline('bash /var/repository/scripts/deploy-fittrack.sh');
+        $process = Process::fromShellCommandline('bash /var/repository/scripts/deploy-lnq.sh');
         $process->setTimeout(600);
 
         $partialBuffer = '';

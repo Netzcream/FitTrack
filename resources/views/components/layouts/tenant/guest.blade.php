@@ -7,7 +7,7 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Inicio') - {{ tenant()->name ?? 'FitTrack' }}</title>
+    <title>@yield('title', 'Inicio') - {{ tenant()->name ?? env('APP_NAME','LNQ-Core') }}</title>
     <x-tenant.favicon />
 
     <!-- Fonts -->

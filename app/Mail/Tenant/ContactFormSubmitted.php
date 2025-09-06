@@ -26,13 +26,13 @@ class ContactFormSubmitted extends Mailable
     public function build()
     {
         return $this->from(
-            'services@fittrack.com.ar',
+            'services@luniqo.com',
             tenant('name') ?? config('app.name')
         )
             ->subject('Nuevo mensaje desde formulario de contacto')
             ->markdown('emails.tenant.contact-form')->with([
                 'tenantName' => tenant('name') ?? config('app.name'),
-                'contactEmail' => tenant('contact_email') ?? 'services@fittrack.com.ar',
+                'contactEmail' => tenant('contact_email') ?? 'services@luniqo.com',
             ]);
     }
 }

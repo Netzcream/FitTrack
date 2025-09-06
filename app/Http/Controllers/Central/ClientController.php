@@ -43,7 +43,7 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        $reservedSubdomains = ['www', 'admin', 'mail', 'api', 'ftp', 'cpanel', 'webmail', 'fittrak', 'test'];
+        $reservedSubdomains = ['www', 'admin', 'mail', 'api', 'ftp', 'cpanel', 'webmail', 'lnq', 'test'];
 
 
         $request->validate([
@@ -71,7 +71,7 @@ class ClientController extends Controller
             'name' => $request->name,
             'admin_email' => $request->admin_email,
         ]);
-        $subdomain = $id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+        $subdomain = $id . '.' . env('APP_DOMAIN', 'luniqo.com');
         $tenant->domains()->create([
             'domain' => $subdomain,
         ]);

@@ -60,7 +60,7 @@ class RoleAndPermissionSeeder extends Seeder
 
         // 3) Usuarios de ejemplo (opcionales)
         $admin = User::firstOrCreate(
-            ['email' => 'admin@fittrack.com.ar'],
+            ['email' => 'admin@luniqo.com'],
             [
                 'name' => 'Administrador',
                 'password' => Hash::make('4y8Zi_9f&7Nx'),
@@ -71,7 +71,7 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         $admin = User::firstOrCreate(
-            ['email' => 'asistente@fittrack.com.ar'],
+            ['email' => 'asistente@luniqo.com'],
             [
                 'name' => 'Asistente',
                 'password' => Hash::make('4y8Zi_9f&7Nx'),

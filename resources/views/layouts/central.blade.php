@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>FitTrack para Personal Trainers</title>
+    <title>{{env('APP_NAME','LNQ-Core')}} para Profesionalizarte</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/fittrack-icon-only.png') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/icon-only.png') }}" />
 
 
 

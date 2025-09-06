@@ -8,6 +8,15 @@
         "framework"
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/lnq/core",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-heroicons": "^2.6",
@@ -20,7 +29,8 @@
         "rappasoft/laravel-livewire-tables": "^3.7",
         "spatie/laravel-medialibrary": "^11.12",
         "spatie/laravel-permission": "^6.17",
-        "stancl/tenancy": "^3.9"
+        "stancl/tenancy": "^3.9",
+        "lnq/core": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

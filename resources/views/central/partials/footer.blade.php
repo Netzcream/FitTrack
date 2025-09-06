@@ -5,7 +5,7 @@
 
   <div class="container mx-auto px-6">
     <div class="mb-2 text-indigo-50 dark:text-indigo-100">
-      &copy; {{ date('Y') }} FitTrack. Herramienta profesional para entrenadores.
+      &copy; {{ date('Y') }} LNQ-Core. Herramienta profesional para entrenadores.
     </div>
 
     <div class="space-x-2">

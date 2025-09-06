@@ -13,7 +13,7 @@ class Notification extends Component
 
     public function mount(): void
     {
-        $this->contact_email = tenant()->contact_email ?? 'services@fittrack.com.ar';
+        $this->contact_email = tenant()->contact_email ?? 'services@luniqo.com';
     }
 
 

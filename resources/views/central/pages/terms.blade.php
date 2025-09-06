@@ -16,11 +16,11 @@
                         prose-li:marker:text-indigo-600 dark:prose-li:marker:text-indigo-400
                         prose-hr:border-slate-200 dark:prose-hr:border-slate-700">
                 <h2>1. Aceptación de los términos</h2>
-                <p>Al registrarte, acceder o utilizar FitTrack, aceptás cumplir con estos Términos y Condiciones. Si no
+                <p>Al registrarte, acceder o utilizar LNQ-Core, aceptás cumplir con estos Términos y Condiciones. Si no
                     estás de acuerdo, no debés usar la plataforma.</p>
 
                 <h2>2. Descripción del servicio</h2>
-                <p>FitTrack es una herramienta digital para entrenadores personales que permite organizar alumnos,
+                <p>LNQ-Core es una herramienta digital para entrenadores personales que permite organizar alumnos,
                     rutinas, pagos y comunicaciones. El servicio puede actualizarse, modificarse o suspenderse sin
                     previo aviso.</p>
 
@@ -40,7 +40,7 @@
                 </ul>
 
                 <h2>5. Planes y pagos</h2>
-                <p>FitTrack ofrece planes gratuitos y de pago. Los precios y condiciones pueden cambiar con previo
+                <p>LNQ-Core ofrece planes gratuitos y de pago. Los precios y condiciones pueden cambiar con previo
                     aviso. No se garantizan reembolsos salvo disposición legal vigente.</p>
 
                 <h2>6. Privacidad y datos</h2>
@@ -49,12 +49,12 @@
                     de privacidad aplicable estará publicada en la plataforma.</p>
 
                 <h2>7. Limitación de responsabilidad</h2>
-                <p>No garantizamos la disponibilidad ininterrumpida ni la ausencia de errores. FitTrack no se
+                <p>No garantizamos la disponibilidad ininterrumpida ni la ausencia de errores. LNQ-Core no se
                     responsabiliza por pérdidas de información, interrupciones del servicio o daños indirectos derivados
                     del uso de la plataforma.</p>
 
                 <h2>8. Propiedad intelectual</h2>
-                <p>FitTrack, su diseño, logotipos y software son propiedad exclusiva de sus desarrolladores. Se prohíbe
+                <p>LNQ-Core, su diseño, logotipos y software son propiedad exclusiva de sus desarrolladores. Se prohíbe
                     su reproducción, distribución o uso no autorizado.</p>
 
                 <h2>9. Modificaciones</h2>

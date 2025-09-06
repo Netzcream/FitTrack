@@ -1,5 +1,15 @@
 <?php
 
+$host = parse_url(env('APP_URL'), PHP_URL_HOST);          // ej: luniqo.com.ar
+$escapedHost = $host ? preg_quote($host, '/') : null;     // escapar puntos, etc.
+
+// https? => permite http y https (cambiá a ^https:// si querés forzar https)
+// ([a-z0-9-]+\.)* => cualquier subdominio (0 o más niveles), incluye el apex
+// (:\d+)? => puerto opcional
+$dynamicCorsPattern = $escapedHost
+    ? '/^https?:\/\/([a-z0-9-]+\.)*' . $escapedHost . '(:\d+)?$/i'
+    : null;
+
 return [
 
     /*
@@ -15,13 +25,15 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'login', 'build/*','sanctum/csrf-cookie', 'logout', 'livewire/*','/*'],
+    'paths' => ['api/*', 'login', 'build/*', 'sanctum/csrf-cookie', 'logout', 'livewire/*', '/*'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => ['*'],
 
-    'allowed_origins_patterns' => ['/^https:\/\/.*\.fittrack\.com\.ar$/'],
+    'allowed_origins_patterns' => array_filter([
+        $dynamicCorsPattern,
+    ]),
 
     'allowed_headers' => ['*'],
 

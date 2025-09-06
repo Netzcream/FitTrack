@@ -10,7 +10,7 @@
                 <summary
                     class="font-semibold cursor-pointer text-slate-900 dark:text-slate-100 group-open:text-indigo-700 dark:group-open:text-indigo-400 ">
                     ¿Necesito saber de tecnología?</summary>
-                <p class="text-slate-700 dark:text-slate-300 mt-2">¡Para nada! FitTrack es simple…</p>
+                <p class="text-slate-700 dark:text-slate-300 mt-2">¡Para nada! LNQ-Core es simple…</p>
             </details>
             <details  class="bg-white dark:bg-slate-800 rounded-lg p-4 shadow group open:shadow-lg transition-all border border-gray-200 dark:border-slate-700">
                 <summary class="font-semibold cursor-pointer text-slate-900 dark:text-slate-100 group-open:text-indigo-700 dark:group-open:text-indigo-400">

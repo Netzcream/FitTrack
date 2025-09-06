@@ -97,7 +97,7 @@ class MaintainTenantSSL extends Command
         $knownNormalized = array_map($normalize, $known);
 
         // 2) Dominios “protegidos” (no reportar como huérfanos)
-        $root = strtolower((string) env('APP_DOMAIN', 'fittrack.com.ar'));
+        $root = strtolower((string) env('APP_DOMAIN', 'luniqo.com'));
         $protected = array_filter([
             $root,
             "www.$root",

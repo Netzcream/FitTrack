@@ -23,7 +23,7 @@ class TenantWelcomeMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Tu acceso a Fittrack está listo')
+        return $this->subject('Tu acceso a '.env('APP_NAME','LNQ').' está listo')
             ->markdown('emails.tenant.welcome');
     }
 }

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Próximamente - fittrack.com.ar</title>
+    <title>Próximamente - luniqo.com</title>
     <script>
         /*tailwind.config = {
                                 darkMode: 'media',
@@ -165,15 +165,6 @@
 
         </div>
 
-
-
-
-        {{--
-        <h1 class="flex items-center mb-6 p-6 font-bold bg-gradient-to-r from-purple-500 to-blue-400 bg-clip-text text-transparent">
-            <span class="text-[4rem] md:text-[6rem] leading-none me-2 align-middle">●</span>
-            <span class="text-[3.75rem] md:text-[5.5rem] leading-none">fittrack</span>
-          </h1>
-          --}}
         <div
             class="inline-flex rounded-full bg-slate-200 dark:bg-slate-700 px-6 py-3 text-sm font-medium text-slate-600 dark:text-slate-200">
             Próximamente</div>

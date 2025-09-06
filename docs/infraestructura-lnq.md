@@ -1,4 +1,4 @@
-# Infraestructura del Servidor VPS - fittrack.com.ar
+# Infraestructura del Servidor VPS - luniqo.com
 
 ## General
 
@@ -14,13 +14,13 @@
 
 ## Apache + Laravel
 
-- Dominio principal: `fittrack.com.ar`
-- Alias: `www.fittrack.com.ar`
-- DocumentRoot: `/var/www/fittrack.com.ar/public`
+- Dominio principal: `luniqo.com`
+- Alias: `www.luniqo.com`
+- DocumentRoot: `/var/www/luniqo.com/public`
 
 ### .htaccess
 
-- Redirección de `www.fittrack.com.ar` a `fittrack.com.ar`
+- Redirección de `www.luniqo.com` a `luniqo.com`
 - Rewrite rules para Laravel
 - Rewrite condicionales para limpieza de URL y headers
 
@@ -28,8 +28,8 @@
 
 ## Laravel Multitenant
 
-- Estructura de base de datos: `fittrack_{tenant}`
-- Cada tenant tiene dominio tipo `cliente1.fittrack.com.ar`
+- Estructura de base de datos: `lnq_{tenant}`
+- Cada tenant tiene dominio tipo `cliente1.luniqo.com`
 - Estados del tenant definidos en `TenantStatus` (ej: `ACTIVE`, `DELETED`)
 - Rutas:
   - `routes/web.php` → central (no tenancy)
@@ -38,7 +38,7 @@
 ### 🧠 Importante: Manejo de Sesión en Multi-Tenancy
 
 - **No se debe establecer `SESSION_DOMAIN`** en `.env`.
-- Aunque parezca útil para compartir sesión entre subdominios (`.fittrack.com.ar`), **esto rompe el aislamiento que Stancl Tenancy requiere**.
+- Aunque parezca útil para compartir sesión entre subdominios (`.luniqo.com`), **esto rompe el aislamiento que Stancl Tenancy requiere**.
 - Laravel guarda variables como `_tenant_id` en la sesión. Si la cookie se comparte entre central y tenant, eso **contamina la sesión del central** y causa que Laravel crea estar en modo tenant cuando no lo está.
 
 **Configuración recomendada:**
@@ -71,7 +71,7 @@ Con esto:
 - Evento: `TenantCreatedSuccessfully`
 - Listener: `GenerateSSLCertificateForTenant`
 - Job: `GenerateTenantSSLCertificate`
-- Ejecuta: `sudo certbot --apache -d cliente1.fittrack.com.ar`
+- Ejecuta: `sudo certbot --apache -d cliente1.luniqo.com`
 
 ### Permiso sudo (visudo)
 ```bash
@@ -118,7 +118,7 @@ Schedule::command('ssl:maintain')->dailyAt('03:30');
 
 ### Crontab en servidor
 ```bash
-* * * * * cd /var/www/fittrack.com.ar && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/luniqo.com && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ---

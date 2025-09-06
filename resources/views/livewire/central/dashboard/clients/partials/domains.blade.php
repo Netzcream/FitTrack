@@ -21,7 +21,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                     @php
-                        $main = $this->client->id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+                        $main = $this->client->id . '.' . env('APP_DOMAIN', 'luniqo.com');
                     @endphp
 
                     @forelse ($domains as $d)

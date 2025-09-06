@@ -2,7 +2,7 @@
     <!-- BENEFICIOS -->
     <section id="beneficios" class="py-14 sm:py-16 bg-white dark:bg-slate-900">
         <div class="max-w-6xl mx-auto px-6 sm:px-8">
-            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-10">¿Por qué FitTrack para tu negocio?</h2>
+            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-10">¿Por qué LNQ-Core para tu negocio?</h2>
             <div class="grid md:grid-cols-3 gap-6 md:gap-8">
                 <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow border border-gray-200 dark:border-slate-700 flex flex-col items-center">
                     <span class="text-4xl mb-3 text-indigo-600 dark:text-indigo-400">

@@ -1,0 +1,25 @@
+{
+  "name": "lnq/core",
+  "description": "Core compartido Luniqo: tenancy bootstrap, auth/roles base, UI base, helpers.",
+  "type": "library",
+  "version": "1.0.0",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2",
+    "laravel/framework": "^12.0",
+    "stancl/tenancy": "^3.9",
+    "spatie/laravel-permission": "^6.17"
+  },
+  "autoload": {
+    "psr-4": {
+      "Lnq\\Core\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Lnq\\Core\\LnqServiceProvider"
+      ]
+    }
+  }
+}
