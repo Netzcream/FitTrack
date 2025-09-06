@@ -25,5 +25,18 @@ return [
     'landing_subtitle' => 'Administrar la página de inicio de su sitio',
     'read_more' => 'Ver más',
     'read_less' => 'Ver menos',
+    'name' => 'Nombre',
+
+    'login_title'         => 'Iniciá sesión en tu cuenta',
+    'login_subtitle'      => 'Ingresá tu email y contraseña para continuar',
+    'email_label'         => 'Correo electrónico',
+    'email_placeholder'   => 'email@ejemplo.com',
+    'password_label'      => 'Contraseña',
+    'password_placeholder' => 'Contraseña',
+    'forgot_password'     => '¿Olvidaste tu contraseña?',
+    'remember_me'         => 'Recordarme',
+    'login_button'        => 'Iniciar sesión',
+    'no_account'          => '¿No tenés una cuenta?',
+    'sign_up'             => 'Crear cuenta',
 
 ];
