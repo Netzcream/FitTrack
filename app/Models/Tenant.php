@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TenantStatus;
+use App\Models\Central\Plan;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Log;
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains, MaintenanceMode;
+
+    protected $fillable = [
+        'plan_id',
+    ];
 
     protected $casts = [
         'status' => TenantStatus::class,
@@ -128,5 +133,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function getConfigAttribute()
     {
         return $this->config()->firstOrCreate();
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
     }
 }

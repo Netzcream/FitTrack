@@ -1,5 +1,5 @@
 <div>
-    <flux:label for="name">{{ __('Nombre del cliente') }}</flux:label>
+    <flux:label for="name">{{ __('Nombre del entrenador') }}</flux:label>
     <flux:input class="mt-2" id="name" wire:model.defer="name" type="text" placeholder="Ingrese nombre" required
         maxlength="24" autofocus wire:blur="suggestSlug" />
     @error('name')

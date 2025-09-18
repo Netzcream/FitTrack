@@ -88,7 +88,7 @@ class ClientController extends Controller
         });
         event(new TenantCreatedSuccessfully($tenant, $subdomain));
 
-        return redirect()->route('central.dashboard.clients.index', $tenant)->with('success', 'Cliente creado.');
+        return redirect()->route('central.dashboard.clients.index', $tenant)->with('success',__('central.client_created'));
     }
 
     /**
@@ -136,7 +136,7 @@ class ClientController extends Controller
 
         ]);
 
-        return redirect()->route('central.dashboard.clients.index', $client)->with('success', 'Client updated.');
+        return redirect()->route('central.dashboard.clients.index', $client)->with('success', __('central.client_updated'));
     }
 
     /**
@@ -145,7 +145,7 @@ class ClientController extends Controller
     public function destroy(Tenant $client)
     {
         $client->update(['status' => TenantStatus::DELETED]);
-        return redirect()->route('central.dashboard.clients.index')->with('success', 'Tenant marcado como eliminado.');
+        return redirect()->route('central.dashboard.clients.index')->with('success', __('central.client_mark_to_delete'));
     }
 
 
@@ -186,6 +186,6 @@ class ClientController extends Controller
             exec("sudo systemctl reload apache2");
         }
 
-        return redirect()->route('central.dashboard.clients.index')->with('success', "Cliente {$client->id} eliminado.");
+        return redirect()->route('central.dashboard.clients.index')->with('success', __('central.client_deleted',['id' => $client->id]) );
     }
 }

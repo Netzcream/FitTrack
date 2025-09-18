@@ -16,7 +16,7 @@
                 </svg>
 
 
-                <div class="text-lg font-semibold">{{ __('Clientes') }}</div>
+                <div class="text-lg font-semibold">{{ __('central.clients') }}</div>
                 <div class="text-xs text-neutral-500 mt-1">
                     {{ \App\Models\Tenant::where('status', \App\Enums\TenantStatus::ACTIVE)->count() }}
                     {{ __('activos') }}
@@ -67,12 +67,12 @@
             <div class="flex flex-wrap gap-4">
                 <flux:button as="a" href="{{ route('central.dashboard.clients.create') }}" icon="plus"
                     wire:navigate>
-                    {{ __('Nuevo Cliente') }}
+                    {{ __('central.new_client') }}
                 </flux:button>
 
                 <flux:button as="a" href="{{ route('central.dashboard.settings') }}" icon="cog"
                     wire:navigate>
-                    {{ __('Configuración') }}
+                    {{ __('central.configuration') }}
                 </flux:button>
             </div>
         </div>

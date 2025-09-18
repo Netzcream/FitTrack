@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Editar - Clientes')">
+<x-layouts.app  :title="__('site.edit').' - '.__('central.clients')">
 
 
     <div class="flex items-start max-md:flex-col">
@@ -8,8 +8,8 @@
 
                 <div class="flex items-center justify-between gap-4 flex-wrap">
                     <div>
-                        <flux:heading size="xl" level="1">{{ __('Clientes') }}</flux:heading>
-                        <flux:subheading size="lg">{{ __('Editar cliente') }}</flux:subheading>
+                        <flux:heading size="xl" level="1">{{ __('central.clients') }}</flux:heading>
+                        <flux:subheading size="lg">{{ __('central.edit_client') }}</flux:subheading>
                     </div>
 
                     <flux:button as="a" href="{{ route('central.dashboard.clients.index') }}" variant="outline"
@@ -32,7 +32,7 @@
                         @method('PUT')
 
                         <div>
-                            <flux:label for="name">{{ __('Nombre del cliente') }}</flux:label>
+                            <flux:label for="name">{{ __('Nombre del entrenador') }}</flux:label>
                             <flux:input class="mt-2" id="name" name="name" type="text"
                                 :value="old('name', $entity->name)" placeholder="Ingrese nombre" required
                                 autofocus />

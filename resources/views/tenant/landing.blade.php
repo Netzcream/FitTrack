@@ -109,7 +109,7 @@
     @if (tenant_config('landing_general_show_form'))
         <div class=" py-12 px-4 ">
             <div class="max-w-6xl mx-auto bg-gray-50 p-8 rounded-lg shadow">
-                <h2 class="text-4xl font-semibold text-gray-800 mb-6 text-left">Asesorate y compará</h2>
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6 text-left">Te asesoramos</h2>
                 <livewire:tenant.contact-form />
             </div>
         </div>

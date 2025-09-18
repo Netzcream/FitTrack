@@ -31,6 +31,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Middleware\EnsureTenantIsActive;
 
+use App\Livewire\Tenant\CommercialPlans\Index as CommercialPlansIndex;
+use App\Livewire\Tenant\CommercialPlans\Form as CommercialPlansForm;
+use App\Livewire\Tenant\TrainingGoals\Index as TrainingGoalsIndex;
+use App\Livewire\Tenant\TrainingGoals\Form as TrainingGoalsForm;
+
+use App\Livewire\Tenant\TrainingPhases\Index as TrainingPhasesIndex;
+use App\Livewire\Tenant\TrainingPhases\Form as TrainingPhasesForm;
+use App\Models\Tenant\Student;
+
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -100,6 +109,66 @@ Route::middleware([
                     Route::get('/create', UsersForm::class)->name('create');
                     Route::get('/{user}/edit', UsersForm::class)->name('edit');
                 })->middleware('permission:gestionar usuarios');
+
+                Route::prefix('commercial-plans')->name('commercial-plans.')->group(function () {
+                    Route::get('/', CommercialPlansIndex::class)->name('index');
+                    Route::get('/create', CommercialPlansForm::class)->name('create');
+                    Route::get('/{commercialPlan}/edit', CommercialPlansForm::class)->name('edit');
+                });
+
+                Route::prefix('training-goals')->name('training-goals.')->group(function () {
+                    Route::get('/', TrainingGoalsIndex::class)->name('index');
+                    Route::get('/create', TrainingGoalsForm::class)->name('create');
+                    Route::get('/{trainingGoal}/edit', TrainingGoalsForm::class)->name('edit');
+                });
+                Route::prefix('training-phases')->name('training-phases.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\TrainingPhases\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\TrainingPhases\Form::class)->name('create');
+                    Route::get('/{trainingPhase}/edit', App\Livewire\Tenant\TrainingPhases\Form::class)->name('edit');
+                });
+
+                Route::prefix('communication-channels')->name('communication-channels.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\CommunicationChannels\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\CommunicationChannels\Form::class)->name('create');
+                    Route::get('/{communicationChannel}/edit', App\Livewire\Tenant\CommunicationChannels\Form::class)->name('edit');
+                });
+
+
+                Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\PaymentMethods\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\PaymentMethods\Form::class)->name('create');
+                    Route::get('/{paymentMethod}/edit', App\Livewire\Tenant\PaymentMethods\Form::class)->name('edit');
+                });
+
+                Route::prefix('tags')->name('tags.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Tags\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Tags\Form::class)->name('create');
+                    Route::get('/{tag}/edit', App\Livewire\Tenant\Tags\Form::class)->name('edit');
+                });
+
+                Route::prefix('students')->name('students.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Students\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Students\Form::class)->name('create');
+                    // Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
+                });
+
+                Route::prefix('students/{student:uuid}')
+                    ->name('students.')
+                    ->group(function () {
+
+                        Route::get('/', function (Student $student) {
+                            return to_route('tenant.dashboard.students.training', $student);
+                        })->name('edit');
+
+
+                        Route::get('/training',   \App\Livewire\Tenant\Students\Training\Index::class)->name('training');
+                        Route::get('/profile',    \App\Livewire\Tenant\Students\Profile\Form::class)->name('profile');
+                        Route::get('/finance',    \App\Livewire\Tenant\Students\Finance\Index::class)->name('finance');
+                        Route::get('/health',     \App\Livewire\Tenant\Students\Health\Index::class)->name('health');
+                        Route::get('/metrics',    \App\Livewire\Tenant\Students\Metrics\Index::class)->name('metrics');
+                        Route::get('/files',      \App\Livewire\Tenant\Students\Files\Index::class)->name('files');
+                        Route::get('/messages',   \App\Livewire\Tenant\Students\Messages\Thread::class)->name('messages');
+                    });
 
 
                 Route::prefix('roles')->name('roles.')->group(function () {

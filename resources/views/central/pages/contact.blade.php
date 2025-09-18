@@ -5,9 +5,10 @@
             <h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-10">
                 Contacto
             </h1>
-            {{--
-            <livewire:central.contact-form />
-            --}}
+
+            <div class="mt-4">
+                <livewire-central.contact-form />
+            </div>
         </div>
     </section>
 </x-central-layout>

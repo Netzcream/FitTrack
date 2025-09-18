@@ -1,6 +1,38 @@
 <?php
 
 return [
+
+    'email' => 'Correo Electrónico',
+    'status' => 'Estado',
+    'view' => 'Ver',
+    'contact_detail' => 'Detalles del contacto',
+    'received_at' => 'Recibido el',
+    'no_contact_selected' => 'No hay contacto seleccionado',
+    'confirm_delete_contact_title' => '¿Eliminar contacto?',
+    'confirm_delete_contact_text'  => 'Esta acción eliminará definitivamente el contacto seleccionado. ¿Deseás continuar?',
+    'confirm_delete_selected_title' => '¿Eliminar seleccionados?',
+    'confirm_delete_selected_text'  => '{1} Se eliminará 1 contacto.|[2,*] Se eliminarán :count contactos.',
+    'contacts_not_read'            => '{1} Tiene <b>1</b> mensaje nuevo.|[2,*] Tiene <b>:count</b> mensajes sin leer.',
+    'delete_selected'            => 'Eliminar seleccionados',
+    'clear_selection'            => 'Limpiar selección',
+    'selected_count'             => '{1} 1 seleccionado|[2,*] :count seleccionados',
+    'select_all_results'         => 'Seleccionar todos los resultados',
+    'selected_page_hint'         => 'Seleccionaste todos los elementos de esta página.',
+    'mark_as_read'               => 'Marcar como leído',
+    'mark_as_unread'             => 'Marcar como no leído',
+    'marked_as_read'             => 'Contacto marcado como leído.',
+    'marked_as_unread'           => 'Contacto marcado como no leído.',
+    'marked_as_read_bulk'        => 'Contactos marcados como leídos.',
+    'marked_as_unread_bulk'      => 'Contactos marcados como no leídos.',
+    'contacts' => 'Contactos',
+    'clients' => 'Entrenadores',
+
+    'phone' => 'Teléfono',
+    'message' => '¿En qué podemos ayudarte?',
+    'send_contact' => 'Enviar',
+    'sending' => 'Enviando...',
+    'contact_sent' => 'Consulta enviada; pronto recibirás noticias nuestras',
+
     'dashboard' => "Tablero",
     'save' => "Guardar",
     'new' => "Nuevo",
@@ -38,5 +70,342 @@ return [
     'login_button'        => 'Iniciar sesión',
     'no_account'          => '¿No tenés una cuenta?',
     'sign_up'             => 'Crear cuenta',
+    'commercial_plans' => 'Planes comerciales',
+    'commercial_plans_subheading' => 'Gestioná precios y disponibilidad de tus planes de suscripción.',
+    'new_plan' => 'Nuevo plan',
+    'search' => 'Buscar',
+    'search_placeholder' => 'Nombre, código, slug…',
 
+    // Filtros listado
+    'visibility' => 'Visibilidad',
+    'all' => 'Todos',
+    'public' => 'Público',
+    'private' => 'Privado',
+
+    'type' => 'Tipo',
+    'plan_type_free' => 'Gratis',
+    'plan_type_standard' => 'Standard',
+    'plan_type_pro' => 'Pro',
+    'plan_type_enterprise' => 'Enterprise',
+
+    'billing' => 'Facturación',
+    'billing_monthly' => 'Mensual',
+    'billing_yearly' => 'Anual',
+    'billing_both' => 'Ambas',
+
+    'active' => 'Activo',
+    'yes' => 'Sí',
+    'no' => 'No',
+
+    'filter' => 'Filtrar',
+
+    // Tabla listado
+    'name' => 'Nombre',
+    'code' => 'Código',
+    'monthly' => 'Mensual',
+    'yearly' => 'Anual',
+    'order' => 'Orden',
+    'actions' => 'Acciones',
+    'no_plans_found' => 'No se encontraron planes.',
+    'edit' => 'Editar',
+    'delete' => 'Eliminar',
+
+    // Modal eliminar (listado)
+    'delete_plan_title' => '¿Eliminar plan?',
+    'delete_plan_message' => 'Esto moverá el plan a la papelera (borrado lógico). ¿Estás seguro?',
+    'cancel' => 'Cancelar',
+    'confirm_delete' => 'Sí, eliminar',
+
+    // ----- Form -----
+    'edit_commercial_plan' => 'Editar plan comercial',
+    'new_commercial_plan' => 'Nuevo plan comercial',
+    'update_pricing_limits_availability' => 'Actualizá precios, límites y disponibilidad.',
+    'define_pricing_limits_availability' => 'Definí precios, límites y disponibilidad.',
+
+    // Basics
+    'slug_optional' => 'Slug (opcional)',
+    'description' => 'Descripción',
+
+    // Pricing (form)
+    'monthly_price' => 'Precio mensual',
+    'yearly_price' => 'Precio anual',
+    'currency' => 'Moneda',
+    'billing_interval' => 'Intervalo de facturación',
+    'sort_order' => 'Orden de aparición',
+
+    // Features
+    'features' => 'Características',
+    'key' => 'Clave',
+    'value' => 'Valor',
+    'action' => 'Acción',
+    'add' => 'Agregar',
+    'delete_item' => 'Eliminar elemento', // por si lo necesitás
+    'no_features_yet' => 'Aún no agregaste características.',
+    'key_placeholder_support' => 'Clave (p. ej., support)',
+    'value_placeholder_example' => 'Valor (p. ej., email / true)',
+
+    // Additional limits
+    'additional_limits' => 'Límites adicionales',
+    'no_limits_yet' => 'Aún no agregaste límites.',
+    'key_placeholder_exports' => 'Clave (p. ej., exports_per_month)',
+    'value_placeholder_number' => 'Valor (p. ej., 50)',
+
+    // Footer acciones
+    'saved' => 'Guardado.',
+    'update_plan' => 'Actualizar plan',
+    'create_plan' => 'Crear plan',
+    'back' => 'Volver',
+    'cancel' => 'Cancelar',
+    'back_list' => 'Volver al listado',
+
+    'training_goals' => 'Objetivos de entrenamiento',
+    'training_goals_subheading' => 'Gestioná el catálogo de objetivos de entrenamiento (pérdida de grasa, ganancia muscular, rendimiento, rehabilitación).',
+    'new_goal' => 'Nuevo objetivo',
+    'edit_training_goal' => 'Editar objetivo de entrenamiento',
+    'new_training_goal' => 'Nuevo objetivo de entrenamiento',
+    'training_goal_subheading' => 'Definí o actualizá los objetivos de entrenamiento disponibles.',
+    'goal_updated' => 'Objetivo actualizado.',
+    'goal_created' => 'Objetivo creado.',
+    'update_goal' => 'Actualizar objetivo',
+    'create_goal' => 'Crear objetivo',
+    'delete_goal_title' => '¿Eliminar objetivo?',
+    'delete_goal_message' => 'Esto moverá el objetivo a la papelera (borrado lógico). ¿Estás seguro?',
+    'no_goals_found' => 'No se encontraron objetivos.',
+
+    'training_phases' => 'Fases de entrenamiento',
+    'training_phases_subheading' => 'Gestioná el catálogo de fases de entrenamiento (fuerza, hipertrofia, mantenimiento, descarga).',
+    'new_phase' => 'Nueva fase',
+    'edit_training_phase' => 'Editar fase de entrenamiento',
+    'new_training_phase' => 'Nueva fase de entrenamiento',
+    'training_phase_subheading' => 'Definí o actualizá las fases de entrenamiento disponibles.',
+    'phase_updated' => 'Fase de entrenamiento actualizada.',
+    'phase_created' => 'Fase de entrenamiento creada.',
+    'update_phase' => 'Actualizar fase',
+    'create_phase' => 'Crear fase',
+    'delete_phase_title' => '¿Eliminar fase?',
+    'delete_phase_message' => 'Esto moverá la fase a la papelera (borrado lógico). ¿Estás seguro?',
+    'no_phases_found' => 'No se encontraron fases.',
+
+    'communication_channels' => 'Canales de comunicación',
+    'communication_channels_subheading' => 'Gestioná los canales de comunicación preferidos (App, WhatsApp, Email).',
+    'new_channel' => 'Nuevo canal',
+    'edit_communication_channel' => 'Editar canal de comunicación',
+    'new_communication_channel' => 'Nuevo canal de comunicación',
+    'communication_channel_subheading' => 'Definí o actualizá los canales disponibles para contactar a tus alumnos.',
+    'channel_updated' => 'Canal actualizado.',
+    'channel_created' => 'Canal creado.',
+    'update_channel' => 'Actualizar canal',
+    'create_channel' => 'Crear canal',
+    'delete_channel_title' => '¿Eliminar canal?',
+    'delete_channel_message' => 'Esto moverá el canal a la papelera (borrado lógico). ¿Estás seguro?',
+    'no_channels_found' => 'No se encontraron canales.',
+
+
+    // Payment Methods
+    'payment_methods' => 'Medios de pago',
+    'payment_methods_subheading' => 'Gestioná los medios de pago (transferencia, tarjeta, efectivo, pasarelas como Mercado Pago).',
+    'new_payment_method' => 'Nuevo medio de pago',
+    'edit_payment_method' => 'Editar medio de pago',
+    'new_payment_method' => 'Nuevo medio de pago',
+    'payment_method_subheading' => 'Definí medios de pago, instrucciones y, si aplica, conectá tokens de proveedores.',
+    'payment_method_updated' => 'Medio de pago actualizado.',
+    'payment_method_created' => 'Medio de pago creado.',
+    'update_payment_method' => 'Actualizar medio de pago',
+    'create_payment_method' => 'Crear medio de pago',
+    'delete_payment_method_title' => '¿Eliminar medio de pago?',
+    'delete_payment_method_message' => 'Esto moverá el medio de pago a la papelera (borrado lógico). ¿Estás seguro?',
+    'no_payment_methods_found' => 'No se encontraron medios de pago.',
+
+    'instructions' => 'Instrucciones',
+    'provider' => 'Proveedor',
+    'api_token' => 'Token/API Key',
+
+    // Placeholders
+    'pm_description_placeholder' => 'Ej.: Pago con tarjeta a través de tu pasarela preferida.',
+    'pm_instructions_placeholder' => "Ej.: Transferencia: Banco X, CBU 000..., Alias ALIAS.BANCO.\nEfectivo: 5% de descuento hasta el día del vencimiento.",
+    'pm_token_placeholder' => 'Pegá aquí el token/clave del proveedor (ej.: Access Token de Mercado Pago).',
+
+
+    'platform'              => 'Plataforma',
+    'dashboard'             => 'Panel',
+    'landing'               => 'Landing',
+    'configuration'         => 'Configuración',
+
+    'business_setup'        => 'Configurar negocio',
+    'commercial_plans'      => 'Planes comerciales',
+    'payment_methods'       => 'Métodos de pago',
+    'communication_channels' => 'Canales de comunicación',
+
+    'training'              => 'Entrenamiento',
+    'training_goals'        => 'Objetivos de entrenamiento',
+    'training_phases'       => 'Fases de entrenamiento',
+
+    'management'            => 'Gestión',
+    'contacts'              => 'Contactos',
+    'roles'                 => 'Roles',
+    'users'                 => 'Usuarios',
+
+    'profile'               => 'Perfil',
+    'log_out'               => 'Cerrar sesión',
+
+
+    // Tags
+    'tags' => 'Tags',
+    'tags_subheading' => 'Gestioná etiquetas administrables para clasificar alumnos, rutinas y objetivos.',
+    'new_tag' => 'Nuevo tag',
+    'edit_tag' => 'Editar tag',
+    'tag_subheading' => 'Definí o actualizá tags. Podés usar color para identificarlos visualmente.',
+    'tag_updated' => 'Tag actualizado.',
+    'tag_created' => 'Tag creado.',
+    'update_tag' => 'Actualizar tag',
+    'create_tag' => 'Crear tag',
+    'delete_tag_title' => '¿Eliminar tag?',
+    'delete_tag_message' => 'Esto moverá el tag a la papelera (borrado lógico). ¿Estás seguro?',
+    'no_tags_found' => 'No se encontraron tags.',
+
+    'color' => 'Color',
+    'tag_description_placeholder' => 'Ej.: Preparación específica para maratón; o “alumno con retorno de lesión”.',
+
+    'students' => 'Alumnos',
+    'students_subheading' => 'Gestioná el padrón de alumnos: búsqueda, filtros y acciones rápidas.',
+    'new_student' => 'Nuevo alumno',
+    'edit_student' => 'Editar alumno',
+    'student_subheading' => 'Completá o actualizá los datos del alumno.',
+    'student' => 'Alumno',
+    'last_access' => 'Último acceso',
+    'adherence' => 'Adherencia',
+    'no_students_found' => 'No se encontraron alumnos.',
+    'student_created' => 'Alumno creado.',
+    'student_updated' => 'Alumno actualizado.',
+    'create_student' => 'Crear alumno',
+    'update_student' => 'Actualizar alumno',
+
+    // --- Shared / UI helpers ---
+    'search_placeholder_students' => 'Nombre, email, teléfono, documento…',
+    'select_option' => '— Seleccionar —',
+
+    // --- Sections ---
+    'section_identity_contact' => 'Identificación y contacto',
+    'section_profile_access' => 'Perfil y accesos',
+    'section_goals_preferences' => 'Objetivos y preferencias',
+    'section_health_background' => 'Salud y antecedentes',
+    'section_planning' => 'Planificación en curso',
+    'section_comm_admin' => 'Comunicación y administración',
+    'section_consents_relations' => 'Consentimientos y relaciones',
+
+    // --- Identity / Contact ---
+    'first_name' => 'Nombre',
+    'last_name' => 'Apellido',
+    'document' => 'Documento',
+    'timezone' => 'Zona horaria',
+    'gender' => 'Género',
+
+    // --- Profile / Access ---
+    'enable_user_access' => 'Habilitar acceso de usuario',
+    'language' => 'Idioma',
+    'avatar' => 'Avatar',
+
+    // --- Goals / Prefs ---
+    'primary_goal' => 'Objetivo principal',
+    'height_cm' => 'Altura (cm)',
+    'weight_kg' => 'Peso (kg)',
+    'availability' => 'Disponibilidad horaria',
+    'experience_summary' => 'Experiencia previa',
+
+    // --- Health ---
+    'apt_fitness_status' => 'Apto físico',
+    'valid' => 'Vigente',
+    'expired' => 'Vencido',
+    'not_required' => 'No requerido',
+    'apt_expires_at' => 'Vence el',
+    'apt_upload' => 'Archivo de apto físico',
+    'parq_result' => 'Resultado PAR-Q',
+    'parq_fit' => 'Apto',
+    'parq_refer' => 'Derivar a médico',
+    'parq_date' => 'Fecha PAR-Q',
+    'medical_history_notes' => 'Antecedentes médicos',
+    'injuries_notes' => 'Lesiones / condiciones',
+    'meds_allergies' => 'Medicación / alergias',
+
+    // --- Planning ---
+    'training_phase' => 'Fase de entrenamiento',
+    'plan_start' => 'Inicio de plan',
+    'plan_end' => 'Fin de plan',
+
+    // --- Communication / Admin ---
+    'preferred_channel' => 'Canal preferido',
+    'commercial_plan' => 'Plan comercial',
+    'billing_frequency' => 'Frecuencia de facturación',
+    'payment_method' => 'Medio de pago',
+    'account_status' => 'Estado de cuenta',
+    'account_on_time' => 'Al día',
+    'account_due' => 'Adeuda',
+    'account_review' => 'En revisión',
+    'lead_source' => 'Origen',
+    'notifications' => 'Notificaciones',
+    'marketing' => 'Marketing',
+    'reminders' => 'Recordatorios',
+    'news' => 'Novedades',
+    'private_notes' => 'Observaciones privadas',
+
+    // --- Consents / Relations ---
+    'tos_accepted_at' => 'Términos aceptados (fecha)',
+    'sensitive_data_consent_at' => 'Consentimiento datos sensibles (fecha)',
+    'image_consent' => 'Consentimiento de imagen',
+    'image_consent_at' => 'Fecha consentimiento de imagen',
+    'emergency_name' => 'Contacto de emergencia (nombre)',
+    'emergency_relation' => 'Relación',
+    'emergency_phone' => 'Teléfono de emergencia',
+
+    // --- Tags (typeahead + chips) ---
+    'type_to_search_or_create' => 'Escribí para buscar o crear…',
+    'no_results' => 'Sin resultados',
+    'create_tag_named' => 'Crear tag',
+    'no_tags_selected' => 'No hay tags seleccionados',
+
+
+    'active_students'       => 'Alumnos activos',
+    'running_routines'      => 'Rutinas en curso',
+    'unread_messages'       => 'Mensajes sin responder',
+    'contacts_today'        => 'Contactos hoy',
+    'other_metric'          => 'Otra métrica',
+    'updated'               => 'Actualizado',
+
+    'published_per_week'    => 'Publicados por semana',
+    'no_data_yet'           => 'Aún no hay datos',
+    'view_all'              => 'Ver todo',
+
+    'quick_actions'         => 'Acciones rápidas',
+    'new_payment'           => 'Nuevo pago',
+    'view_students'         => 'Ver alumnos',
+    'manage_routines'       => 'Gestionar rutinas',
+    'review_unread'         => 'Revisar no leídos',
+
+    'recent_contacts'       => 'Contactos recientes',
+    'topic'                 => 'Tema',
+    'when'                  => 'Cuándo',
+    'top_packages'          => 'Top paquetes',
+    'no_packages_yet'       => 'Todavía no hay paquetes',
+
+    'new_student_subheading' => 'Cargá los datos mínimos para dar de alta un alumno.',
+    'save_and_continue'     => 'Guardar y continuar',
+    'ready_to_publish'      => 'Listos para publicar',
+    'mark_all_as_read' => 'Marcar todo como leido',
+    'health_title'        => 'Salud y apto',
+    'health_subheading'   => 'Gestioná el apto físico, PAR-Q, contactos de emergencia y consentimientos.',
+
+    'section_apt'         => 'Apto físico',
+    'section_parq'        => 'PAR-Q',
+    'section_emergency_contact' => 'Contacto de emergencia',
+    'section_consents'    => 'Consentimientos',
+
+    'add_item'              => 'Agregar',
+    'remove_item'           => 'Quitar',
+    'no_items_yet'          => 'Todavía no hay elementos.',
+    'injuries'              => 'Lesiones / condiciones',
+    'medical_history'       => 'Antecedentes médicos',
+    'medications_allergies' => 'Medicación / alergias',
+    'add_injury'            => 'Agregar lesión/condición',
+    'add_medical_history'   => 'Agregar antecedente',
+    'add_med_allergy'       => 'Agregar medicación/alergia',
 ];

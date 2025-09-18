@@ -17,7 +17,11 @@
                 <flux:navlist.group :heading="__('site.platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('site.dashboard') }}</flux:navlist.item>
 
-                    <flux:navlist.item icon="users" :href="route('central.dashboard.clients.index')" :current="request()->routeIs('central.dashboard.clients.*')" wire:navigate>{{ __('Clients') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('central.dashboard.clients.index')" :current="request()->routeIs('central.dashboard.clients.*')" wire:navigate>{{ __('central.clients') }}</flux:navlist.item>
+
+                    <flux:navlist.item icon="message-square-more" :href="route('central.dashboard.contacts.index')" :current="request()->routeIs('central.dashboard.contacts.*')" wire:navigate>{{ __('site.contacts') }}</flux:navlist.item>
+
+
 
                     <flux:navlist.item icon="scroll-text" :href="route('central.dashboard.log-viewer')" :current="request()->routeIs('central.dashboard.log-viewer')" wire:navigate>{{ __('Logs') }}</flux:navlist.item>
 

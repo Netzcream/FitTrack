@@ -3,6 +3,7 @@
 namespace App\Livewire\Central\Dashboard\Clients;
 
 use App\Models\Tenant;
+use App\Models\Central\Plan;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -42,21 +43,26 @@ class ClientsForm extends Component
     public string $slug = '';
     public ?string $slug_suggestion = null;
     public bool $slug_manually_edited = false;
+    public $plan_id = null;
 
     // Si querés mostrar mensajes de error custom, podés agregar:
     public array $reservedSubdomains = ['www', 'admin', 'mail', 'api', 'ftp', 'cpanel', 'webmail', 'lunico', 'test'];
+
+    public $plans;
 
     // =========================================================================
     // 🔁 Ciclo de vida
     // =========================================================================
     public function mount($client = null)
     {
+        $this->plans = Plan::all();
         if ($client) {
             $this->client = $client;
             $this->name = $client->name;
             $this->admin_email = $client->admin_email;
             $this->status = $client->status->value;
             $this->id = $this->client->id;
+            $this->plan_id = $client->plan_id;
             $this->edit_mode = true;
             $this->domains = $this->client->domains()->orderBy('id')->get(['id', 'domain'])->toArray();
             $this->slug = $this->id;
@@ -114,7 +120,7 @@ class ClientsForm extends Component
 
                 function ($attribute, $value, $fail) {
                     if (Str::lower($value) === Str::lower($this->name)) {
-                        $fail('La contraseña no puede ser igual al nombre del cliente.');
+                        $fail('La contraseña no puede ser igual al nombre del entrenador.');
                     }
                 },
             ];
@@ -181,9 +187,10 @@ class ClientsForm extends Component
                 'name' => $this->name,
                 'admin_email' => $this->admin_email,
                 'status' => $this->status,
+                'plan_id' => $this->plan_id,
             ]);
 
-            session()->flash('success', 'Cliente actualizado.');
+            session()->flash('success', __('central.client_updated'));
             $this->redirect(route('central.dashboard.clients.index', $this->client), navigate: true);
         } else {
             // Alta nueva, igual que el paso anterior
@@ -194,6 +201,7 @@ class ClientsForm extends Component
                 'name' => $this->name,
                 'admin_email' => $this->admin_email,
                 'status' => $this->status,
+                'plan_id' => $this->plan_id,
             ]);
             $subdomain = $id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
             $tenant->domains()->create([
@@ -210,7 +218,7 @@ class ClientsForm extends Component
                 }
             });
             event(new \App\Events\TenantCreatedSuccessfully($tenant, $subdomain));
-            session()->flash('success', 'Cliente creado.');
+            session()->flash('success', __('central.client_created'));
             $this->redirect(route('central.dashboard.clients.index', $tenant), navigate: true);
         }
     }
@@ -243,13 +251,13 @@ class ClientsForm extends Component
         // Evitar que agreguen subdominios de tu root en esta pantalla
         $root = env('APP_DOMAIN', 'fittrack.com.ar');
         if (Str::endsWith($domain, '.' . $root)) {
-            $this->addError('new_domain', 'Usá esta pantalla solo para dominios propios del cliente (no subdominios de ' . $root . ').');
+            $this->addError('new_domain', 'Usá esta pantalla solo para dominios propios del entrenador (no subdominios de ' . $root . ').');
             return;
         }
 
         // Seguridad: debe existir un cliente (edit mode)
         if (!$this->client) {
-            $this->addError('new_domain', 'Primero guardá el cliente.');
+            $this->addError('new_domain', 'Primero guardá el entrenador.');
             return;
         }
 

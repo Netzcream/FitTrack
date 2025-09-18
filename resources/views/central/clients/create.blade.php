@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Nuevo - Clientes')">
+<x-layouts.app :title="__('site.new').' - '.__('central.clients')">
 
 
     <div class="flex items-start max-md:flex-col">
@@ -8,8 +8,8 @@
 
                 <div class="flex items-center justify-between gap-4 flex-wrap">
                     <div>
-                        <flux:heading size="xl" level="1">{{ __('Clientes') }}</flux:heading>
-                        <flux:subheading size="lg">{{ __('Nuevo cliente') }}</flux:subheading>
+                        <flux:heading size="xl" level="1">{{ __('central.clients') }}</flux:heading>
+                        <flux:subheading size="lg">{{ __('central.new_client') }}</flux:subheading>
                     </div>
 
                     <flux:button as="a" href="{{ route('central.dashboard.clients.index') }}" variant="outline"
@@ -30,7 +30,7 @@
                         @csrf
 
                         <div>
-                            <flux:label for="name">{{ __('Nombre del cliente') }}</flux:label>
+                            <flux:label for="name">{{ __('Nombre del entrenador') }}</flux:label>
                             <flux:input class="mt-2" id="name" name="name" type="text" :value="old('name')"
                                 placeholder="Ingrese nombre" required autofocus />
                             @error('name')

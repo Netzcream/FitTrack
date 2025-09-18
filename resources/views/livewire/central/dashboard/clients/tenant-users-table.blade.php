@@ -2,9 +2,9 @@
     <div class="p-4 border-b border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center justify-between">
             <div>
-                <flux:heading size="lg" level="2">{{ __('Usuarios del cliente') }}</flux:heading>
+                <flux:heading size="lg" level="2">{{ __('Usuarios del entrenador') }}</flux:heading>
                 <flux:subheading size="md" class="mt-1">
-                    {{ __('Listado de usuarios pertenecientes a este cliente') }}
+                    {{ __('Listado de usuarios pertenecientes a este entrenador') }}
                 </flux:subheading>
             </div>
         </div>

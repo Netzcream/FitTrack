@@ -81,6 +81,15 @@ class Cards extends Component
             'card_order'  => 'nullable|integer|min:0',
             'card_image'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'card_active'  => 'boolean',
+        ],[], [
+            'card_text'   => __('tenant.landing.cards.text'),
+            'card_link'   => __('tenant.landing.cards.link'),
+            'card_title'  => __('tenant.landing.cards.title'),
+            'card_target' => __('tenant.landing.cards.target'),
+            'card_order'  => __('tenant.landing.cards.order'),
+            'card_active' => __('tenant.landing.cards.active'),
+            'card_image'  => __('tenant.landing.cards.image'),
+            'card_active' => __('tenant.landing.cards.active'),
         ]);
 
 
@@ -178,6 +187,7 @@ class Cards extends Component
             'subtitle' => 'nullable|string|max:50',
             'show' => 'boolean',
         ]);
+
         foreach ($this->cards as $card) {
             if (!empty($card['to_delete']) && $card['to_delete']) {
                 $cardModel = LandingCard::where('uuid', $card['uuid'])->first();

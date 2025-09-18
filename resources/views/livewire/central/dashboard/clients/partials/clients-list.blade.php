@@ -24,6 +24,10 @@
                             </th>
                             <th
                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                {{ __('Plan') }}
+                            </th>
+                            <th
+                                class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                                 {{ __('DDBB') }}
                             </th>
                             <th
@@ -60,6 +64,9 @@
                                     @endif
 
 
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
+                                    {{ $client->plan?->name ?? '—' }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                                     {{ $client->tenancy_db_name ?? '—' }}
@@ -115,7 +122,7 @@
                             <tr>
                                 <td colspan="6"
                                     class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
-                                    {{ __('No hay clientes cargados.') }}
+                                    {{ __('No hay entrenadores cargados.') }}
                                 </td>
                             </tr>
                         @endforelse
@@ -137,10 +144,10 @@
         @contact-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-client-force' })">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('¿Eliminar cliente definitivamente?') }}</flux:heading>
+                <flux:heading size="lg">{{ __('¿Eliminar entrenador definitivamente?') }}</flux:heading>
 
                 <flux:text class="mt-2">
-                    {{ __('Esta acción ELIMINARÁ el cliente DEFINITIVAMENTE y no podrá deshacerse. ¿Estás seguro?') }}
+                    {{ __('Esta acción ELIMINARÁ el entrenador DEFINITIVAMENTE y no podrá deshacerse. ¿Estás seguro?') }}
                 </flux:text>
             </div>
 
@@ -164,10 +171,10 @@
         @contact-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-client' })">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('¿Eliminar cliente?') }}</flux:heading>
+                <flux:heading size="lg">{{ __('¿Eliminar entrenador?') }}</flux:heading>
 
                 <flux:text class="mt-2">
-                    {{ __('Esta acción eliminará el cliente. ¿Estás seguro?') }}
+                    {{ __('Esta acción eliminará el entrenador. ¿Estás seguro?') }}
                 </flux:text>
             </div>
 

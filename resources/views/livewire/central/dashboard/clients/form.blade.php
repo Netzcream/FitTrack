@@ -5,13 +5,14 @@
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <flux:heading size="xl" level="1">{{ __('central.clients.index.title') }}</flux:heading>
+                    <flux:heading size="xl" level="1">{{ __('central.clients') }}</flux:heading>
                     <flux:subheading size="lg" class="mb-6">
-                        {{ __('central.clients.index.subtitle') }}
+                        {{ __('central.clients_subtitle') }}
                     </flux:subheading>
                 </div>
 
-                <flux:button as="a" href="{{ route('central.dashboard.clients.index') }}" variant="outline" icon="chevron-left">
+                <flux:button as="a" href="{{ route('central.dashboard.clients.index') }}" variant="outline"
+                    icon="chevron-left">
                     {{ __('Volver al listado') }}
                 </flux:button>
             </div>
@@ -27,7 +28,7 @@
                 <form wire:submit.prevent="save" class="space-y-4">
                     @if ($this->client)
                         <div>
-                            <flux:label for="name">{{ __('Nombre del cliente') }}</flux:label>
+                            <flux:label for="name">{{ __('Nombre del entrenador') }}</flux:label>
                             <flux:input class="mt-2" id="name" wire:model.defer="name" type="text"
                                 placeholder="Ingrese nombre" required maxlength="24" autofocus />
                             @error('name')
@@ -37,8 +38,8 @@
 
                         <div>
                             <flux:label for="admin_email">{{ __('Mail del administrador') }}</flux:label>
-                            <flux:input class="mt-2" id="admin_email" wire:model.defer="admin_email"
-                                type="email" placeholder="Ingrese mail del administrador" readonly disabled maxlength="255" />
+                            <flux:input class="mt-2" id="admin_email" wire:model.defer="admin_email" type="email"
+                                placeholder="Ingrese mail del administrador" readonly disabled maxlength="255" />
                             @error('admin_email')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -47,7 +48,8 @@
                         <div>
                             <flux:label for="id">{{ __('Subdominio') }}</flux:label>
                             <flux:input class="mt-2" id="id"
-                                value="{{ $this->client?->id }}.{{ env('APP_DOMAIN') }}" type="text" readonly disabled />
+                                value="{{ $this->client?->id }}.{{ env('APP_DOMAIN') }}" type="text" readonly
+                                disabled />
                             @error('id')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
@@ -70,6 +72,21 @@
                         @enderror
                     </div>
 
+
+                    <div>
+                        <flux:label for="status">{{ __('Plan') }}</flux:label>
+                        <select wire:model.defer="plan_id" id="plan_id"
+                            class="mt-2 p-5 w-full rounded-lg block text-base sm:text-sm py-2 h-10 bg-white dark:bg-white/10 text-zinc-700 dark:text-zinc-300">
+                            <option value="">{{ __('Seleccionar') }}</option>
+                            @foreach ($plans as $plan)
+                                <option value="{{ $plan->id }}">{{ $plan->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('plan_id')
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     @include('livewire.central.dashboard.clients.partials.domains')
 
                     <div class="flex justify-end">
@@ -82,7 +99,8 @@
                                 </flux:modal.trigger>
                             @else
                                 <flux:button as="a" icon="arrow-uturn-left"
-                                    href="{{ route('central.dashboard.clients.index') }}" variant="filled" wire:navigate>
+                                    href="{{ route('central.dashboard.clients.index') }}" variant="filled"
+                                    wire:navigate>
                                     {{ __('Volver al listado') }}
                                 </flux:button>
                             @endif
@@ -102,14 +120,18 @@
             {{-- Columna DERECHA: Tabla de usuarios del tenant --}}
             <aside class="w-full md:col-span-2">
                 @if ($this->client)
-                    @livewire('central.dashboard.clients.tenant-users-table', [
-                        'tenantId' => $this->client->id,
-                    ], key('tenant-users-'.$this->client->id))
+                    @livewire(
+                        'central.dashboard.clients.tenant-users-table',
+                        [
+                            'tenantId' => $this->client->id,
+                        ],
+                        key('tenant-users-' . $this->client->id)
+                    )
                 @else
                     <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4">
                         <flux:heading size="lg" level="2">{{ __('Usuarios del tenant') }}</flux:heading>
                         <p class="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
-                            {{ __('Seleccioná o creá un cliente para ver sus usuarios.') }}
+                            {{ __('Seleccioná o creá un entrenador para ver sus usuarios.') }}
                         </p>
                     </div>
                 @endif

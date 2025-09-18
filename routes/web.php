@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use App\Livewire\Central\Contact\Index as ContactIndex;
 
 
 $first = true;
@@ -53,7 +54,9 @@ foreach (config('tenancy.central_domains') as $domain) {
                     Route::get('/{client}/edit', ClientsForm::class)->name('edit');
                 });
 
-
+                Route::prefix('contacts')->name('contacts.')->group(function () {
+                    Route::get('/', ContactIndex::class)->name('index');
+                });
 
                 //Route::resource('clients', ClientController::class);
                 Route::delete('clients/{client}/force', [ClientController::class, 'forceDestroy'])

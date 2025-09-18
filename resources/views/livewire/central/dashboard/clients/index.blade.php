@@ -5,8 +5,8 @@
 
                 <div class="flex items-center justify-between gap-4 flex-wrap">
                     <div>
-                        <flux:heading size="xl" level="1">{{ __('central.clients.index.title') }}</flux:heading>
-                        <flux:subheading size="lg" class="mb-6">{{ __('central.clients.index.subtitle') }}</flux:subheading>
+                        <flux:heading size="xl" level="1">{{ __('central.clients') }}</flux:heading>
+                        <flux:subheading size="lg" class="mb-6">{{ __('central.clients_subtitle') }}</flux:subheading>
 
                     </div>
 

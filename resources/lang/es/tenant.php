@@ -20,6 +20,9 @@ return [
             'logo' => 'Logo',
             'favicon' => 'Favicon',
         ],
+        'landing' => [
+            'landing_whatsapp' => 'WhatsApp'
+        ]
 
     ],
 
@@ -50,7 +53,7 @@ return [
             'link' => 'Enlace',
             'target' => 'Destino',
             'order' => 'Orden',
-            'image' => 'Imagen de fondo (opcional)',
+            'image' => 'Imagen (opcional)',
             '_self' => 'Misma pestaña',
             '_blank' => 'Nueva pestaña',
         ],
@@ -62,7 +65,8 @@ return [
             'link' => 'Enlace',
             'target' => 'Destino',
             'order' => 'Orden',
-            'image' => 'Imagen de fondo (opcional)',
+            'image' => 'Imagen',
+
             '_self' => 'Misma pestaña',
             '_blank' => 'Nueva pestaña',
             'title_section' => 'Título de sección',
@@ -71,19 +75,23 @@ return [
 
 
         'booklets' => [
-            'title' => 'Prestadores destacadas',
-            'subtitle' => 'Muestra las prestadores de tu sitio',
+            'title' => 'Confían en nosotros',
+            'subtitle' => 'Muestra las marcas, clientes o aliados de tu sitio',
             'text' => 'Texto',
             'link' => 'Enlace',
-            'landing_booklet_title' => 'Título del banner de presstadores',
+            'landing_booklet_title' => 'Título del banner de confianza',
             'target' => 'Destino',
             'order' => 'Orden',
-            'image' => 'Imagen de fondo (opcional)',
+            'image' => 'Imagen / Icono ',
             '_self' => 'Misma pestaña',
             '_blank' => 'Nueva pestaña',
             'title_section' => 'Título de sección',
             'subtitle_section' => 'Subtítulo de sección',
+            'active' => 'Activo',
+            'show'   => 'Mostrar sección',
+
         ],
+
 
 
 

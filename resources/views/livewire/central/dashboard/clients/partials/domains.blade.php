@@ -1,8 +1,8 @@
 @if ($this->client)
     <div class="mt-6">
-        <flux:heading size="lg">{{ __('Dominios del cliente') }}</flux:heading>
+        <flux:heading size="lg">{{ __('Dominios del entrenador') }}</flux:heading>
         <flux:subheading size="md" class="mt-1">
-            {{ __('Podés agregar dominios propios del cliente (apex y/o www). El subdominio principal no puede eliminarse.') }}
+            {{ __('Podés agregar dominios propios del entrenador (apex y/o www). El subdominio principal no puede eliminarse.') }}
         </flux:subheading>
 
         {{-- Listado --}}

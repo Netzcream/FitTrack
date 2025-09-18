@@ -27,7 +27,10 @@ class Booklets extends Component
     public $edit_mode = false;
     public string $title = '';
     public string $subtitle = '';
-    public string $show = '';
+    public bool $show = false;
+
+
+
     public function mount(): void
     {
         $tenant = tenant();
@@ -74,23 +77,32 @@ class Booklets extends Component
     public function saveBooklet()
     {
 
+
         $rules = [
             'booklet_text'   => 'nullable|string|max:255',
             'booklet_link'   => 'nullable|url',
             'booklet_target' => 'required|in:_self,_blank',
             'booklet_order'  => 'nullable|integer|min:0',
-            'booklet_active'  => 'boolean',
+            'booklet_active' => 'boolean',
         ];
 
         if (!$this->edit_mode) {
-            $rules['booklet_image'] =  'required|image|mimes:jpg,jpeg,png,webp|max:10048';
+            $rules['booklet_image'] = 'required|image|mimes:jpg,jpeg,png,webp|max:10048';
         } else {
             $rules['booklet_image'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:20000';
         }
-        $this->validate($rules);
+
+        $this->validate($rules, [], [
+            'booklet_text'   => __('tenant.landing.booklets.text'),
+            'booklet_link'   => __('tenant.landing.booklets.link'),
+            'booklet_target' => __('tenant.landing.booklets.target'),
+            'booklet_order'  => __('tenant.landing.booklets.order'),
+            'booklet_active' => __('tenant.landing.booklets.active'),
+            'booklet_image'  => __('tenant.landing.booklets.image'),
+        ]);
 
 
-        // Si está en modo edición
+
 
         if ($this->edit_mode && $this->booklet_uuid) {
             $booklet = LandingBooklet::where('uuid', $this->booklet_uuid)->first();
@@ -180,7 +192,7 @@ class Booklets extends Component
     public function save(): void
     {
 
-       $this->validate([
+        $this->validate([
             'title' => 'nullable|string|max:50',
             'subtitle' => 'nullable|string|max:50',
             'show' => 'boolean',

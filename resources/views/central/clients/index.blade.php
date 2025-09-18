@@ -1,4 +1,4 @@
-<x-layouts.app :title="__('Clientes')">
+<x-layouts.app :title="__('central.clients')">
 
 
 
@@ -9,8 +9,8 @@
 
                 <div class="flex items-center justify-between gap-4 flex-wrap">
                     <div>
-                        <flux:heading size="xl" level="1">{{ __('Clientes') }}</flux:heading>
-                        <flux:subheading size="lg">{{ __('Listados de clientes') }}</flux:subheading>
+                        <flux:heading size="xl" level="1">{{ __('central.clients') }}</flux:heading>
+                        <flux:subheading size="lg">{{ __('central.list_of_clients') }}</flux:subheading>
                     </div>
 
                     <flux:button

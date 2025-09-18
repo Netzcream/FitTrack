@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('landing_cards', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('title')->nullable()->change();
+            $table->string('title')->nullable();
             $table->string('text')->nullable();
             $table->string('link')->nullable();
             $table->string('target')->default('_self');

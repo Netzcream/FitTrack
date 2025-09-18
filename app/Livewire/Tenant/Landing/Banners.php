@@ -80,7 +80,16 @@ class Banners extends Component
         } else {
             $rules['banner_image'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:20000';
         }
-        $this->validate($rules);
+
+        $this->validate($rules, [], [
+            'banner_text'   => __('tenant.landing.banners.text'),
+            'banner_link'   => __('tenant.landing.banners.link'),
+            'banner_target' => __('tenant.landing.banners.target'),
+            'banner_order'  => __('tenant.landing.banners.order'),
+            'banner_active' => __('tenant.landing.banners.active'),
+            'banner_image'  => __('tenant.landing.banners.image'),
+        ]);
+
 
         if ($this->edit_mode && $this->banner_uuid) {
             $banner = LandingBanner::where('uuid', $this->banner_uuid)->first();
