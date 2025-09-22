@@ -15,7 +15,8 @@ class TenantSeeder extends Seeder
         // Permisos y roles
 
         $this->call([
-            RoleAndPermissionSeeder::class
+            RoleAndPermissionSeeder::class,
+            MasterExercisesCatalogSeeder::class,
         ]);
 
 

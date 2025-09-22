@@ -408,4 +408,9 @@ return [
     'add_injury'            => 'Agregar lesión/condición',
     'add_medical_history'   => 'Agregar antecedente',
     'add_med_allergy'       => 'Agregar medicación/alergia',
+    "paused" => 'Pausado',
+    "inactive" => 'Inactivo',
+    "prospect" => "Prospect",
+    'section_medical_background' => 'Antecedentes Médicos',
+    'select' => 'Seleccionar',
 ];

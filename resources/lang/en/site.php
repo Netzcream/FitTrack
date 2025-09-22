@@ -7,4 +7,5 @@ return [
     'configuration' => 'configuration',
     'configuration_subtitle' => 'Manage your site settings',
     'platform' => 'Platform',
+    'section_medical_background' => 'Medical Background',
 ];

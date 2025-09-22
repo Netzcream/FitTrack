@@ -1,6 +1,7 @@
 <div class="space-y-6">
+    {{-- --}}
     <div>
-        <flux:heading size="xl" level="1">{{ __('site.edit_student') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Datos Personales') }}</flux:heading>
         <flux:subheading size="lg" class="mb-6">
             {{ __('site.student_subheading') }}
         </flux:subheading>
@@ -30,8 +31,7 @@
                     <flux:input wire:model.defer="phone" label="{{ __('site.phone') }}" />
                 </div>
                 <div>
-                    <flux:label class="text-xs">{{ __('site.status') }}</flux:label>
-                    <flux:select wire:model.defer="status">
+                    <flux:select label="{{ __('site.status') }}" wire:model.defer="status">
                         <option value="">{{ __('site.select_option') }}</option>
                         <option value="active">{{ __('site.active') }}</option>
                         <option value="paused">{{ __('site.paused') }}</option>
@@ -52,14 +52,13 @@
                     <input type="file" wire:model="avatar" accept="image/*" class="block w-full text-sm" />
                 </div>
                 <div>
-                    <flux:label class="text-xs">{{ __('site.language') }}</flux:label>
-                    <flux:select wire:model.defer="language">
+                    <flux:select wire:model.defer="language" label="{{ __('site.language') }}">
                         <option value="es">Español</option>
                         <option value="en">English</option>
                     </flux:select>
                 </div>
                 <div>
-                    <flux:label class="text-xs">{{ __('site.enable_user_access') }}</flux:label>
+                    <flux:label >{{ __('site.enable_user_access') }}</flux:label>
                     <flux:checkbox wire:model.defer="is_user_enabled" />
                 </div>
             </div>
@@ -70,8 +69,7 @@
             <flux:heading size="md">{{ __('site.section_goals_preferences') }}</flux:heading>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <flux:label class="text-xs">{{ __('site.primary_goal') }}</flux:label>
-                    <flux:select wire:model.defer="primary_training_goal_id">
+                    <flux:select label="{{ __('site.primary_goal') }}" wire:model.defer="primary_training_goal_id">
                         <option value="">{{ __('site.select_option') }}</option>
                         @foreach ($goals as $g)
                             <option value="{{ $g->id }}">{{ $g->name }}</option>
@@ -141,8 +139,21 @@
 
         {{-- Acciones --}}
         <div class="flex justify-end gap-4 pt-6 items-center">
-            <x-tenant.action-message on="updated">{{ __('site.saved') }}</x-tenant.action-message>
-            <flux:button type="submit" variant="primary">{{ __('site.update_student') }}</flux:button>
+            <x-tenant.action-message on="updated">
+                {{ __('site.saved') }}
+            </x-tenant.action-message>
+
+            <flux:checkbox label="{{ __('site.back_list') }}" wire:model.live="back" />
+
+            <flux:button as="a" variant="ghost" href="{{ route('tenant.dashboard.students.index') }}">
+                {{ __('site.back') }}
+            </flux:button>
+
+            <flux:button type="submit" variant="primary">
+                {{ __('site.update_student') }}
+            </flux:button>
         </div>
+
+
     </form>
 </div>

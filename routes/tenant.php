@@ -99,6 +99,49 @@ Route::middleware([
                 Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 
 
+
+                Route::prefix('exercise-levels')->name('exercise.exercise-levels.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\ExerciseLevels\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\ExerciseLevels\Form::class)->name('create');
+                    Route::get('/{exerciseLevel}/edit', App\Livewire\Tenant\Exercises\ExerciseLevels\Form::class)->name('edit');
+                });
+
+                Route::prefix('movement-patterns')->name('exercise.movement-patterns.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\MovementPatterns\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\MovementPatterns\Form::class)->name('create');
+                    Route::get('/{movementPattern}/edit', App\Livewire\Tenant\Exercises\MovementPatterns\Form::class)->name('edit');
+                });
+
+                Route::prefix('exercise-planes')->name('exercise.exercise-planes.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\ExercisePlanes\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\ExercisePlanes\Form::class)->name('create');
+                    Route::get('/{exercisePlane}/edit', App\Livewire\Tenant\Exercises\ExercisePlanes\Form::class)->name('edit');
+                });
+
+                Route::prefix('exercises')->name('exercise.exercises.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\Exercises\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\Exercises\Form::class)->name('create');
+                    Route::get('/{exercise}/edit', App\Livewire\Tenant\Exercises\Exercises\Form::class)->name('edit');
+                });
+
+                Route::prefix('equipments')->name('exercise.equipments.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\Equipments\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\Equipments\Form::class)->name('create');
+                    Route::get('/{equipment}/edit', App\Livewire\Tenant\Exercises\Equipments\Form::class)->name('edit');
+                });
+
+                Route::prefix('muscles')->name('exercise.muscles.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\Muscles\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\Muscles\Form::class)->name('create');
+                    Route::get('/{muscle}/edit', App\Livewire\Tenant\Exercises\Muscles\Form::class)->name('edit');
+                });
+
+                Route::prefix('muscle-groups')->name('exercise.muscle-groups.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\MuscleGroups\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\MuscleGroups\Form::class)->name('create');
+                    Route::get('/{muscleGroup}/edit', App\Livewire\Tenant\Exercises\MuscleGroups\Form::class)->name('edit');
+                });
+
                 Route::prefix('contacts')->name('contacts.')->group(function () {
                     Route::get('/', ContactIndex::class)->name('index');
                     Route::get('/{contact}', ContactShow::class)->name('show');
@@ -151,6 +194,11 @@ Route::middleware([
                     Route::get('/create', App\Livewire\Tenant\Students\Form::class)->name('create');
                     // Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
                 });
+
+
+
+
+
 
                 Route::prefix('students/{student:uuid}')
                     ->name('students.')

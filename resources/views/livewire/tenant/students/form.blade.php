@@ -451,27 +451,29 @@
                             <span class="text-xs text-gray-500">{{ __('site.no_tags_selected') }}</span>
                         @endforelse
                     </div>
+
+
+
                 </section>
 
+            </div>
+            {{-- Acciones --}}
+            <div class="flex justify-end gap-4 pt-6 items-center">
+                <x-tenant.action-message on="updated">
+                    {{ __('site.saved') }}
+                </x-tenant.action-message>
 
-                {{-- Acciones --}}
-                <div class="flex justify-end gap-4 pt-6 items-center">
-                    <x-tenant.action-message on="updated">
-                        {{ __('site.saved') }}
-                    </x-tenant.action-message>
+                <flux:checkbox label="{{ __('site.back_list') }}" wire:model.live="back" />
 
-                    <flux:checkbox label="{{ __('site.back_list') }}" wire:model.live="back" />
+                <flux:button as="a" variant="ghost" href="{{ route('tenant.dashboard.students.index') }}">
+                    {{ $editMode ? __('site.back') : __('site.cancel') }}
+                </flux:button>
 
-                    <flux:button as="a" variant="ghost"
-                        href="{{ route('tenant.dashboard.students.index') }}">
-                        {{ $editMode ? __('site.back') : __('site.cancel') }}
-                    </flux:button>
-
-                    <flux:button type="submit" variant="primary">
-                        {{ $editMode ? __('site.update_student') : __('site.create_student') }}
-                    </flux:button>
-                </div>
+                <flux:button type="submit" variant="primary">
+                    {{ $editMode ? __('site.update_student') : __('site.create_student') }}
+                </flux:button>
             </div>
         </form>
     </div>
+
 </div>

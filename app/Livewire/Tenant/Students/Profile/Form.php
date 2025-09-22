@@ -16,6 +16,7 @@ class Form extends Component
     use WithFileUploads, BuildsTimezones, ManagesStudentTags;
 
     public Student $student;
+    public bool $back = false;
 
     // Props de esta pestaña
     public ?string $first_name = null, $last_name = null, $document_number = null;
@@ -32,46 +33,62 @@ class Form extends Component
     {
         $this->student = $student;
 
-        foreach ([
-            'first_name','last_name','document_number','email','phone','status','timezone','birth_date',
-            'gender','language','is_user_enabled','primary_training_goal_id','height_cm','weight_kg',
-            'availability_text','experience_summary','preferred_channel_id'
-        ] as $f) {
+        foreach (
+            [
+                'first_name',
+                'last_name',
+                'document_number',
+                'email',
+                'phone',
+                'status',
+                'timezone',
+                'birth_date',
+                'gender',
+                'language',
+                'is_user_enabled',
+                'primary_training_goal_id',
+                'height_cm',
+                'weight_kg',
+                'availability_text',
+                'experience_summary',
+                'preferred_channel_id'
+            ] as $f
+        ) {
             $this->$f = $student->$f;
         }
 
         $this->timezones = $this->buildTimezoneOptions();
 
         $this->selectedTags = $student->tags()
-            ->select('tags.id','tags.name','tags.code','tags.color')
+            ->select('tags.id', 'tags.name', 'tags.code', 'tags.color')
             ->orderBy('tags.name')->get()->map->toArray()->all();
     }
 
     public function rules(): array
     {
         return [
-            'first_name' => ['nullable','string','max:100'],
-            'last_name'  => ['nullable','string','max:100'],
-            'document_number' => ['nullable','string','max:100'],
-            'email'      => ['nullable','email','max:190'],
-            'phone'      => ['nullable','string','max:100'],
-            'status'     => ['required', Rule::in(['active','paused','inactive','prospect'])],
-            'timezone'   => ['nullable','string','max:64'],
-            'birth_date' => ['nullable','date'],
-            'gender'     => ['nullable', Rule::in(['male','female','non_binary','other'])],
-            'language'   => ['nullable', Rule::in(['es','en'])],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name'  => ['nullable', 'string', 'max:100'],
+            'document_number' => ['nullable', 'string', 'max:100'],
+            'email'      => ['nullable', 'email', 'max:190'],
+            'phone'      => ['nullable', 'string', 'max:100'],
+            'status'     => ['required', Rule::in(['active', 'paused', 'inactive', 'prospect'])],
+            'timezone'   => ['nullable', 'string', 'max:64'],
+            'birth_date' => ['nullable', 'date'],
+            'gender'     => ['nullable', Rule::in(['male', 'female', 'non_binary', 'other'])],
+            'language'   => ['nullable', Rule::in(['es', 'en'])],
             'is_user_enabled' => ['boolean'],
             'avatar'     => ['nullable', \Illuminate\Validation\Rules\File::image()->max(4096)],
-            'primary_training_goal_id' => ['nullable','exists:training_goals,id'],
-            'height_cm'  => ['nullable','numeric','between:0,500'],
-            'weight_kg'  => ['nullable','numeric','between:0,500'],
-            'availability_text' => ['nullable','string','max:2000'],
-            'experience_summary' => ['nullable','string','max:2000'],
-            'preferred_channel_id' => ['nullable','exists:communication_channels,id'],
+            'primary_training_goal_id' => ['nullable', 'exists:training_goals,id'],
+            'height_cm'  => ['nullable', 'numeric', 'between:0,500'],
+            'weight_kg'  => ['nullable', 'numeric', 'between:0,500'],
+            'availability_text' => ['nullable', 'string', 'max:2000'],
+            'experience_summary' => ['nullable', 'string', 'max:2000'],
+            'preferred_channel_id' => ['nullable', 'exists:communication_channels,id'],
         ];
     }
 
-    public function save(): void
+    public function save()
     {
         $data = $this->validate();
         $this->student->fill($data)->save();
@@ -89,14 +106,18 @@ class Form extends Component
         session()->flash('success', __('site.student_updated'));
         $this->dispatch('updated');
         $this->mount($this->student->fresh());
+
+        return $this->back
+            ? $this->redirect(route('tenant.dashboard.students.index'), navigate: true)
+            : $this->redirect(route('tenant.dashboard.students.profile', $this->student), navigate: true);
     }
 
     public function render()
     {
         /** @var \Illuminate\View\View $view */
         $view = view('livewire.tenant.students.profile.form', [
-            'goals'    => TrainingGoal::orderBy('name')->get(['id','name']),
-            'channels' => CommunicationChannel::orderBy('name')->get(['id','name']),
+            'goals'    => TrainingGoal::orderBy('name')->get(['id', 'name']),
+            'channels' => CommunicationChannel::orderBy('name')->get(['id', 'name']),
         ]);
 
         $aptInDays = optional($this->student->apt_fitness_expires_at)?->diffInDays(now(), false);
@@ -105,7 +126,7 @@ class Form extends Component
             'student'          => $this->student,
             'active'           => 'profile',
             'overdueInvoices'  => 0,
-            'aptExpiresInDays' => ($aptInDays!==null && $aptInDays>=0)?$aptInDays:null,
+            'aptExpiresInDays' => ($aptInDays !== null && $aptInDays >= 0) ? $aptInDays : null,
             'unreadMessages'   => 0,
         ]);
     }

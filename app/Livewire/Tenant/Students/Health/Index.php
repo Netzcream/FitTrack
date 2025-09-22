@@ -14,6 +14,8 @@ class Index extends Component
     use WithFileUploads;
 
     public Student $student;
+    public $active = 'health';
+    public bool $back = false;
 
     // --- Apto / PAR-Q ---
     public ?string $apt_fitness_status = null;
@@ -182,7 +184,7 @@ class Index extends Component
     }
 
     // ---- Guardar ----
-    public function save(): void
+    public function save()
     {
         $data = $this->validate();
 
@@ -211,6 +213,10 @@ class Index extends Component
 
         // Refrescar estado local
         $this->mount($this->student->fresh());
+
+        return $this->back
+            ? $this->redirect(route('tenant.dashboard.students.index'), navigate: true)
+            : $this->redirect(route('tenant.dashboard.students.health', $this->student), navigate: true);
     }
 
     public function removeTempApto(): void

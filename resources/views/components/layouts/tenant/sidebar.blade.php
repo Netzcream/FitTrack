@@ -41,7 +41,12 @@
 
             {{-- Entrenamiento --}}
             @php
-                $trainingPatterns = ['tenant.dashboard.training-goals.*', 'tenant.dashboard.training-phases.*','tenant.dashboard.students.*','tenant.dashboard.tags.*'];
+                $trainingPatterns = [
+                    'tenant.dashboard.training-goals.*',
+                    'tenant.dashboard.training-phases.*',
+                    'tenant.dashboard.students.*',
+                    'tenant.dashboard.tags.*',
+                ];
             @endphp
             <flux:navlist.group :heading="__('site.training')" expandable
                 :expanded="request()->routeIs(...$trainingPatterns)">
@@ -66,6 +71,54 @@
                     {{ __('site.tags') }}
                 </flux:navlist.item>
             </flux:navlist.group>
+
+
+            @php
+                $exercisePatterns = ['tenant.dashboard.exercise.*'];
+            @endphp
+
+            <flux:navlist.group :heading="__('exercise.title')" expandable
+                :expanded="request()->routeIs(...$exercisePatterns)">
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercises.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.exercises.*')" wire:navigate>
+                    {{ __('exercise.exercises') }}
+                </flux:navlist.item>
+
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercise-levels.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.exercise-levels.*')" wire:navigate>
+                    {{ __('exercise.exercise_levels') }}
+                </flux:navlist.item>
+
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.movement-patterns.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.movement-patterns.*')" wire:navigate>
+                    {{ __('exercise.movement_patterns') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercise-planes.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.exercise-planes.*')" wire:navigate>
+                    {{ __('exercise.exercise_planes') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.muscle-groups.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.muscle-groups.*')" wire:navigate>
+                    {{ __('exercise.muscle_groups') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.muscles.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.muscles.*')" wire:navigate>
+                    {{ __('exercise.muscles') }}
+                </flux:navlist.item>
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.equipments.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercise.equipments.*')" wire:navigate>
+                    {{ __('exercise.equipment') }}
+                </flux:navlist.item>
+
+            </flux:navlist.group>
+
 
             {{-- Configurar negocio --}}
             @php

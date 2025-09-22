@@ -8,10 +8,11 @@
                         {{ __('site.students_subheading') }}
                     </flux:subheading>
                 </div>
-                <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary"
-                    icon="plus">
-                    {{ __('site.new_student') }}
-                </flux:button>
+                <flux:modal.trigger name="create-student">
+                    <flux:button variant="primary" icon="plus">
+                        {{ __('site.new_student') }}
+                    </flux:button>
+                </flux:modal.trigger>
             </div>
             <flux:separator variant="subtle" />
         </div>
@@ -256,4 +257,62 @@
             </x-data-table>
         </section>
     </div>
+
+
+    <flux:modal name="create-student" class="min-w-[28rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('site.new_student') }}</flux:heading>
+                <flux:text class="mt-2">{{ __('site.new_student_subheading') }}</flux:text>
+            </div>
+
+            <form wire:submit.prevent="saveStudent" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <flux:label class="text-xs">{{ __('site.first_name') }}</flux:label>
+                        <flux:input wire:model.defer="first_name" autofocus />
+                        @error('first_name')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <flux:label class="text-xs">{{ __('site.last_name') }}</flux:label>
+                        <flux:input wire:model.defer="last_name" />
+                        @error('last_name')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <flux:label class="text-xs">{{ __('site.phone') }}</flux:label>
+                        <flux:input wire:model.defer="phone" />
+                        @error('phone')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <flux:label class="text-xs">{{ __('site.email') }}</flux:label>
+                        <flux:input type="email" wire:model.defer="email" />
+                        @error('email')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('site.cancel') }}</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary" icon="save">
+                        {{ __('site.save_and_continue') }}
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
+
+
 </div>

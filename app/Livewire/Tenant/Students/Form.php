@@ -434,12 +434,10 @@ class Form extends Component
                 ->toMediaCollection('apto');
         }
 
-        // Tags: sync por ids
         $ids = collect($this->selectedTags)->pluck('id')->all();
         $student->tags()->sync($ids);
-
+        $this->dispatch('updated');
         if ($this->editMode) {
-            $this->dispatch('updated');
             session()->flash('success', __('site.student_updated'));
             $this->mount($student->fresh());
         } else {

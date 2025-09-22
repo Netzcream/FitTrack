@@ -17,8 +17,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {{-- Estado APTO --}}
                 <div>
-                    <flux:label class="block mb-2">{{ __('site.apt_fitness_status') }}</flux:label>
-                    <flux:select wire:model.defer="apt_fitness_status">
+                    <flux:select label="{{ __('site.apt_fitness_status') }}" wire:model.defer="apt_fitness_status">
                         <option value="">{{ __('site.select_option') }}</option>
                         <option value="valid">{{ __('site.valid') }}</option>
                         <option value="expired">{{ __('site.expired') }}</option>
@@ -86,8 +85,7 @@
             <flux:heading size="md">{{ __('site.section_parq') }}</flux:heading>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <flux:label class="block mb-2">{{ __('site.parq_result') }}</flux:label>
-                    <flux:select wire:model.defer="parq_result">
+                    <flux:select label="{{ __('site.parq_result') }}" wire:model.defer="parq_result">
                         <option value="">{{ __('site.select_option') }}</option>
                         <option value="fit">{{ __('site.parq_fit') }}</option>
                         <option value="refer_to_md">{{ __('site.parq_refer') }}</option>
@@ -99,8 +97,6 @@
                     <flux:input wire:model.defer="parq_date" type="date" />
                 </div>
             </div>
-
-
         </section>
 
         <flux:separator variant="subtle" />
@@ -112,7 +108,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {{-- Lesiones --}}
                 <div>
-                    <flux:label class="text-xs block mb-2">{{ __('site.injuries') }}</flux:label>
+                    <flux:label class="block pb-3">{{ __('site.injuries') }}</flux:label>
                     <div class="flex gap-2">
                         <flux:input wire:model.defer="injuryInput" placeholder="{{ __('site.add_injury') }}" />
                         <flux:button type="button" wire:click="addInjury">{{ __('site.add_item') }}</flux:button>
@@ -134,7 +130,7 @@
 
                 {{-- Antecedentes médicos --}}
                 <div>
-                    <flux:label class="text-xs block mb-2">{{ __('site.medical_history') }}</flux:label>
+                    <flux:label class="block pb-3">{{ __('site.medical_history') }}</flux:label>
                     <div class="flex gap-2">
                         <flux:input wire:model.defer="medicalHistoryInput"
                             placeholder="{{ __('site.add_medical_history') }}" />
@@ -158,7 +154,7 @@
 
                 {{-- Medicación / alergias --}}
                 <div>
-                    <flux:label class="text-xs block mb-2">{{ __('site.medications_allergies') }}</flux:label>
+                    <flux:label class="block pb-3">{{ __('site.medications_allergies') }}</flux:label>
                     <div class="flex gap-2">
                         <flux:input wire:model.defer="medAllergyInput"
                             placeholder="{{ __('site.add_med_allergy') }}" />
@@ -221,7 +217,7 @@
                 </div>
 
                 <div>
-                    <flux:label class="text-xs">{{ __('site.image_consent') }}</flux:label>
+                    <flux:label class="block">{{ __('site.image_consent') }}</flux:label>
                     <flux:checkbox wire:model.defer="image_consent" />
                 </div>
 
@@ -236,8 +232,20 @@
 
         {{-- Acciones --}}
         <div class="flex justify-end gap-4 pt-6 items-center">
-            <x-tenant.action-message on="updated">{{ __('site.saved') }}</x-tenant.action-message>
-            <flux:button type="submit" variant="primary">{{ __('site.update_student') }}</flux:button>
+            <x-tenant.action-message on="updated">
+                {{ __('site.saved') }}
+            </x-tenant.action-message>
+
+            <flux:checkbox label="{{ __('site.back_list') }}" wire:model.live="back" />
+
+            <flux:button as="a" variant="ghost" href="{{ route('tenant.dashboard.students.index') }}">
+                {{ __('site.back') }}
+            </flux:button>
+
+            <flux:button type="submit" variant="primary">
+                {{ __('site.update_student') }}
+            </flux:button>
         </div>
+
     </form>
 </div>

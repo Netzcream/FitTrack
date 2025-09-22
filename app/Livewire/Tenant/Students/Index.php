@@ -15,6 +15,11 @@ class Index extends Component
 {
     use WithPagination;
 
+    public string $first_name = '';
+    public string $last_name  = '';
+    public ?string $phone     = null;
+    public ?string $email     = null;
+
     public string $sortBy = 'last_name';
     public string $sortDirection = 'asc';
     public string $search = '';
@@ -28,11 +33,41 @@ class Index extends Component
 
     public ?int $studentToDelete = null;
 
+
+
+    protected function rules(): array
+    {
+        return [
+            'first_name' => ['required', 'string', 'max:80'],
+            'last_name'  => ['required', 'string', 'max:80'],
+            'phone'      => ['nullable', 'string', 'max:30'],
+            'email'      => ['nullable', 'email', 'max:120'],
+        ];
+    }
+
+
+    public function saveStudent()
+    {
+        $data = $this->validate();
+
+        $student = Student::create([
+            'first_name' => $data['first_name'],
+            'last_name'  => $data['last_name'],
+            'phone'      => $data['phone'] ?? null,
+            'email'      => $data['email'] ?? null,
+        ]);
+
+        // Redirige directo a la edición del alumno
+        return redirect()->route('tenant.dashboard.students.edit', $student);
+    }
+
+
+
     /* ---------- UX helpers (mismo patrón) ---------- */
     public function sort(string $column): void
     {
         // Permitimos sólo columnas reales de students
-        $allowed = ['last_name','status','last_login_at','avg_adherence_pct','first_name','email'];
+        $allowed = ['last_name', 'status', 'last_login_at', 'avg_adherence_pct', 'first_name', 'email'];
         if (! in_array($column, $allowed, true)) {
             $column = 'last_name';
         }
@@ -81,27 +116,30 @@ class Index extends Component
             ])
             ->when($this->search !== '', function ($q) {
                 $s = "%{$this->search}%";
-                $q->where(fn($qq) =>
+                $q->where(
+                    fn($qq) =>
                     $qq->where('first_name', 'like', $s)
-                       ->orWhere('last_name', 'like', $s)
-                       ->orWhere('email', 'like', $s)
-                       ->orWhere('phone', 'like', $s)
-                       ->orWhere('document_number', 'like', $s)
+                        ->orWhere('last_name', 'like', $s)
+                        ->orWhere('email', 'like', $s)
+                        ->orWhere('phone', 'like', $s)
+                        ->orWhere('document_number', 'like', $s)
                 );
             })
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->when($this->planId, fn($q) => $q->where('commercial_plan_id', $this->planId))
             ->when($this->goalId, fn($q) => $q->where('primary_training_goal_id', $this->goalId))
-            ->when($this->tagId, fn($q) =>
+            ->when(
+                $this->tagId,
+                fn($q) =>
                 $q->whereHas('tags', fn($t) => $t->where('tags.id', $this->tagId))
             )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
 
-        $plans = CommercialPlan::query()->orderBy('name')->get(['id','name']);
-        $goals = TrainingGoal::query()->orderBy('name')->get(['id','name']);
-        $tags  = Tag::query()->orderBy('name')->get(['id','name','color']);
+        $plans = CommercialPlan::query()->orderBy('name')->get(['id', 'name']);
+        $goals = TrainingGoal::query()->orderBy('name')->get(['id', 'name']);
+        $tags  = Tag::query()->orderBy('name')->get(['id', 'name', 'color']);
 
-        return view('livewire.tenant.students.index', compact('students','plans','goals','tags'));
+        return view('livewire.tenant.students.index', compact('students', 'plans', 'goals', 'tags'));
     }
 }
