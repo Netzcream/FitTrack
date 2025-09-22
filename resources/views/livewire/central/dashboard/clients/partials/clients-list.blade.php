@@ -133,7 +133,7 @@
     </div>
 
     <div class="mt-4">
-        {{ $this->clients->links() }}
+        {{ $this->clients->links('components.preline.pagination') }}
     </div>
 
 

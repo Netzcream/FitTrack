@@ -38,7 +38,7 @@
         {{-- Paginación --}}
         @if ($pagination)
             <div class="mt-4">
-                {{ $pagination->links() }}
+                {{ $pagination->links('components.preline.pagination') }}
             </div>
         @endif
 
