@@ -100,6 +100,16 @@ Route::middleware([
 
 
 
+
+                Route::prefix('exercises/plans')->name('exercises.plans.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\Plans\Templates\Index::class)->name('templates.index');
+                    Route::get('/templates/create', App\Livewire\Tenant\Exercises\Plans\Templates\Form::class)->name('templates.create');
+                    Route::get('/templates/{template}/edit', App\Livewire\Tenant\Exercises\Plans\Templates\Form::class)->name('templates.edit');
+                    Route::get('/templates/{template}/builder', App\Livewire\Tenant\Exercises\Plans\Templates\Builder\Index::class)->name('templates.builder');
+                });
+
+
+
                 Route::prefix('exercise-levels')->name('exercise.exercise-levels.')->group(function () {
                     Route::get('/', App\Livewire\Tenant\Exercises\ExerciseLevels\Index::class)->name('index');
                     Route::get('/create', App\Livewire\Tenant\Exercises\ExerciseLevels\Form::class)->name('create');

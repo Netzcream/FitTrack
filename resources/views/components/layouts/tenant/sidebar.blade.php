@@ -80,6 +80,12 @@
             <flux:navlist.group :heading="__('exercise.title')" expandable
                 :expanded="request()->routeIs(...$exercisePatterns)">
 
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.plans.templates.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercises.plans.templates.*')" wire:navigate>
+                    {{ __('exercise.templates') }}
+                </flux:navlist.item>
+
                 <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercises.index') }}"
                     :current="request()->routeIs('tenant.dashboard.exercise.exercises.*')" wire:navigate>
                     {{ __('exercise.exercises') }}
