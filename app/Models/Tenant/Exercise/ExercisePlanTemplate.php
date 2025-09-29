@@ -5,15 +5,24 @@ namespace App\Models\Tenant\Exercise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ExercisePlanTemplate extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'exercise_plan_templates';
 
     protected $fillable = [
-        'uuid','code','name','status','version','description','is_public','meta',
+        'uuid',
+        'code',
+        'name',
+        'status',
+        'version',
+        'description',
+        'is_public',
+        'meta',
     ];
 
     protected $casts = [

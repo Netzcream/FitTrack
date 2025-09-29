@@ -4,11 +4,11 @@ namespace App\Models\Tenant\Exercise;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class ExercisePlanTemplateWorkout extends Model
 {
     use HasFactory;
-
+    use SoftDeletes;
     protected $table = 'exercise_plan_template_workouts';
 
     protected $fillable = [

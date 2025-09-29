@@ -1,14 +1,12 @@
-<div class="space-y-8">
+<div class="space-y-8" x-data x-on:template-header-updated.window="$wire.call('refreshTemplate')">
     <div class="flex items-start justify-between">
         <div>
-            <flux:heading size="xl">{{ __('Builder de plantilla') }}</flux:heading>
-            <flux:subheading class="mt-1">
-                {{ $template->name }} ({{ $template->code }}) · {{ __('Versión') }} {{ $template->version }}
+            <flux:heading size="xl">{{ __('Builder de plantilla') }}
+            </flux:heading>
+            <flux:subheading>
+                {{ __('Versión') }} {{ $template->version }}
             </flux:subheading>
         </div>
-        <a href="{{ route('tenant.dashboard.exercises.plans.templates.index') }}">
-            <flux:button variant="ghost">{{ __('Volver') }}</flux:button>
-        </a>
     </div>
 
     {{-- Estructura rápida (colores neutrales) --}}
@@ -32,8 +30,7 @@
         <div class="flex gap-2 flex-wrap">
             @php $weeks = $template->workouts->groupBy('week_index'); @endphp
             @foreach ($weeks as $wIndex => $days)
-                <flux:button size="sm"
-                    variant="{{ (int) $selected_week === (int) $wIndex ? 'primary' : 'ghost' }}"
+                <flux:button size="sm" variant="{{ (int) $selected_week === (int) $wIndex ? 'primary' : 'ghost' }}"
                     wire:click="$set('selected_week', {{ $wIndex }})">
                     {{ __('Semana') }} {{ $wIndex }}
                 </flux:button>
@@ -141,9 +138,6 @@
                                                     </flux:button>
                                                 </div>
                                             </li>
-
-
-
                                         @endforeach
                                     </ul>
                                 </div>

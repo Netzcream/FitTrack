@@ -6,103 +6,282 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-        <div class="md:col-span-2">
-            <flux:input wire:model.debounce.400ms="q" label="{{ __('Buscar') }}" placeholder="{{ __('Nombre, código o descripción') }}" />
-        </div>
         <div>
-            <flux:select wire:model="status" label="{{ __('Estado') }}">
+            <flux:input wire:model.live.debounce.250ms="q" label="{{ __('Buscar') }}"
+                placeholder="{{ __('Nombre, código o descripción') }}" />
+        </div>
+
+        <div>
+            <flux:select wire:model.live="status" label="{{ __('Estado') }}">
                 <option value="">{{ __('Todos') }}</option>
                 <option value="draft">{{ __('Borrador') }}</option>
                 <option value="published">{{ __('Publicado') }}</option>
                 <option value="archived">{{ __('Archivado') }}</option>
+                <option value="trashed">{{ __('Papelera') }}</option>
             </flux:select>
         </div>
-        <div class="flex gap-2">
-            <flux:select wire:model="perPage" label="{{ __('Por página') }}">
-                <option>10</option><option>25</option><option>50</option>
-            </flux:select>
-            <a href="{{ route('tenant.dashboard.exercises.plans.templates.create') }}" class="ml-auto">
-                <flux:button>{{ __('Nueva plantilla') }}</flux:button>
-            </a>
+
+        <div>
+            <div>
+                <flux:select wire:model.live="perPage" label="{{ __('Por página') }}">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                </flux:select>
+            </div>
+        </div>
+        <div class="flex gap-2 justify-end">
+
+
+            <flux:button as="a" href="{{ route('tenant.dashboard.exercises.plans.templates.create') }}">
+                {{ __('Nueva plantilla') }}</flux:button>
+
+
+
         </div>
     </div>
 
-    <!-- Card/tabla estilo Preline -->
-    <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-neutral-800/60">
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-neutral-300">
-                            {{ __('Nombre') }}
-                        </th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-neutral-300">
-                            {{ __('Código') }}
-                        </th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-neutral-300">
-                            {{ __('Estado') }}
-                        </th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-neutral-300">
-                            {{ __('Versión') }}
-                        </th>
-                        <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-neutral-300">
-                            {{ __('Acciones') }}
-                        </th>
-                    </tr>
-                </thead>
 
-                <tbody class="divide-y divide-gray-200 dark:divide-neutral-800">
-                    @forelse ($templates as $tpl)
-                        <tr class="hover:bg-gray-50/60 dark:hover:bg-neutral-800/40">
-                            <td class="px-4 py-3 whitespace-nowrap text-gray-800 dark:text-neutral-200 font-medium">
-                                {{ $tpl->name }}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-neutral-300">
-                                {{ $tpl->code }}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+    <div class="flex flex-col">
+        <div class="-m-1.5 overflow-x-auto">
+            <div class="p-1.5 min-w-full inline-block align-middle">
+                <div class="overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
+                        <thead>
+                            <tr>
+                                {{-- Nombre --}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                    <button type="button" class="inline-flex items-center gap-1 hover:underline"
+                                        wire:click="sortBy('name')">
+                                        {{ __('Nombre') }}
+                                        @if ($sortField === 'name')
+                                            <span class="text-[10px]">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+
+                                {{-- Código --}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                    <button type="button" class="inline-flex items-center gap-1 hover:underline"
+                                        wire:click="sortBy('code')">
+                                        {{ __('Código') }}
+                                        @if ($sortField === 'code')
+                                            <span class="text-[10px]">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+
+                                {{-- Estado --}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                    <button type="button" class="inline-flex items-center gap-1 hover:underline"
+                                        wire:click="sortBy('status')">
+                                        {{ __('Estado') }}
+                                        @if ($sortField === 'status')
+                                            <span class="text-[10px]">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+
+                                {{-- Versión --}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                    <button type="button" class="inline-flex items-center gap-1 hover:underline"
+                                        wire:click="sortBy('version')">
+                                        {{ __('Versión') }}
+                                        @if ($sortField === 'version')
+                                            <span class="text-[10px]">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                                        @endif
+                                    </button>
+                                </th>
+
+                                {{-- Acciones (sin sort) --}}
+                                <th scope="col"
+                                    class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                    {{ __('Acciones') }}
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                            @forelse ($templates as $tpl)
                                 @php
                                     $status = $tpl->status;
-                                    $map = [
-                                        'published' => 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-300 dark:border-emerald-500/30',
-                                        'draft'     => 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-500/30',
-                                        'archived'  => 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-700/50 dark:text-neutral-300 dark:border-neutral-600',
+                                    $badgeMap = [
+                                        'published' =>
+                                            'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-300 dark:border-emerald-500/30',
+                                        'draft' =>
+                                            'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-500/30',
+                                        'archived' =>
+                                            'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-700/60 dark:text-neutral-300 dark:border-neutral-600',
                                     ];
                                 @endphp
-                                <span class="inline-flex items-center gap-x-1.5 rounded-md border px-2 py-1 text-xs font-medium {{ $map[$status] ?? 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-700/50 dark:text-neutral-300 dark:border-neutral-600' }}">
-                                    {{ __($status) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-neutral-300">
-                                {{ $tpl->version }}
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="flex gap-1.5 justify-end">
-                                    <a href="{{ route('tenant.dashboard.exercises.plans.templates.edit', $tpl->id) }}">
-                                        <flux:button variant="ghost" size="sm">{{ __('Editar') }}</flux:button>
-                                    </a>
-                                    <flux:button wire:click="duplicate({{ $tpl->id }})" variant="ghost" size="sm">{{ __('Duplicar') }}</flux:button>
-                                    @if($tpl->status !== 'published')
-                                        <flux:button wire:click="publish({{ $tpl->id }})" variant="ghost" size="sm">{{ __('Publicar') }}</flux:button>
-                                    @endif
-                                    <flux:button wire:click="delete({{ $tpl->id }})" variant="danger" size="sm">{{ __('Eliminar') }}</flux:button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-neutral-400">
-                                {{ __('Sin resultados') }}
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+                                <tr wire:key="tpl-row-{{ $tpl->id }}">
+                                    {{-- Nombre --}}
+                                    <td
+                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200">
+                                        {{ $tpl->name ?: __('(Sin nombre)') }}
+                                    </td>
+
+                                    {{-- Código --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
+                                        {{ $tpl->code }}
+                                    </td>
+
+                                    {{-- Estado (badge) --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
+                                        <span
+                                            class="inline-flex items-center gap-x-1.5 rounded-md border px-2 py-0.5 text-[11px] leading-4 font-medium {{ $badgeMap[$status] ?? 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-neutral-700/60 dark:text-neutral-300 dark:border-neutral-600' }}">
+                                            {{ __($status) }}
+                                        </span>
+                                        @if (method_exists($tpl, 'trashed') && $tpl->trashed())
+                                            <span
+                                                class="ml-2 inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] leading-4 font-medium bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-400/10 dark:text-rose-300 dark:border-rose-500/30">
+                                                {{ __('Papelera') }}
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Versión --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-neutral-200">
+                                        {{ $tpl->version }}
+                                    </td>
+
+                                    {{-- Acciones (tus botones, sin spans de loading) --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                        @php
+                                            // helper visual: grupo primario (acciones frecuentes) + secundario (mantenimiento)
+                                            $divider =
+                                                '<span class="inline-block h-5 w-px mx-2 align-middle bg-gray-200 dark:bg-neutral-700"></span>';
+                                        @endphp
+
+                                        @if (!method_exists($tpl, 'trashed') || !$tpl->trashed())
+                                            @if ($tpl->status === 'draft')
+                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                    {{-- Grupo primario --}}
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button as="a"
+                                                            href="{{ route('tenant.dashboard.exercises.plans.templates.edit', ['template' => $tpl->id]) }}"
+                                                            size="sm">
+                                                            {{ __('Editar') }}
+                                                        </flux:button>
+                                                        <flux:button wire:click="duplicate({{ $tpl->id }})"
+                                                            wire:target="duplicate({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" size="sm">
+                                                            {{ __('Duplicar') }}
+                                                        </flux:button>
+                                                        <flux:button wire:click="publish({{ $tpl->id }})"
+                                                            wire:target="publish({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" size="sm">
+                                                            {{ __('Publicar') }}
+                                                        </flux:button>
+                                                    </div>
+
+                                                    {!! $divider !!}
+
+                                                    {{-- Grupo secundario --}}
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button wire:click="archive({{ $tpl->id }})"
+                                                            wire:target="archive({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" variant="ghost" size="sm">
+                                                            {{ __('Archivar') }}
+                                                        </flux:button>
+                                                    </div>
+                                                </div>
+                                            @elseif ($tpl->status === 'published')
+                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button wire:click="duplicate({{ $tpl->id }})"
+                                                            wire:target="duplicate({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" size="sm">
+                                                            {{ __('Duplicar') }}
+                                                        </flux:button>
+                                                    </div>
+
+                                                    {!! $divider !!}
+
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button wire:click="archive({{ $tpl->id }})"
+                                                            wire:target="archive({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" variant="ghost" size="sm">
+                                                            {{ __('Archivar') }}
+                                                        </flux:button>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                {{-- archived --}}
+                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button wire:click="unarchive({{ $tpl->id }})"
+                                                            wire:target="unarchive({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" variant="ghost" size="sm">
+                                                            {{ __('Desarchivar') }}
+                                                        </flux:button>
+                                                        <flux:button wire:click="duplicate({{ $tpl->id }})"
+                                                            wire:target="duplicate({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" size="sm">
+                                                            {{ __('Duplicar') }}
+                                                        </flux:button>
+                                                    </div>
+
+                                                    {!! $divider !!}
+
+                                                    <div class="inline-flex gap-1.5 shrink-0">
+                                                        <flux:button wire:click="delete({{ $tpl->id }})"
+                                                            wire:target="delete({{ $tpl->id }})"
+                                                            wire:loading.attr="disabled" variant="ghost"
+                                                            size="sm">
+                                                            {{ __('Eliminar') }}
+                                                        </flux:button>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @else
+                                            {{-- Trashed --}}
+                                            <div class="inline-flex items-center justify-end gap-1.5">
+                                                <div class="inline-flex gap-1.5 shrink-0">
+                                                    <flux:button wire:click="restore({{ $tpl->id }})"
+                                                        wire:target="restore({{ $tpl->id }})"
+                                                        wire:loading.attr="disabled" size="sm">
+                                                        {{ __('Restaurar') }}
+                                                    </flux:button>
+                                                </div>
+
+                                                {!! $divider !!}
+
+                                                <div class="inline-flex gap-1.5 shrink-0">
+                                                    <flux:button wire:click="forceDelete({{ $tpl->id }})"
+                                                        wire:target="forceDelete({{ $tpl->id }})"
+                                                        wire:loading.attr="disabled" variant="ghost" size="sm">
+                                                        {{ __('Eliminar definitivamente') }}
+                                                    </flux:button>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5"
+                                        class="px-6 py-8 text-center text-gray-500 dark:text-neutral-400">
+                                        {{ __('Sin resultados') }}
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <div class="p-3">
+                        {{ $templates->onEachSide(1)->links() }}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Paginación: envoltorio estilo Preline -->
-    <div class="mt-4">
-        {{ $templates->onEachSide(1)->links() }}
-    </div>
+
 </div>

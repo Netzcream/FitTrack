@@ -432,7 +432,7 @@ class Index extends Component
         $this->refreshTemplate();
     }
 
-    protected function ensureDefaultBlocks(int $workoutId): void
+    public function ensureDefaultBlocks(int $workoutId): void
     {
         foreach ([['warmup', 'Calentamiento'], ['main', 'Principal'], ['cooldown', 'Enfriamiento']] as $i => [$type, $name]) {
             $exists = TplBlock::where('workout_id', $workoutId)->where('type', $type)->exists();
@@ -526,7 +526,7 @@ class Index extends Component
         $this->dispatch('item-added', workoutId: $workoutId); // cierre del modal
     }
 
-    protected function makePrescriptionPayload(int $workoutId, ?string $modality): array
+    public function makePrescriptionPayload(int $workoutId, ?string $modality): array
     {
         $base = ['scheme' => 'straight_sets', 'modality' => $modality, 'sets' => $this->sets[$workoutId] ?? null];
 
@@ -692,7 +692,7 @@ class Index extends Component
         $this->dispatch('toast', type: 'success', message: 'Ítem eliminado.');
     }
 
-    protected function refreshTemplate(): void
+    public function refreshTemplate(): void
     {
         $this->template->refresh()->load([
             'workouts' => fn($q) => $q->orderBy('week_index')->orderBy('day_index')->orderBy('order'),
