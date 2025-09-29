@@ -413,4 +413,7 @@ return [
     "prospect" => "Prospect",
     'section_medical_background' => 'Antecedentes Médicos',
     'select' => 'Seleccionar',
+    'new_students' => 'Altas',
+    'churn' => 'Bajas',
+    'students_in_out_weekly' => 'Altas vs Bajas por semana',
 ];

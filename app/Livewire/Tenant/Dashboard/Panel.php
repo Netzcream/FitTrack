@@ -4,6 +4,7 @@ namespace App\Livewire\Tenant\Dashboard;
 
 use Livewire\Component;
 use App\Models\Tenant\Student;
+use Illuminate\Support\Carbon;
 
 class Panel extends Component
 {
@@ -65,6 +66,22 @@ class Panel extends Component
         $recentPublishedCount = 0;
         $recentBlogCount      = 0;
 
+        $weeks = collect(range(11, 0))->map(function ($i) {
+            return Carbon::now()->startOfWeek(Carbon::MONDAY)->subWeeks($i);
+        });
+
+        $chartLabels = $weeks->map(function (Carbon $w) {
+            return 'S' . $w->isoWeek();
+        });
+
+        $chartNew = $weeks->map(fn() => random_int(3, 18)); // Altas
+        $chartChurn = $chartNew->map(fn($n) => max(0, $n - random_int(2, 15))); // Bajas <= Altas aprox.
+
+        $chartSeries = [
+            ['name' => __('site.new_students'), 'data' => $chartNew->values()],
+            ['name' => __('site.churn'),        'data' => $chartChurn->values()],
+        ];
+
         return view('livewire.tenant.dashboard.panel', compact(
             'publishedCount',
             'draftCount',
@@ -78,7 +95,9 @@ class Panel extends Component
             'readyToPublish',
             'contactsToday',
             'recentPublishedCount',
-            'recentBlogCount'
+            'recentBlogCount',
+            'chartLabels',
+            'chartSeries',
         ));
     }
 }
