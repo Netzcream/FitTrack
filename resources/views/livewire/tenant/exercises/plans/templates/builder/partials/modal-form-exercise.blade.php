@@ -116,9 +116,9 @@
                     <flux:label class="text-xs">{{ $editorMode === 'add' ? __('Agregar en') : __('Mover a') }}
                     </flux:label>
                     <flux:select wire:model.live="editorBlockType">
-                        <option value="warmup">{{ __('Calentamiento') }}</option>
-                        <option value="main">{{ __('Principal') }}</option>
-                        <option value="cooldown">{{ __('Enfriamiento') }}</option>
+                        @foreach (App\Enums\Exercise\BlockType::cases() as $case)
+                            <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                        @endforeach
                     </flux:select>
                 </div>
 

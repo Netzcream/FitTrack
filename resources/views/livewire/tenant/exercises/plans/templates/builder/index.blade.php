@@ -76,7 +76,7 @@
                                 <div wire:key="block-{{ $b->id }}"
                                     class="rounded-lg border border-gray-200 dark:border-zinc-800 p-2">
                                     <div class="text-sm font-semibold">
-                                        {{ ucfirst($b->type) }} {{ $b->name ? '— ' . $b->name : '' }}
+                                        {{ ucfirst($b->type->label()) }} {{ $b->name ? '— ' . $b->name : '' }}
                                     </div>
                                     <ul class="mt-2 space-y-1">
                                         @foreach ($b->items as $it)

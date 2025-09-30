@@ -10,6 +10,8 @@ use App\Models\Tenant\Exercise\ExercisePlanTemplateWorkout as TplWorkout;
 use App\Models\Tenant\Exercise\ExercisePlanTemplateBlock as TplBlock;
 use App\Models\Tenant\Exercise\ExercisePlanTemplateItem as TplItem;
 use App\Models\Tenant\Exercise\Exercise;
+use App\Enums\Exercise\BlockType;
+
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
@@ -241,27 +243,36 @@ class Index extends Component
 
     public function saveEditor(): void
     {
-        // 1) guardrail: no hay ejercicio seleccionado
+        // 1) guardrail
         if (!$this->editorForm['exercise_id']) {
             $this->dispatch('toast', type: 'warning', message: 'Elegí un ejercicio.');
             return;
         }
 
+        // Normalizá el tipo seleccionado a Enum (fallback: Main)
+        $selectedType = $this->editorBlockType
+            ? BlockType::from($this->editorBlockType)   // convierte 'accessory' -> BlockType::Accessory
+            : BlockType::Main;
 
         $pres = $this->buildPrescriptionFromEditor();
 
         if ($this->editorMode === 'add') {
-            // 3) Crear un item nuevo
-            $block = TplBlock::where('workout_id', $this->editorWorkoutId)
-                ->where('type', $this->editorBlockType ?? 'main')->firstOrFail();
-            $order = (int) TplItem::where('block_id', $block->id)->max('order') + 1;
+            // 2) Obtener o crear el bloque del tipo elegido en este workout
+            $nextOrderForBlock = (int) (TplBlock::where('workout_id', $this->editorWorkoutId)->max('order') ?? 0) + 1;
+
+            $block = TplBlock::firstOrCreate(
+                ['workout_id' => $this->editorWorkoutId, 'type' => $selectedType], // 👈 enum directo (cast)
+                ['name' => $selectedType->label(), 'order' => $nextOrderForBlock]
+            );
+
+            $order = (int) (TplItem::where('block_id', $block->id)->max('order') ?? 0) + 1;
 
             TplItem::create([
                 'block_id'      => $block->id,
                 'exercise_id'   => $this->editorForm['exercise_id'],
                 'display_name'  => $this->editorForm['display_name'],
                 'order'         => $order,
-                'prescription'  => $pres,                       // ← incluye 'reps' como array
+                'prescription'  => $pres,
                 'tempo'         => $this->editorForm['tempo'],
                 'rest_seconds'  => $this->editorForm['rest_seconds'],
                 'rpe'           => $this->editorForm['rpe'],
@@ -271,22 +282,29 @@ class Index extends Component
 
             $this->dispatch('toast', type: 'success', message: 'Ejercicio agregado.');
         } else {
-            // 4) Editar un item existente (y mover de bloque si cambió)
-            $item = TplItem::with('block')->findOrFail($this->editorItemId);
+            // 3) Editar un item existente (y mover de bloque si cambió el tipo)
+            $item  = TplItem::with('block')->findOrFail($this->editorItemId);
+            $old   = $item->block;                 // tiene cast: $old->type es BlockType
+            $oldTy = $old->type;                   // BlockType enum
+            $newTy = $selectedType;                // BlockType enum
 
-            $newType = $this->editorBlockType ?? $item->block->type;
-            if ($newType !== $item->block->type) {
+            if ($newTy !== $oldTy) {
+                $nextOrderForBlock = (int) (TplBlock::where('workout_id', $old->workout_id)->max('order') ?? 0) + 1;
+
                 $newBlock = TplBlock::firstOrCreate(
-                    ['workout_id' => $item->block->workout_id, 'type' => $newType],
-                    ['name' => ucfirst($newType), 'order' => (int) TplBlock::where('workout_id', $item->block->workout_id)->max('order') + 1]
+                    ['workout_id' => $old->workout_id, 'type' => $newTy],
+                    ['name' => $newTy->label(), 'order' => $nextOrderForBlock]
                 );
+
                 $item->block_id = $newBlock->id;
+                // opcional: reubicar order dentro del bloque nuevo
+                $item->order = (int) (TplItem::where('block_id', $newBlock->id)->max('order') ?? 0) + 1;
             }
 
-            // 5) Persistimos cambios
+            // 4) Persistir cambios
             $item->exercise_id  = $this->editorForm['exercise_id'];
             $item->display_name = $this->editorForm['display_name'];
-            $item->prescription = $pres;                      // ← incluye 'reps' como array
+            $item->prescription = $pres;
             $item->tempo        = $this->editorForm['tempo'];
             $item->rest_seconds = $this->editorForm['rest_seconds'];
             $item->rpe          = $this->editorForm['rpe'];
@@ -296,7 +314,7 @@ class Index extends Component
             $this->dispatch('toast', type: 'success', message: 'Ítem actualizado.');
         }
 
-        // 6) Refrescamos, cerramos y limpiamos el editor SIEMPRE
+        // 5) refresco + cierre
         $this->refreshTemplate();
         $this->dispatch('modal-close', name: 'exercise-editor');
         $this->resetEditor();
@@ -434,14 +452,28 @@ class Index extends Component
 
     public function ensureDefaultBlocks(int $workoutId): void
     {
-        foreach ([['warmup', 'Calentamiento'], ['main', 'Principal'], ['cooldown', 'Enfriamiento']] as $i => [$type, $name]) {
-            $exists = TplBlock::where('workout_id', $workoutId)->where('type', $type)->exists();
-            if (!$exists) {
+        // Los tres bloques "base" que queremos garantizar
+        $defaults = [BlockType::Warmup, BlockType::Main, BlockType::Cooldown];
+
+        // Traemos los tipos ya existentes (normalizados a string por si el cast no está)
+        $existing = TplBlock::where('workout_id', $workoutId)
+            ->pluck('type')
+            ->map(fn($t) => $t instanceof BlockType ? $t->value : (string) $t)
+            ->all();
+
+        // Vamos a agregar al final del orden actual
+        $nextOrder = (int) (TplBlock::where('workout_id', $workoutId)->max('order') ?? 0);
+
+        foreach ($defaults as $case) {
+            if (!in_array($case->value, $existing, true)) {
+                $nextOrder++;
+
                 TplBlock::create([
                     'workout_id' => $workoutId,
-                    'type'       => $type,
-                    'name'       => $name,
-                    'order'      => $i + 1,
+
+                    'type'       => $case,             // o $case->value si aún no casteás
+                    'name'       => $case->label(),    // usa los labels del enum (Calentamiento/Principal/Enfriamiento)
+                    'order'      => $nextOrder,
                 ]);
             }
         }

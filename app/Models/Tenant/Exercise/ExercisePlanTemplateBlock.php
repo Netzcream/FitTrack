@@ -5,6 +5,8 @@ namespace App\Models\Tenant\Exercise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\Exercise\BlockType;
+
 class ExercisePlanTemplateBlock extends Model
 {
     use HasFactory;
@@ -12,12 +14,18 @@ class ExercisePlanTemplateBlock extends Model
     protected $table = 'exercise_plan_template_blocks';
 
     protected $fillable = [
-        'workout_id','type','name','notes','order','meta',
+        'workout_id',
+        'type',
+        'name',
+        'notes',
+        'order',
+        'meta',
     ];
 
     protected $casts = [
         'order' => 'integer',
         'meta'  => 'array',
+        'type' => BlockType::class,
     ];
 
     public function workout()
