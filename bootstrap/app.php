@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'         => PermissionMiddleware::class,
             'role'               => RoleMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'tenant.auth'      => \App\Http\Middleware\Tenant\TenantAuthenticate::class,
+            'tenant.active'    => \App\Http\Middleware\EnsureTenantIsActive::class,
+            'tenant.student.access' => \App\Http\Middleware\Tenant\EnsureStudentAccessEnabled::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

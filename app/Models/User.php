@@ -59,6 +59,8 @@ class User extends Authenticatable
             ->implode('');
     }
 
-
-
+    public function student()
+    {
+        return $this->hasOne(\App\Models\Tenant\Student::class, 'email', 'email');
+    }
 }

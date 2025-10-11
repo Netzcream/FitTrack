@@ -3,33 +3,34 @@
 namespace App\Livewire\Tenant\Users;
 
 use Livewire\Component;
-
-use App\Models\PropertyType;
-use App\Models\User;
-use Livewire\Attributes\On;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Layout;
 use Livewire\WithPagination;
+use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
+use App\Models\User;
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
 {
-
-
     use WithPagination;
 
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
     public string $search = '';
-    public $role = '';
+    public string $role = '';
     public string $userToDelete = '';
+    public int $perPage = 10;
+    public array $roles = [];
 
-    public $perPage = 10;
-    public $roles = [];
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'role' => ['except' => ''],
+        'sortBy' => ['except' => 'name'],
+        'sortDirection' => ['except' => 'asc'],
+        'page' => ['except' => 1],
+    ];
 
-    public function mount()
+    public function mount(): void
     {
         $this->roles = Role::orderBy('name')->pluck('name')->toArray();
     }
@@ -43,17 +44,13 @@ class Index extends Component
             $this->sortDirection = 'asc';
         }
     }
-    public function filter()
-    {
-        $this->resetPage();
-    }
 
-    public function updatedSearch()
+    public function updatedSearch() { $this->resetPage(); }
+    public function updatedRole() { $this->resetPage(); }
+
+    public function resetFilters(): void
     {
-        $this->resetPage();
-    }
-    public function updatedRole()
-    {
+        $this->reset(['search', 'role']);
         $this->resetPage();
     }
 
@@ -65,12 +62,11 @@ class Index extends Component
     public function delete(): void
     {
         $user = User::find($this->userToDelete);
-
-
         if (!$user) return;
-        /** @var User $logUser */
-        $logUser = Auth::user();
-        if ($logUser->id === $user->id) return; // Prevenir autodelete
+
+        /** @var User $authUser */
+        $authUser = Auth::user();
+        if ($authUser->id === $user->id) return; // prevenir autodelete
 
         $user->delete();
         $this->dispatch('user-deleted');
@@ -80,19 +76,17 @@ class Index extends Component
     public function render()
     {
         $query = User::query()
-            ->when($this->search, function ($q) {
+            ->when($this->search, fn($q) =>
                 $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%");
-            })
-            ->when($this->role, function ($q) {
-                $q->whereHas('roles', function ($subq) {
-                    $subq->where('name', $this->role);
-                });
-            });
+                  ->orWhere('email', 'like', "%{$this->search}%")
+            )
+            ->when($this->role, fn($q) =>
+                $q->whereHas('roles', fn($r) => $r->where('name', $this->role))
+            )
+            ->orderBy($this->sortBy, $this->sortDirection);
 
-        $users = $query->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate($this->perPage);
-
-        return view('livewire.tenant.users.index', compact('users'));
+        return view('livewire.tenant.users.index', [
+            'users' => $query->paginate($this->perPage),
+        ]);
     }
 }

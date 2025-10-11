@@ -4,12 +4,13 @@
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <flux:heading size="xl" level="1">{{ __('Roles') }}</flux:heading>
+                    <flux:heading size="xl" level="1">{{ __('roles.index_title') }}</flux:heading>
                     <flux:subheading size="lg" class="mb-6">
                         {{ __('Listado de roles registrados en el sistema.') }}
                     </flux:subheading>
                 </div>
-                <flux:button as="a" href="{{ route('tenant.dashboard.roles.create') }}" variant="primary" icon="plus">
+                <flux:button as="a" href="{{ route('tenant.dashboard.roles.create') }}" variant="primary"
+                    icon="plus">
                     {{ __('Nuevo rol') }}
                 </flux:button>
             </div>
@@ -18,27 +19,36 @@
 
         <div class="mt-5 w-full ">
             <section class="w-full">
-
-
-
-
                 <x-data-table :pagination="$roles">
                     <x-slot name="filters">
-                        <div class="max-w-[210px] flex-1">
-                            <flux:input wire:model.live.debounce.400ms="search"
-                                placeholder="Buscar nombre..." size="sm" class="w-full" />
-                        </div>
-                        <div class="w-[250px]">
-                            <flux:select wire:model.live="permission" size="sm" class="w-full">
-                                <flux:select.option value="">{{ __('Todos los permisos') }}
-                                </flux:select.option>
-                                @foreach ($permissions as $r)
-                                    <flux:select.option value="{{ $r }}">{{ ucfirst($r) }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
+                        <div class="flex flex-wrap gap-4 w-full items-end">
+                            <!-- Buscador -->
+                            <div class="max-w-[260px] flex-1">
+                                <flux:label class="text-xs">{{ __('common.search') }}</flux:label>
+                                <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="search"
+                                    placeholder="{{ __('roles.search_placeholder') }}" />
+                            </div>
+
+                            <!-- Select de permiso -->
+                            <div class="min-w-[200px]">
+                                <flux:label class="text-xs">{{ __('roles.permission_filter') }}</flux:label>
+                                <flux:select size="sm" wire:model.live="permission">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    @foreach ($permissions as $r)
+                                        <option value="{{ $r }}">{{ ucfirst($r) }}</option>
+                                    @endforeach
+                                </flux:select>
+
+
+                            </div>
+                            <div>
+                                <flux:button size="sm" variant="ghost" wire:click="resetFilters">
+                                    {{ __('common.clear') }}</flux:button>
+                            </div>
+
                         </div>
                     </x-slot>
+
 
                     <x-slot name="head">
                         <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer"
@@ -50,7 +60,8 @@
                                 @endif
                             </span>
                         </th>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                        <th
+                            class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                             {{ __('Permisos') }}
                         </th>
                         <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer"
@@ -81,19 +92,19 @@
                             </td>
                             <td class="px-6 py-4 text-end text-sm font-medium">
                                 <span
-                                    class="text-xs text-gray-400 dark:text-neutral-500 inline-flex items-center whitespace-nowrap">
+                                    class="text-xs text-gray-400 dark:text-neutral-500 inline-flex items-center whitespace-nowrap space-x-1">
 
-                                    <a wire:navigate href="{{ route('tenant.dashboard.roles.edit', $role->id) }}"
-                                        class="ml-2 inline-flex items-center gap-x-2 text-sm  rounded-lg text-green-600 hover:text-green-800 dark:text-green-500 dark:hover:text-green-400">
+                                    <flux:button size="sm" as="a" wire:navigate
+                                        href="{{ route('tenant.dashboard.roles.edit', $role->id) }}">
                                         {{ __('Editar') }}
-                                    </a>
+                                    </flux:button>
 
-                                        <flux:modal.trigger name="confirm-delete-role">
-                                            <button wire:click="confirmDelete('{{ $role->id }}')"
-                                                class="cursor-pointer ml-2 inline-flex items-center gap-x-2 text-sm  rounded-lg text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400">
-                                                {{ __('Eliminar') }}
-                                            </button>
-                                        </flux:modal.trigger>
+                                    <flux:modal.trigger name="confirm-delete-role">
+                                        <flux:button size="sm" wire:click="confirmDelete('{{ $role->id }}')"
+                                            variant="ghost">
+                                            {{ __('Eliminar') }}
+                                        </flux:button>
+                                    </flux:modal.trigger>
 
                                 </span>
                             </td>

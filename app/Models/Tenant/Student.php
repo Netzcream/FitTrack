@@ -227,4 +227,13 @@ class Student extends Model implements HasMedia
             ->performOnCollections('avatar')
             ->nonQueued();
     }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'email', 'email');
+    }
+    public function workoutSessions()
+    {
+        return $this->hasMany(WorkoutSession::class);
+    }
 }

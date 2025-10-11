@@ -35,6 +35,7 @@ use App\Livewire\Tenant\CommercialPlans\Index as CommercialPlansIndex;
 use App\Livewire\Tenant\CommercialPlans\Form as CommercialPlansForm;
 use App\Livewire\Tenant\TrainingGoals\Index as TrainingGoalsIndex;
 use App\Livewire\Tenant\TrainingGoals\Form as TrainingGoalsForm;
+use App\Http\Controllers\Tenant\Payments\ManualPaymentController;
 
 use App\Livewire\Tenant\TrainingPhases\Index as TrainingPhasesIndex;
 use App\Livewire\Tenant\TrainingPhases\Form as TrainingPhasesForm;
@@ -86,7 +87,7 @@ Route::middleware([
         })->where('path', '.*')
             ->name('file');
 
-        Route::middleware(['auth'])->group(function () {
+        Route::middleware(['tenant.auth'])->group(function () {
             Route::get('/dashboard', function () {
                 return view('tenant.dashboard');
             })->name('dashboard');
@@ -100,12 +101,25 @@ Route::middleware([
 
 
 
+                Route::prefix('payments')->as('payments.')->group(function () {
+                    Route::get('/', \App\Livewire\Tenant\Payments\Index::class)->name('index');
+                    Route::get('/create/{student?}', \App\Livewire\Tenant\Payments\Form::class)->name('create');
+                    Route::get('/{payment}/edit', \App\Livewire\Tenant\Payments\Form::class)->name('edit');
+                });
+
 
                 Route::prefix('exercises/plans')->name('exercises.plans.')->group(function () {
                     Route::get('/', App\Livewire\Tenant\Exercises\Plans\Templates\Index::class)->name('templates.index');
                     Route::get('/templates/create', App\Livewire\Tenant\Exercises\Plans\Templates\Edit::class)->name('templates.create');
                     Route::get('/templates/{template}/edit', App\Livewire\Tenant\Exercises\Plans\Templates\Edit::class)->name('templates.edit');
                     Route::get('/templates/{template}/builder', App\Livewire\Tenant\Exercises\Plans\Templates\Builder\Index::class)->name('templates.builder');
+                    Route::get('plans/{plan}/builder', App\Livewire\Tenant\Exercises\Plans\Builder\Index::class)
+                        ->name('builder');
+
+                    Route::get('assignments', App\Livewire\Tenant\Exercises\Plans\Assignments\Index::class)
+                        ->name('assignments.index');
+                    Route::get('assign', App\Livewire\Tenant\Exercises\Plans\Assign\Wizard::class)
+                        ->name('assign.wizard');
                 });
 
 
@@ -251,5 +265,6 @@ Route::middleware([
 
 
         require __DIR__ . '/tenant-auth.php';
+        require __DIR__ . '/tenant-student.php';
     });
 });

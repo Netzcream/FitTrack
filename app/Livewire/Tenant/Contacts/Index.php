@@ -6,8 +6,6 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Models\Contact;
-use App\Models\Property;
-use Illuminate\Support\Str;
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
@@ -16,19 +14,17 @@ class Index extends Component
 
     public string $sortBy = 'created_at';
     public string $sortDirection = 'desc';
-    public string $search = '';
-    public $perPage = 10;
-    public string $contactToDelete = '';
+    public string $q = '';
+    public int $perPage = 10;
+    public ?string $contactToDelete = null;
 
+    protected array $allowedSorts = ['name', 'email', 'created_at'];
 
-
-    public function mount()
-    {
-
-    }
-
+    /* ---------------------------- Ordenamiento ---------------------------- */
     public function sort(string $column): void
     {
+        if (! in_array($column, $this->allowedSorts)) return;
+
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -36,17 +32,25 @@ class Index extends Component
             $this->sortDirection = 'asc';
         }
     }
-    public function filter()
+
+    /* ---------------------------- Filtros ---------------------------- */
+    public function updatedQ(): void
     {
         $this->resetPage();
     }
 
-
-    public function updatedSearch()
+    public function applyFilters(): void
     {
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->q = '';
+        $this->resetPage();
+    }
+
+    /* ---------------------------- Eliminación ---------------------------- */
     public function confirmDelete(string $uuid): void
     {
         $this->contactToDelete = $uuid;
@@ -55,34 +59,25 @@ class Index extends Component
     public function delete(): void
     {
         $contact = Contact::where('uuid', $this->contactToDelete)->first();
-
-        if (!$contact) {
-            return;
+        if ($contact) {
+            $contact->delete();
+            $this->dispatch('contact-deleted');
         }
-
-        $contact->delete();
-
-        $this->dispatch('contact-deleted');
         $this->reset('contactToDelete');
     }
-    public function updatedProperty()
-    {
-        $this->resetPage();
-    }
 
-
+    /* ---------------------------- Render ---------------------------- */
     public function render()
     {
-        $query = Contact::query()
-            //->with(['property'])
-            ->when($this->search, function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%")
-                    ->orWhere('mobile', 'like', "%{$this->search}%")
-                    ->orWhere('message', 'like', "%{$this->search}%");
-            });
-
-        $contacts = $query->orderBy($this->sortBy, $this->sortDirection)
+        $contacts = Contact::query()
+            ->when($this->q, function ($query) {
+                $query->where(fn($q) => $q
+                    ->where('name', 'like', "%{$this->q}%")
+                    ->orWhere('email', 'like', "%{$this->q}%")
+                    ->orWhere('mobile', 'like', "%{$this->q}%")
+                    ->orWhere('message', 'like', "%{$this->q}%"));
+            })
+            ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
 
         return view('livewire.tenant.contacts.index', compact('contacts'));

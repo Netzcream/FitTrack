@@ -91,7 +91,7 @@
 
                             {{-- Contenedor fijo para evitar saltos al previsualizar --}}
                             <div
-                                class="relative w-20 h-20 rounded-full overflow-hidden border bg-gray-50 dark:bg-neutral-800">
+                                class="relative w-20 h-20 rounded-full overflow-hidden border dark:border-zinc-700 bg-gray-50 dark:bg-neutral-800">
                                 @if ($avatar && method_exists($avatar, 'temporaryUrl'))
                                     <img src="{{ $avatar->temporaryUrl() }}" class="w-full h-full object-cover"
                                         alt="avatar">
@@ -215,7 +215,7 @@
 
                             @if ($isImg && method_exists($aptFile, 'temporaryUrl'))
                                 <img src="{{ $aptFile->temporaryUrl() }}"
-                                    class="w-40 h-28 object-cover border rounded" alt="apto">
+                                    class="w-40 h-28 object-cover border dark:border-zinc-700 rounded" alt="apto">
                             @else
                                 <div class="text-xs text-gray-500 truncate max-w-xs">
                                     {{ $aptFile->getClientOriginalName() }} <span class="text-gray-400">(no
@@ -412,7 +412,7 @@
 
                         {{-- Sugerencias (si hay query) --}}
                         @if ($tagQuery !== '')
-                            <div class="mt-1 border rounded-lg bg-white dark:bg-neutral-800 text-sm overflow-hidden">
+                            <div class="mt-1 border rounded-lg dark:border-zinc-700 bg-white dark:bg-neutral-800 text-sm overflow-hidden">
                                 @forelse($tagSuggestions as $sug)
                                     <button type="button"
                                         class="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-neutral-700 flex items-center gap-2"
@@ -439,7 +439,7 @@
                     {{-- Chips seleccionados --}}
                     <div class="flex flex-wrap gap-2">
                         @forelse($selectedTags as $t)
-                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs border"
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs  "
                                 style="--c: {{ $t['color'] ?? '#e5e7eb' }}; border-color: var(--c); color: var(--c);">
                                 <span class="inline-block w-2 h-2 rounded-full"
                                     style="background-color: {{ $t['color'] ?? '#e5e7eb' }}"></span>

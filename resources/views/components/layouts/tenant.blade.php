@@ -2,4 +2,5 @@
     <flux:main>
         {{ $slot }}
     </flux:main>
+<x-toast />
 </x-layouts.tenant.sidebar>

@@ -20,8 +20,9 @@ class Form extends Component
     public $allRoles = [];
     public $password = '';
     public $password_confirmation = '';
+    public bool $back = false;
 
-    public $editMode = false;
+    public bool $editMode = false;
 
     public function mount(?User $user)
     {
@@ -32,61 +33,54 @@ class Form extends Component
             $this->name = $user->name;
             $this->email = $user->email;
             $this->roles = $user->roles->pluck('name')->toArray();
+            $this->role = $user->roles->pluck('name')->first() ?? '';
             $this->editMode = true;
-        } else {
-            $this->editMode = false;
-            $this->user_id = null;
-            $this->name = '';
-            $this->email = '';
-            $this->roles = [];
         }
-        $this->role = $user?->roles->pluck('name')->first() ?? '';
     }
-
 
     public function save()
     {
         $rules = [
             'name'  => 'required|string|max:255',
             'email' => [
-                'required',
-                'email',
-                'max:255',
+                'required', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($this->user_id),
             ],
-            'role' => ['required', Rule::in(array_values($this->allRoles))],
-
+            'role'  => ['required', Rule::in(array_values($this->allRoles))],
         ];
 
-        // Password solo en alta o si se quiere cambiar
         if (!$this->editMode || $this->password) {
             $rules['password'] = 'required|min:8|confirmed';
         }
 
         $validated = $this->validate($rules);
 
-        if ($this->editMode) {
-            $user = User::findOrFail($this->user_id);
-        } else {
-            $user = new User();
-        }
+        $user = $this->editMode
+            ? User::findOrFail($this->user_id)
+            : new User();
 
-        $user->name = $this->name;
-        $user->email = $this->email;
+        $user->fill([
+            'name'  => $this->name,
+            'email' => $this->email,
+        ]);
 
         if ($this->password) {
             $user->password = Hash::make($this->password);
         }
 
         $user->save();
-
-
         $user->syncRoles([$this->role]);
 
+        // Mensaje Livewire visual
+        $this->dispatch('saved');
 
-        session()->flash('success', $this->editMode ? 'Usuario actualizado' : 'Usuario creado');
+        // Redirección si el checkbox "volver" está activado
+        if ($this->back) {
+            return redirect()->route('tenant.dashboard.users.index');
+        }
 
-        return redirect()->route('tenant.dashboard.users.index');
+        // Mensaje persistente para próxima request
+        session()->flash('success', $this->editMode ? __('users.updated') : __('users.created'));
     }
 
     public function render()

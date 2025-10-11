@@ -17,10 +17,7 @@ class TenantSeeder extends Seeder
         $this->call([
             RoleAndPermissionSeeder::class,
             MasterExercisesCatalogSeeder::class,
+            \Database\Seeders\Tenant\WorkoutSessionSeeder::class,
         ]);
-
-
-
-
     }
 }

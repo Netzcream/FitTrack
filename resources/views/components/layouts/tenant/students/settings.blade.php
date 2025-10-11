@@ -8,7 +8,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-[16rem_1fr] gap-8">
         <aside class="space-y-4">
-            <div class="p-4 rounded-xl border">
+            <div class="p-4 rounded-xl border dark:border-zinc-700">
                 <div class="flex items-center gap-3">
                     @if ($student?->hasMedia('avatar'))
                         <img src="{{ $student->getFirstMediaUrl('avatar', 'thumb') }}" alt="{{ $student->full_name }}"
@@ -100,7 +100,7 @@
 
         <main class="max-w-6xl space-y-6">
             {{-- Encabezado moderno: 3 métricas unificadas en una sola “píldora” --}}
-            <div class="rounded-xl border bg-muted/30 p-2">
+            <div class="rounded-xl border dark:border-zinc-700 bg-muted/30 p-2">
                 <div class="flex flex-col md:flex-row gap-2">
                     <div class="flex-1 rounded-xl px-4 py-3">
                         <div class="text-[11px] uppercase tracking-wide text-muted-foreground">{{ __('IMC') }}

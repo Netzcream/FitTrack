@@ -74,7 +74,12 @@
 
 
             @php
-                $exercisePatterns = ['tenant.dashboard.exercise.*'];
+                $exercisePatterns = [
+                    'tenant.dashboard.exercise.*',
+                    'tenant.dashboard.exercises.plans.assignments.*',
+                    'tenant.dashboard.exercises.plans.assign.wizard',
+                    'tenant.dashboard.exercises.plans.templates.*',
+                    'tenant.dashboard.exercises.plans.builder',];
             @endphp
 
             <flux:navlist.group :heading="__('exercise.title')" expandable
@@ -85,6 +90,20 @@
                     :current="request()->routeIs('tenant.dashboard.exercises.plans.templates.*')" wire:navigate>
                     {{ __('exercise.templates') }}
                 </flux:navlist.item>
+
+
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.plans.assignments.index') }}"
+                    :current="request()->routeIs(['tenant.dashboard.exercises.plans.assignments.*','tenant.dashboard.exercises.plans.assign.wizard'])"
+                    wire:navigate>
+                    {{ __('asignados') }}
+                </flux:navlist.item>
+
+
+
+
+
+
+
 
                 <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercises.index') }}"
                     :current="request()->routeIs('tenant.dashboard.exercise.exercises.*')" wire:navigate>
@@ -168,7 +187,7 @@
                     @can('gestionar roles')
                         <flux:navlist.item icon="user" :href="route('tenant.dashboard.roles.index')"
                             :current="request()->routeIs('tenant.dashboard.roles.*')" wire:navigate>
-                            {{ __('Roles') }}
+                            {{ __('roles.index_title') }}
                         </flux:navlist.item>
                     @endcan
 

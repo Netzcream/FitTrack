@@ -210,6 +210,12 @@
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
                                 class="text-xs text-gray-400 dark:text-neutral-500 inline-flex items-center whitespace-nowrap gap-2">
+
+                                <flux:button size="sm"
+                                    href="{{ route('tenant.dashboard.payments.create', ['student' => $s]) }}">
+                                    Generar cobro
+                                </flux:button>
+
                                 <flux:button wire:navigate size="sm"
                                     href="{{ route('tenant.dashboard.students.edit', $s) }}">
                                     {{ __('site.edit') }}
@@ -244,6 +250,9 @@
                             </div>
                             <div class="flex gap-2">
                                 <flux:spacer />
+
+
+
                                 <flux:modal.close>
                                     <flux:button variant="ghost">{{ __('site.cancel') }}</flux:button>
                                 </flux:modal.close>
