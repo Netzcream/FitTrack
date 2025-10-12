@@ -1,148 +1,134 @@
 <div class="flex items-start max-md:flex-col">
-    <div class="flex-1 self-stretch max-md:pt-6">
+    <div class="flex-1 self-stretch max-md:pt-6 space-y-6">
+        {{-- Header --}}
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <flux:heading size="xl" level="1">{{ __('site.commercial_plans') }}</flux:heading>
-                    <flux:subheading size="lg" class="mb-6">
-                        {{ __('site.commercial_plans_subheading') }}
+                    <flux:heading size="xl" level="1">{{ __('commercial_plans.index_title') }}</flux:heading>
+                    <flux:subheading size="lg" class="mb-6">{{ __('commercial_plans.index_subheading') }}
                     </flux:subheading>
                 </div>
+
                 <flux:button as="a" href="{{ route('tenant.dashboard.commercial-plans.create') }}"
                     variant="primary" icon="plus">
-                    {{ __('site.new_plan') }}
+                    {{ __('commercial_plans.new_plan') }}
                 </flux:button>
             </div>
             <flux:separator variant="subtle" />
         </div>
 
+        {{-- Tabla principal --}}
         <section class="w-full">
             <x-data-table :pagination="$plans">
+
+                {{-- Filtros --}}
                 <x-slot name="filters">
                     <div class="flex flex-wrap gap-4 w-full items-end">
+                        {{-- Búsqueda --}}
                         <div class="max-w-[260px] flex-1">
-                            <flux:label class="text-xs">{{ __('site.search') }}</flux:label>
-                            <flux:input size="sm" wire:model.live.debounce.400ms="search"
-                                placeholder="{{ __('site.search_placeholder') }}" class="w-full" />
+                            <flux:label class="text-xs">{{ __('common.search') }}</flux:label>
+                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
+                                placeholder="{{ __('commercial_plans.search_placeholder') }}" />
                         </div>
 
+                        {{-- Estado --}}
                         <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('site.visibility') }}</flux:label>
-                            <flux:select size="sm" wire:model="visibility">
-                                <option value="">{{ __('site.all') }}</option>
-                                <option value="public">{{ __('site.public') }}</option>
-                                <option value="private">{{ __('site.private') }}</option>
+                            <flux:label class="text-xs">{{ __('common.status') }}</flux:label>
+                            <flux:select size="sm" wire:model.live="status">
+                                <option value="">{{ __('common.all') }}</option>
+                                <option value="1">{{ __('common.active') }}</option>
+                                <option value="0">{{ __('common.inactive') }}</option>
                             </flux:select>
                         </div>
 
-                        <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('site.type') }}</flux:label>
-                            <flux:select size="sm" wire:model="planType">
-                                <option value="">{{ __('site.all') }}</option>
-                                @foreach (['free', 'standard', 'pro', 'enterprise'] as $t)
-                                    <option value="{{ $t }}">{{ __('site.plan_type_' . $t) }}</option>
-                                @endforeach
-                            </flux:select>
+                        {{-- Acciones --}}
+                        <div>
+                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
+                                {{ __('common.clear') }}
+                            </flux:button>
                         </div>
-
-                        <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('site.billing') }}</flux:label>
-                            <flux:select size="sm" wire:model="billingInterval">
-                                <option value="">{{ __('site.all') }}</option>
-                                @foreach (['monthly', 'yearly', 'both'] as $b)
-                                    <option value="{{ $b }}">{{ __('site.billing_' . $b) }}</option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('site.active') }}</flux:label>
-                            <flux:select size="sm" wire:model="active">
-                                <option value="">{{ __('site.all') }}</option>
-                                <option value="yes">{{ __('site.yes') }}</option>
-                                <option value="no">{{ __('site.no') }}</option>
-                            </flux:select>
-                        </div>
-
-                        <flux:button size="sm" variant="ghost" wire:click="filter" class="self-end">
-                            {{ __('site.filter') }}
-                        </flux:button>
                     </div>
                 </x-slot>
 
+                {{-- Encabezados --}}
                 <x-slot name="head">
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer  text-left"
-                        wire:click="sort('name')">
-                        <span class="inline-flex items-center gap-1">{{ __('site.name') }}
-                            @if ($sortBy === 'name')
-                                {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
-                            @endif
-                        </span>
+                    <th
+                        class="px-3 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left w-12">
+                        {{ __('common.order') }}
                     </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 text-left">
-                        {{ __('site.code') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
+                        {{ __('commercial_plans.name') }}
                     </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer  text-left"
-                        wire:click="sort('monthly_price')">
-                        {{ __('site.monthly') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
+                        {{ __('commercial_plans.description') }}
                     </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer text-left"
-                        wire:click="sort('yearly_price')">
-                        {{ __('site.yearly') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-center">
+                        {{ __('common.status') }}
                     </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 text-left">
-                        {{ __('site.billing') }}
-                    </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 text-left">
-                        {{ __('site.active') }}
-                    </th>
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer text-left"
-                        wire:click="sort('sort_order')">
-                        {{ __('site.order') }}
-                    </th>
-                    <th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-                        {{ __('site.actions') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-end">
+                        {{ __('common.actions') }}
                     </th>
                 </x-slot>
 
+                {{-- Filas --}}
                 @forelse ($plans as $plan)
-                    <tr>
+                    <tr class="divide-y divide-gray-200 dark:divide-neutral-700">
+                        <td class="align-top px-3 py-3 text-sm w-8">
+                            <div class="flex flex-col items-center leading-none">
+                                <a wire:click.prevent="moveUp({{ $plan->id }})" title="{{ __('common.move_up') }}"
+                                    class="cursor-pointer text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300">
+                                    <x-icons.lucide.chevron-up class="h-4 w-4" />
+                                </a>
+
+                                <a wire:click.prevent="moveDown({{ $plan->id }})"
+                                    title="{{ __('common.move_down') }}"
+                                    class="cursor-pointer text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300">
+                                    <x-icons.lucide.chevron-down class="h-4 w-4" />
+                                </a>
+                            </div>
+                        </td>
+
+
+                        {{-- Nombre --}}
                         <td class="align-top px-6 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200">
                             {{ $plan->name }}
-                            <div class="text-xs text-gray-500">{{ $plan->slug }}</div>
                         </td>
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->code }}
+
+                        {{-- Descripción breve --}}
+                        <td
+                            class="align-top px-6 py-4 text-sm text-gray-700 dark:text-neutral-300 truncate max-w-[280px]">
+                            {{ Illuminate\Support\Str::limit($plan->description, 80) ?: '—' }}
                         </td>
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->monthly_price !== null ? number_format($plan->monthly_price, 2) . ' ' . $plan->currency : '—' }}
-                        </td>
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->yearly_price !== null ? number_format($plan->yearly_price, 2) . ' ' . $plan->currency : '—' }}
-                        </td>
-                        <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ __('site.billing_' . $plan->billing_interval) }}
-                        </td>
-                        <td class="align-top px-6 py-4 text-sm">
+
+                        {{-- Estado --}}
+                        <td class="align-top px-6 py-4 text-center text-sm">
+                            @php
+                                $state = $plan->is_active ? 'active' : 'inactive';
+                                $styles = [
+                                    'active' =>
+                                        'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-900',
+                                    'inactive' =>
+                                        'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800',
+                                ];
+                            @endphp
                             <span
-                                class="text-xs {{ $plan->is_active ? 'text-green-600 dark:text-green-400' : 'text-gray-500' }}">
-                                {{ $plan->is_active ? __('site.yes') : __('site.no') }}
+                                class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium {{ $styles[$state] }}">
+                                {{ __('common.' . $state) }}
                             </span>
                         </td>
-                        <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ $plan->sort_order }}
-                        </td>
+
+                        {{-- Acciones --}}
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
-                                class="text-xs text-gray-400 dark:text-neutral-500 inline-flex items-center whitespace-nowrap">
-                                <flux:button wire:navigate size="sm"
+                                class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
+                                <flux:button size="sm" as="a" wire:navigate
                                     href="{{ route('tenant.dashboard.commercial-plans.edit', $plan) }}">
-                                    {{ __('site.edit') }}
+                                    {{ __('common.edit') }}
                                 </flux:button>
-                                <flux:modal.trigger name="confirm-delete-plan">
-                                    <flux:button size="sm" variant="ghost" type="button"
-                                        wire:click="confirmDelete({{ $plan->id }})">
-                                        {{ __('site.delete') }}
+
+                                <flux:modal.trigger name="confirm-delete-{{ $plan->id }}">
+                                    <flux:button size="sm" variant="ghost">
+                                        {{ __('common.delete') }}
                                     </flux:button>
                                 </flux:modal.trigger>
                             </span>
@@ -150,33 +136,34 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
-                            {{ __('site.no_plans_found') }}
+                        <td colspan="100" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
+                            {{ __('common.empty_state') }}
                         </td>
                     </tr>
                 @endforelse
 
+                {{-- Modal de confirmación --}}
                 <x-slot name="modal">
-                    <flux:modal name="confirm-delete-plan" class="min-w-[22rem]" x-data
-                        @plan-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-plan' })">
-                        <div class="space-y-6">
-                            <div>
-                                <flux:heading size="lg">{{ __('site.delete_plan_title') }}</flux:heading>
-                                <flux:text class="mt-2">
-                                    {{ __('site.delete_plan_message') }}
-                                </flux:text>
+                    @foreach ($plans as $plan)
+                        <flux:modal name="confirm-delete-{{ $plan->id }}" class="min-w-[22rem]" x-data
+                            @plan-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-{{ $plan->id }}' })">
+                            <div class="space-y-6">
+                                <div>
+                                    <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
+                                    <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
+                                </div>
+                                <div class="flex gap-2">
+                                    <flux:spacer />
+                                    <flux:modal.close>
+                                        <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+                                    </flux:modal.close>
+                                    <flux:button variant="danger" wire:click="delete({{ $plan->id }})">
+                                        {{ __('common.confirm_delete') }}
+                                    </flux:button>
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                <flux:spacer />
-                                <flux:modal.close>
-                                    <flux:button variant="ghost">{{ __('site.cancel') }}</flux:button>
-                                </flux:modal.close>
-                                <flux:button wire:click="delete" variant="danger">
-                                    {{ __('site.confirm_delete') }}
-                                </flux:button>
-                            </div>
-                        </div>
-                    </flux:modal>
+                        </flux:modal>
+                    @endforeach
                 </x-slot>
             </x-data-table>
         </section>

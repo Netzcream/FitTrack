@@ -38,119 +38,31 @@
                 @endcan
             </flux:navlist.group>
 
-
-            {{-- Entrenamiento --}}
             @php
-                $trainingPatterns = [
-                    'tenant.dashboard.training-goals.*',
-                    'tenant.dashboard.training-phases.*',
+                $businessPatterns = [
                     'tenant.dashboard.students.*',
-                    'tenant.dashboard.tags.*',
+                    'tenant.dashboard.exercises.*',
+                    'tenant.dashboard.plans.*',
+
                 ];
             @endphp
-            <flux:navlist.group :heading="__('site.training')" expandable
-                :expanded="request()->routeIs(...$trainingPatterns)">
-
+            <flux:navlist.group :heading="__('site.students')" expandable
+                :expanded="request()->routeIs(...$businessPatterns)">
                 <flux:navlist.item href="{{ route('tenant.dashboard.students.index') }}"
                     :current="request()->routeIs('tenant.dashboard.students.*')" wire:navigate>
                     {{ __('site.students') }}
                 </flux:navlist.item>
 
-                <flux:navlist.item href="{{ route('tenant.dashboard.training-goals.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.training-goals.*')" wire:navigate>
-                    {{ __('site.training_goals') }}
-                </flux:navlist.item>
 
-                <flux:navlist.item href="{{ route('tenant.dashboard.training-phases.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.training-phases.*')" wire:navigate>
-                    {{ __('site.training_phases') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.tags.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.tags.*')" wire:navigate>
-                    {{ __('site.tags') }}
-                </flux:navlist.item>
-            </flux:navlist.group>
-
-
-            @php
-                $exercisePatterns = [
-                    'tenant.dashboard.exercise.*',
-                    'tenant.dashboard.exercises.plans.assignments.*',
-                    'tenant.dashboard.exercises.plans.assign.wizard',
-                    'tenant.dashboard.exercises.plans.templates.*',
-                    'tenant.dashboard.exercises.plans.builder',];
-            @endphp
-
-            <flux:navlist.group :heading="__('exercise.title')" expandable
-                :expanded="request()->routeIs(...$exercisePatterns)">
-
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.plans.templates.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercises.plans.templates.*')" wire:navigate>
-                    {{ __('exercise.templates') }}
-                </flux:navlist.item>
-
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.plans.assignments.index') }}"
-                    :current="request()->routeIs(['tenant.dashboard.exercises.plans.assignments.*','tenant.dashboard.exercises.plans.assign.wizard'])"
-                    wire:navigate>
-                    {{ __('asignados') }}
-                </flux:navlist.item>
-
-
-
-
-
-
-
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercises.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.exercises.*')" wire:navigate>
-                    {{ __('exercise.exercises') }}
-                </flux:navlist.item>
-
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercise-levels.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.exercise-levels.*')" wire:navigate>
-                    {{ __('exercise.exercise_levels') }}
-                </flux:navlist.item>
-
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.movement-patterns.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.movement-patterns.*')" wire:navigate>
-                    {{ __('exercise.movement_patterns') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.exercise-planes.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.exercise-planes.*')" wire:navigate>
-                    {{ __('exercise.exercise_planes') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.muscle-groups.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.muscle-groups.*')" wire:navigate>
-                    {{ __('exercise.muscle_groups') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.muscles.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.muscles.*')" wire:navigate>
-                    {{ __('exercise.muscles') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercise.equipments.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.exercise.equipments.*')" wire:navigate>
-                    {{ __('exercise.equipment') }}
-                </flux:navlist.item>
 
             </flux:navlist.group>
 
 
-            {{-- Configurar negocio --}}
             @php
                 $businessPatterns = [
                     'tenant.dashboard.commercial-plans.*',
                     'tenant.dashboard.payment-methods.*',
-                    'tenant.dashboard.communication-channels.*',
+
                 ];
             @endphp
             <flux:navlist.group :heading="__('site.business_setup')" expandable
@@ -165,10 +77,6 @@
                     {{ __('site.payment_methods') }}
                 </flux:navlist.item>
 
-                <flux:navlist.item href="{{ route('tenant.dashboard.communication-channels.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.communication-channels.*')" wire:navigate>
-                    {{ __('site.communication_channels') }}
-                </flux:navlist.item>
             </flux:navlist.group>
 
 

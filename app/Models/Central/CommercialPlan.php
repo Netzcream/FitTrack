@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-
+use App\Models\Tenant;
 
 class CommercialPlan extends Model
 {
@@ -90,11 +90,11 @@ class CommercialPlan extends Model
         return 'uuid';
     }
 
-    /* ============================================================
+    /* ===========================================================
      |  Relaciones
      |============================================================ */
     public function tenants()
     {
-        return $this->hasMany(Student::class);
+        return $this->hasMany(Tenant::class);
     }
 }

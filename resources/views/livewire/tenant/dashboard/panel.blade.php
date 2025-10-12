@@ -223,7 +223,7 @@
                         </div>
                         <div>
                             <flux:label class="text-xs">{{ __('site.email') }}</flux:label>
-                            <flux:input type="email" wire:model.defer="email" />
+                            <flux:input type="email" wire:model.defer="email" required />
                             @error('email')
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                             @enderror

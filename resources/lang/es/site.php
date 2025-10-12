@@ -42,6 +42,7 @@ return [
     'add' => "Agregar",
     'update' => "Actualizar",
     'actions' => "Acciones",
+    'loading' => 'Cargando...',
 
     'delete_confirmation' => "¿Está seguro de que desea eliminar este elemento?",
     'delete_confirmation_text' => "Esta acción no se puede deshacer.",

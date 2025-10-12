@@ -1,229 +1,153 @@
 <div class="flex items-start max-md:flex-col">
-    <div class="flex-1 self-stretch max-md:pt-6">
+    <div class="flex-1 self-stretch max-md:pt-6 space-y-6">
+
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <flux:heading size="xl" level="1">{{ __('site.students') }}</flux:heading>
-                    <flux:subheading size="lg" class="mb-6">
-                        {{ __('site.students_subheading') }}
-                    </flux:subheading>
+                    <flux:heading size="xl" level="1">{{ __('students.index_title') }}</flux:heading>
+                    <flux:subheading size="lg" class="mb-6">{{ __('students.index_subheading') }}</flux:subheading>
                 </div>
-                <flux:modal.trigger name="create-student">
-                    <flux:button variant="primary" icon="plus">
-                        {{ __('site.new_student') }}
-                    </flux:button>
-                </flux:modal.trigger>
+
+                <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary"
+                    icon="plus">
+                    {{ __('students.new_student') }}
+                </flux:button>
             </div>
             <flux:separator variant="subtle" />
         </div>
 
         <section class="w-full">
             <x-data-table :pagination="$students">
-                {{-- FILTROS --}}
+
                 <x-slot name="filters">
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         <div class="max-w-[260px] flex-1">
-                            <flux:label class="text-xs">{{ __('site.search') }}</flux:label>
-                            <flux:input size="sm" wire:model.live.debounce.400ms="search"
-                                placeholder="{{ __('site.search_placeholder_students') }}" class="w-full" />
+                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
+                                :label="__('common.search')" placeholder="{{ __('students.search_placeholder') }}" />
                         </div>
 
-                        <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('site.status') }}</flux:label>
-                            <flux:select size="sm" wire:model="status">
-                                <option value="">{{ __('site.all') }}</option>
-                                <option value="active">{{ __('site.active') }}</option>
-                                <option value="paused">{{ __('site.paused') }}</option>
-                                <option value="inactive">{{ __('site.inactive') }}</option>
-                                <option value="prospect">{{ __('site.prospect') }}</option>
+                        <div class="min-w-[160px]">
+
+                            <flux:select size="sm" wire:model.live="status" :label="__('students.status')">
+                                <option value="">{{ __('common.all') }}</option>
+                                <option value="active">{{ __('students.status.active') }}</option>
+                                <option value="paused">{{ __('students.status.paused') }}</option>
+                                <option value="inactive">{{ __('students.status.inactive') }}</option>
+                                <option value="prospect">{{ __('students.status.prospect') }}</option>
                             </flux:select>
                         </div>
 
-                        <div class="min-w-[220px]">
-                            <flux:label class="text-xs">{{ __('site.commercial_plan') }}</flux:label>
-                            <flux:select size="sm" wire:model="planId">
-                                <option value="">{{ __('site.all') }}</option>
-                                @foreach ($plans as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                        <div class="min-w-[160px]">
+
+                            <flux:select size="sm" wire:model.live="plan" :label="__('students.plan')">
+                                <option value="">{{ __('common.all') }}</option>
+                                @foreach ($plans as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
                                 @endforeach
                             </flux:select>
                         </div>
 
-                        <div class="min-w-[220px]">
-                            <flux:label class="text-xs">{{ __('site.primary_goal') }}</flux:label>
-                            <flux:select size="sm" wire:model="goalId">
-                                <option value="">{{ __('site.all') }}</option>
-                                @foreach ($goals as $g)
-                                    <option value="{{ $g->id }}">{{ $g->name }}</option>
-                                @endforeach
-                            </flux:select>
+                        <div class="">
+                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
+                                {{ __('common.clear') }}
+                            </flux:button>
                         </div>
-
-                        <div class="min-w-[200px]">
-                            <flux:label class="text-xs">{{ __('site.tag') }}</flux:label>
-                            <flux:select size="sm" wire:model="tagId">
-                                <option value="">{{ __('site.all') }}</option>
-                                @foreach ($tags as $t)
-                                    <option value="{{ $t->id }}">{{ $t->name }}</option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        <flux:button size="sm" variant="ghost" wire:click="filter" class="self-end">
-                            {{ __('site.filter') }}
-                        </flux:button>
                     </div>
                 </x-slot>
 
-                {{-- CABECERA --}}
                 <x-slot name="head">
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer text-left"
-                        wire:click="sort('last_name')">
-                        <span class="inline-flex items-center gap-1">{{ __('site.student') }}
+                    <th wire:click="sort('last_name')"
+                        class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
+                        <span class="inline-flex items-center gap-1">
+                            {{ __('students.name') }}
                             @if ($sortBy === 'last_name')
                                 {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
                             @endif
                         </span>
                     </th>
 
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer text-left"
-                        wire:click="sort('status')">
-                        <span class="inline-flex items-center gap-1">{{ __('site.status') }}
-                            @if ($sortBy === 'status')
-                                {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
-                            @endif
-                        </span>
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
+                        {{ __('students.status') }}
                     </th>
 
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 text-left">
-                        {{ __('site.commercial_plan') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
+                        {{ __('students.plan') }}
                     </th>
 
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 text-left">
-                        {{ __('site.primary_goal') }}
+                    <th wire:click="sort('last_login_at')"
+                        class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
+                        {{ __('students.last_login_at') }}
                     </th>
 
-                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer text-left"
-                        wire:click="sort('last_login_at')">
-                        <span class="inline-flex items-center gap-1">{{ __('site.last_access') }}
-                            @if ($sortBy === 'last_login_at')
-                                {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
-                            @endif
-                        </span>
-                    </th>
-
-                    <th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500 cursor-pointer"
-                        wire:click="sort('avg_adherence_pct')">
-                        <span class="inline-flex items-center gap-1">{{ __('site.adherence') }}
-                            @if ($sortBy === 'avg_adherence_pct')
-                                {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
-                            @endif
-                        </span>
-                    </th>
-
-                    <th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
-                        {{ __('site.actions') }}
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-end">
+                        {{ __('common.actions') }}
                     </th>
                 </x-slot>
 
-                {{-- FILAS --}}
-                @forelse ($students as $s)
-                    <tr>
-                        {{-- Alumno --}}
-                        <td class="align-top px-6 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200">
+                @forelse ($students as $student)
+                    <tr wire:key="student-{{ $student->uuid }}"
+                        class="divide-y divide-gray-200 dark:divide-neutral-700">
+                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                             <div class="inline-flex items-center gap-3">
                                 <div
                                     class="h-8 w-8 rounded-full overflow-hidden border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 flex items-center justify-center">
-                                    @php
-                                        // Si está cargada la relación, usamos eso; si no, Spatie consulta.
-                                        $hasAvatar = $s->relationLoaded('media')
-                                            ? $s->getMedia('avatar')->isNotEmpty()
-                                            : $s->hasMedia('avatar');
-
-                                        // Intentar usar conversión 'thumb' si existe; si no, original
-                                        $avatarUrl = $hasAvatar
-                                            ? ($s->getFirstMediaUrl('avatar', 'thumb') ?:
-                                            $s->getFirstMediaUrl('avatar'))
-                                            : null;
-                                    @endphp
-
-                                    @if ($avatarUrl)
-                                        <img src="{{ $avatarUrl }}" alt="avatar"
-                                            class="h-full w-full object-cover" loading="lazy">
+                                    @if ($student->hasMedia('avatar'))
+                                        <img src="{{ $student->getFirstMediaUrl('avatar', 'thumb') }}"
+                                            alt="{{ $student->full_name }}" class="object-cover h-full w-full">
                                     @else
-                                        <span class="text-[10px] font-semibold text-gray-700 dark:text-neutral-200">
-                                            {{ strtoupper(substr($s->first_name ?? '', 0, 1) . substr($s->last_name ?? '', 0, 1)) ?: 'AA' }}
-                                        </span>
+                                        <span
+                                            class="text-xs font-semibold">{{ strtoupper(substr($student->first_name, 0, 1) . substr($student->last_name, 0, 1)) }}</span>
                                     @endif
                                 </div>
-
                                 <div class="leading-tight">
-                                    <div>{{ $s->full_name ?: '—' }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-neutral-400">
-                                        {{ $s->email ?? '—' }} • {{ $s->phone ?? '—' }}
+                                    <div class="font-medium text-gray-900 dark:text-neutral-100">
+                                        {{ $student->full_name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-neutral-400">{{ $student->email }}
                                     </div>
                                 </div>
                             </div>
-
                         </td>
 
-                        {{-- Estado --}}
                         <td class="align-top px-6 py-4 text-sm">
                             @php
-                                $map = [
-                                    'active' => 'text-green-600 dark:text-green-400',
-                                    'paused' => 'text-amber-600 dark:text-amber-400',
-                                    'inactive' => 'text-gray-500',
-                                    'prospect' => 'text-blue-600 dark:text-blue-400',
+                                $state = $student->status;
+                                $styles = [
+                                    'active' =>
+                                        'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-900',
+                                    'paused' =>
+                                        'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',
+                                    'inactive' =>
+                                        'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800',
+                                    'prospect' =>
+                                        'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
                                 ];
                             @endphp
-                            <span class="text-xs {{ $map[$s->status] ?? 'text-gray-500' }}">
-                                {{ ucfirst(__($s->status)) }}
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium {{ $styles[$state] ?? 'bg-gray-50 text-gray-700 ring-1 ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800' }}">
+                                {{ __('students.status.' . $state) }}
                             </span>
                         </td>
 
-                        {{-- Plan --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $s->commercialPlan->name ?? '—' }}
+                            {{ $student->commercialPlan?->name ?? '—' }}
                         </td>
 
-                        {{-- Objetivo --}}
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $s->primaryTrainingGoal->name ?? '—' }}
+                        <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
+                            {{ $student->last_login_at?->format('d/m/Y H:i') ?? '—' }}
                         </td>
 
-                        {{-- Último acceso --}}
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ optional($s->last_login_at)->diffForHumans() ?? '—' }}
-                        </td>
-
-                        {{-- Adherencia --}}
-                        <td class="align-top px-6 py-4 text-end text-sm text-gray-900 dark:text-neutral-100">
-                            @if (!is_null($s->avg_adherence_pct))
-                                {{ rtrim(rtrim(number_format($s->avg_adherence_pct, 1, ',', '.'), '0'), ',') }}%
-                            @else
-                                —
-                            @endif
-                        </td>
-
-                        {{-- Acciones --}}
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
-                                class="text-xs text-gray-400 dark:text-neutral-500 inline-flex items-center whitespace-nowrap gap-2">
-
-                                <flux:button size="sm"
-                                    href="{{ route('tenant.dashboard.payments.create', ['student' => $s]) }}">
-                                    Generar cobro
+                                class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
+                                <flux:button size="sm" as="a" wire:navigate
+                                    href="{{ route('tenant.dashboard.students.edit', $student->uuid) }}">
+                                    {{ __('common.edit') }}
                                 </flux:button>
 
-                                <flux:button wire:navigate size="sm"
-                                    href="{{ route('tenant.dashboard.students.edit', $s) }}">
-                                    {{ __('site.edit') }}
-                                </flux:button>
                                 <flux:modal.trigger name="confirm-delete-student">
-                                    <flux:button size="sm" variant="ghost" type="button"
-                                        wire:click="confirmDelete({{ $s->id }})">
-                                        {{ __('site.delete') }}
+                                    <flux:button size="sm" variant="ghost"
+                                        wire:click="confirmDelete('{{ $student->uuid }}')">
+                                        {{ __('common.delete') }}
                                     </flux:button>
                                 </flux:modal.trigger>
                             </span>
@@ -231,97 +155,37 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
-                            {{ __('site.no_students_found') }}
+                        <td colspan="100" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
+                            {{ __('common.empty_state') }}
                         </td>
                     </tr>
                 @endforelse
 
-                {{-- MODAL --}}
+
                 <x-slot name="modal">
                     <flux:modal name="confirm-delete-student" class="min-w-[22rem]" x-data
                         @student-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-student' })">
                         <div class="space-y-6">
                             <div>
-                                <flux:heading size="lg">{{ __('site.delete_student_title') }}</flux:heading>
-                                <flux:text class="mt-2">
-                                    {{ __('site.delete_student_message') }}
-                                </flux:text>
+                                <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
+                                <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
                             </div>
                             <div class="flex gap-2">
                                 <flux:spacer />
-
-
-
                                 <flux:modal.close>
-                                    <flux:button variant="ghost">{{ __('site.cancel') }}</flux:button>
+                                    <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
                                 </flux:modal.close>
                                 <flux:button wire:click="delete" variant="danger">
-                                    {{ __('site.confirm_delete') }}
+                                    {{ __('common.confirm_delete') }}
                                 </flux:button>
                             </div>
                         </div>
                     </flux:modal>
                 </x-slot>
+
+
+
             </x-data-table>
         </section>
     </div>
-
-
-    <flux:modal name="create-student" class="min-w-[28rem]">
-        <div class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ __('site.new_student') }}</flux:heading>
-                <flux:text class="mt-2">{{ __('site.new_student_subheading') }}</flux:text>
-            </div>
-
-            <form wire:submit.prevent="saveStudent" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <flux:label class="text-xs">{{ __('site.first_name') }}</flux:label>
-                        <flux:input wire:model.defer="first_name" autofocus />
-                        @error('first_name')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <flux:label class="text-xs">{{ __('site.last_name') }}</flux:label>
-                        <flux:input wire:model.defer="last_name" />
-                        @error('last_name')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <flux:label class="text-xs">{{ __('site.phone') }}</flux:label>
-                        <flux:input wire:model.defer="phone" />
-                        @error('phone')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <flux:label class="text-xs">{{ __('site.email') }}</flux:label>
-                        <flux:input type="email" wire:model.defer="email" />
-                        @error('email')
-                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="flex gap-2">
-                    <flux:spacer />
-                    <flux:modal.close>
-                        <flux:button variant="ghost">{{ __('site.cancel') }}</flux:button>
-                    </flux:modal.close>
-                    <flux:button type="submit" variant="primary" icon="save">
-                        {{ __('site.save_and_continue') }}
-                    </flux:button>
-                </div>
-            </form>
-        </div>
-    </flux:modal>
-
-
 </div>

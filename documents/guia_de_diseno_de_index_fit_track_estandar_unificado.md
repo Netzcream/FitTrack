@@ -499,6 +499,7 @@
 - **Links sueltos** → siempre `as="a"` dentro de `<flux:button>`.
 - **Orden habilitado con `order`** → desactivar sorting en encabezados cuando haya reorden manual.
 - **Filtros sin `resetPage()`** → paginación inconsistente al filtrar/buscar.
+- **Eliminar un elemento** → Debe abrir un modal genérico "Está seguro de que desea eliminar este elemento" con Confirmar y cancelar y que livewire haga el resto
 
 ---
 

@@ -46,4 +46,31 @@ return [
     'error'           => 'Ocurrió un error. Intenta nuevamente.',
     'loading'         => 'Cargando...',
 
+    'none' => 'Ninguno',
+    'order' => 'Orden',
+    'active' => 'Activo',
+    'innactive' => 'Inactivo',
+    'move_up' => 'Subir',
+    'move_down' => 'Bajar',
+    'update' => 'Actualizar',
+    'add' => 'Agregar',
+    'create' => 'Crear',
+
+    'type' => 'Tipo',
+    'amount' => 'Monto',
+    'currency' => 'Moneda',
+    'label' => 'Etiqueta visible',
+
+    'once' => 'Una vez',
+    'weekly' => 'Semanal',
+    'biweekly' => 'Quincenal',
+    'monthly' => 'Mensual',
+    'quarterly' => 'Trimestral',
+    'semiannual' => 'Semestral',
+    'yearly' => 'Anual',
+
+    'select' => 'Seleccionar',
+
+
+
 ];

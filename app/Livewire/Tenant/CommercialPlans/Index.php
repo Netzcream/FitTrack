@@ -4,71 +4,82 @@ namespace App\Livewire\Tenant\CommercialPlans;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Layout;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Tenant\CommercialPlan;
+use Livewire\Attributes\Layout;
+use Illuminate\Support\Str;
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
 {
     use WithPagination;
 
-    public string $sortBy = 'sort_order';
-    public string $sortDirection = 'asc';
-    public string $search = '';
-
-    public ?string $visibility = null;      // public|private
-    public ?string $planType = null;        // free|standard|pro|enterprise
-    public ?string $billingInterval = null; // monthly|yearly|both
-    public $active = null;            // true|false
-
+    public string $q = '';
+    public ?string $status = '';
     public int $perPage = 10;
-    public ?int $planToDelete = null;
 
-    public function sort(string $column): void
+    public function updating($field)
     {
-        if ($this->sortBy === $column) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            $this->sortDirection = 'asc';
+        if (in_array($field, ['q', 'status'])) {
+            $this->resetPage();
         }
     }
 
-    public function updatedSearch(): void
+    public function resetFilters(): void
     {
-        $this->resetPage();
-    }
-    public function filter(): void
-    {
-        $this->resetPage();
+        $this->reset(['q', 'status']);
     }
 
-    public function confirmDelete(int $id): void
+    public function moveUp(int $id): void
     {
-        $this->planToDelete = $id;
-    }
+        $item = CommercialPlan::findOrFail($id);
+        $above = CommercialPlan::where('order', '<', $item->order)
+            ->orderByDesc('order')
+            ->first();
 
-    public function delete(): void
-    {
-        if (!$this->planToDelete) return;
-        if ($plan = CommercialPlan::find($this->planToDelete)) {
-            $plan->delete(); // soft delete
+        if ($above) {
+            $temp = $item->order;
+            $item->order = $above->order;
+            $above->order = $temp;
+            $item->save();
+            $above->save();
         }
+    }
+
+    public function moveDown(int $id): void
+    {
+        $item = CommercialPlan::findOrFail($id);
+        $below = CommercialPlan::where('order', '>', $item->order)
+            ->orderBy('order')
+            ->first();
+
+        if ($below) {
+            $temp = $item->order;
+            $item->order = $below->order;
+            $below->order = $temp;
+            $item->save();
+            $below->save();
+        }
+    }
+
+    public function delete(int $id): void
+    {
+        CommercialPlan::findOrFail($id)->delete();
         $this->dispatch('plan-deleted');
-        $this->reset('planToDelete');
     }
 
     public function render()
     {
         $plans = CommercialPlan::query()
-            ->search($this->search)
-            ->when($this->visibility, fn($q) => $q->where('visibility', $this->visibility))
-            ->when($this->planType, fn($q) => $q->where('plan_type', $this->planType))
-            ->when($this->billingInterval, fn($q) => $q->where('billing_interval', $this->billingInterval))
-            ->when(!empty($this->active), fn($q) => $q->where('is_active', $this->active == 'yes' ? true : false))
-            ->orderBy($this->sortBy, $this->sortDirection)
+            ->search($this->q)
+            ->when($this->status !== '', function (Builder $q) {
+                $q->where('is_active', $this->status === '1');
+            })
+            ->ordered()
             ->paginate($this->perPage);
 
-        return view('livewire.tenant.commercial-plans.index', compact('plans'));
+        return view('livewire.tenant.commercial-plans.index', [
+            'plans' => $plans,
+        ]);
     }
 }

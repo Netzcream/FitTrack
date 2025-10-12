@@ -33,6 +33,8 @@ class Panel extends Component
             'last_name'  => $data['last_name'],
             'phone'      => $data['phone'] ?? null,
             'email'      => $data['email'] ?? null,
+            'status'     => 'prospect',
+            'is_user_enabled' => 'false'
         ]);
 
         // Redirige directo a la edición del alumno

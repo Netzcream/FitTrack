@@ -12,76 +12,114 @@ return new class extends Migration
     {
 
 
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::create('commercial_plans', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
-            $table->string('code')->unique();
             $table->string('name');
-            $table->text('description');
-            $table->double('price'); // sin manejo de moneda por ahora
-            $table->json('data')->nullable();
+            $table->string('uuid')->unique();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->json('pricing')->nullable();
+            $table->json('features')->nullable();
+            $table->json('limits')->nullable();
+            $table->unsignedInteger('order')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });
 
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->foreignId('plan_id')
+            $table->foreignId('commercial_plan_id')
                 ->nullable()
                 ->after('id')
-                ->constrained('plans')
+                ->constrained('commercial_plans')
                 ->nullOnDelete();
         });
 
 
 
-        DB::table('plans')->insert([
+        DB::table('commercial_plans')->insert([
             [
                 'uuid'        => Str::uuid(),
-                'code'        => 'starter',
+                'slug'        => 'starter',
                 'name'        => 'Starter',
-                'description' => 'Hasta 5 alumnos, rutinas y mensajes, estadísticas básicas',
-                'price'       => 0,
-                'data'        => json_encode([
-                    'features' => [
-                        'Hasta 5 alumnos',
-                        'Rutinas y mensajes',
-                        'Estadísticas básicas',
+                'description' => 'Hasta 5 alumnos, rutinas y mensajes, estadísticas básicas.',
+                'is_active'   => true,
+                'pricing'     => json_encode([
+                    'monthly' => [
+                        'amount'   => 0,
+                        'currency' => 'ARS',
+                        'label'    => 'Gratis',
                     ],
                 ]),
+                'features'    => json_encode([
+                    'Hasta 5 alumnos',
+                    'Rutinas y mensajes',
+                    'Estadísticas básicas',
+                ]),
+                'limits'      => json_encode([
+                    'students' => 5,
+                    'trainers' => 1,
+                ]),
+                'order'       => 1,
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ],
             [
                 'uuid'        => Str::uuid(),
-                'code'        => 'pro',
+                'slug'        => 'pro',
                 'name'        => 'Pro',
-                'description' => 'Alumnos ilimitados, rutinas avanzadas, exportar estadísticas, branding y personalización',
-                'price'       => 14900,
-                'data'        => json_encode([
-                    'features' => [
-                        'Alumnos ilimitados',
-                        'Rutinas avanzadas',
-                        'Exportar estadísticas',
-                        'Branding y personalización',
+                'description' => 'Alumnos ilimitados, rutinas avanzadas, exportar estadísticas, branding y personalización.',
+                'is_active'   => true,
+                'pricing'     => json_encode([
+                    'monthly' => [
+                        'amount'   => 14900,
+                        'currency' => 'ARS',
+                        'label'    => 'ARS 14.900 / mes',
+                    ],
+                    'yearly' => [
+                        'amount'   => 149000,
+                        'currency' => 'ARS',
+                        'label'    => 'ARS 149.000 / año',
                     ],
                 ]),
+                'features'    => json_encode([
+                    'Alumnos ilimitados',
+                    'Rutinas avanzadas',
+                    'Exportar estadísticas',
+                    'Branding y personalización',
+                ]),
+                'limits'      => json_encode([
+                    'students' => null,
+                    'trainers' => 3,
+                ]),
+                'order'       => 2,
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ],
             [
                 'uuid'        => Str::uuid(),
-                'code'        => 'equipo',
+                'slug'        => 'equipo',
                 'name'        => 'Equipo',
-                'description' => 'Para estudios/gyms, multi-entrenador, soporte prioritario',
-                'price'       => 24900,
-                'data'        => json_encode([
-                    'features' => [
-                        'Para estudios/gyms',
-                        'Multi-entrenador',
-                        'Soporte prioritario',
+                'description' => 'Para estudios/gyms, multi-entrenador, soporte prioritario.',
+                'is_active'   => true,
+                'pricing'     => json_encode([
+                    'monthly' => [
+                        'amount'   => 24900,
+                        'currency' => 'ARS',
+                        'label'    => 'ARS 24.900 / mes',
                     ],
                 ]),
+                'features'    => json_encode([
+                    'Para estudios/gyms',
+                    'Multi-entrenador',
+                    'Soporte prioritario',
+                ]),
+                'limits'      => json_encode([
+                    'students' => null,
+                    'trainers' => 10,
+                ]),
+                'order'       => 3,
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ],
@@ -93,13 +131,13 @@ return new class extends Migration
 
 
         Schema::table('tenants', function (Blueprint $table) {
-            if (Schema::hasColumn('tenants', 'plan_id')) {
-                $table->dropForeign(['plan_id']);
-                $table->dropColumn('plan_id');
+            if (Schema::hasColumn('tenants', 'commercial_plan_id')) {
+                $table->dropForeign(['commercial_plan_id']);
+                $table->dropColumn('commercial_plan_id');
             }
         });
 
 
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('commercial_plans');
     }
 };
