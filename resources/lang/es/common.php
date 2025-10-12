@@ -49,7 +49,7 @@ return [
     'none' => 'Ninguno',
     'order' => 'Orden',
     'active' => 'Activo',
-    'innactive' => 'Inactivo',
+    'inactive' => 'Inactivo',
     'move_up' => 'Subir',
     'move_down' => 'Bajar',
     'update' => 'Actualizar',
