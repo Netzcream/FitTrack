@@ -128,6 +128,12 @@ Route::middleware([
                     Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
                 });
 
+                Route::prefix('exercises')->name('exercises.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Exercises\Index::class)->name('index');
+                    Route::get('/create', App\Livewire\Tenant\Exercises\Form::class)->name('create');
+                    Route::get('/{exercise}/edit', App\Livewire\Tenant\Exercises\Form::class)->name('edit');
+                });
+
                 Route::prefix('roles')->name('roles.')->group(function () {
                     Route::get('/', RolesIndex::class)->name('index');
                     Route::get('/create', RolesForm::class)->name('create');

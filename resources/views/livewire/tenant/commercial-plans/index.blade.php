@@ -26,15 +26,13 @@
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         {{-- Búsqueda --}}
                         <div class="max-w-[260px] flex-1">
-                            <flux:label class="text-xs">{{ __('common.search') }}</flux:label>
-                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
+                            <flux:input :label="__('common.search')" size="sm" class="w-full" wire:model.live.debounce.250ms="q"
                                 placeholder="{{ __('commercial_plans.search_placeholder') }}" />
                         </div>
 
                         {{-- Estado --}}
                         <div class="min-w-[150px]">
-                            <flux:label class="text-xs">{{ __('common.status') }}</flux:label>
-                            <flux:select size="sm" wire:model.live="status">
+                            <flux:select size="sm" :label="__('common.status')" wire:model.live="status">
                                 <option value="">{{ __('common.all') }}</option>
                                 <option value="1">{{ __('common.active') }}</option>
                                 <option value="0">{{ __('common.inactive') }}</option>

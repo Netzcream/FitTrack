@@ -70,6 +70,7 @@ return [
     'yearly' => 'Anual',
 
     'select' => 'Seleccionar',
+    'save' => 'Guardar',
 
 
 

@@ -30,14 +30,14 @@
                 <x-slot name="filters">
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         <div class="max-w-[260px] flex-1">
-                            <flux:label class="text-xs">{{ __('common.search') }}</flux:label>
-                            <flux:input wire:model.live.debounce.250ms="search" size="sm" class="w-full"
+
+                            <flux:input wire:model.live.debounce.250ms="search" size="sm" class="w-full" :label="__('common.search')"
                                 placeholder="{{ __('users.search_placeholder') }}" />
                         </div>
 
                         <div class="min-w-[180px]">
-                            <flux:label class="text-xs">{{ __('users.role') }}</flux:label>
-                            <flux:select wire:model.live="role" size="sm" class="w-full">
+
+                            <flux:select wire:model.live="role" size="sm" class="w-full" :label="__('users.role')">
                                 <option value="">{{ __('common.all') }}</option>
                                 @foreach ($roles as $r)
                                     <option value="{{ $r }}">{{ ucfirst($r) }}</option>

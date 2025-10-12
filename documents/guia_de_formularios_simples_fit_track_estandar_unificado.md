@@ -84,12 +84,6 @@ Bloques principales (de arriba hacia abajo):
 ```
 - **Accent** azul consistente; `focus:ring-2` para accesibilidad.
 
-**Validaciones**
-```blade
-@error('field')
-  <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
-@enderror
-```
 - Mensajes **discretos**: `text-xs` + `text-red-500`.
 
 ---
@@ -228,12 +222,14 @@ session()->flash('success', $this->editMode ? __('entity.updated') : __('entity.
   back-list-label="{{ __('site.back_list') }}"
 >
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <flux:input wire:model.defer="name"  label="{{ __('entity.name') }}"  required autocomplete="off" />
+    <div>
+        <flux:input wire:model.defer="name"  label="{{ __('entity.name') }}"  required autocomplete="off" />
+    </div>
+    <div>
     <flux:input wire:model.defer="email" label="{{ __('entity.email') }}" type="email" required autocomplete="off" />
+    </div>
   </div>
-  @error('name')  <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
-  @error('email') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
-
+  
   {{-- Opcionales: slots de acciones adicionales --}}
   @slot('actions')
     {{-- <flux:button size="sm" variant="ghost">Ayuda</flux:button> --}}
@@ -271,14 +267,16 @@ session()->flash('success', $this->editMode ? __('entity.updated') : __('entity.
       <!-- Contenido -->
       <div class="max-w-3xl space-y-4 pt-2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <flux:input wire:model.defer="name" label="{{ __('entity.name') }}" required autocomplete="off" />
-          <flux:input wire:model.defer="email" label="{{ __('entity.email') }}" type="email" required autocomplete="off" />
+          <div>
+            <flux:input wire:model.defer="name" label="{{ __('entity.name') }}" required autocomplete="off" />
+          </div>
+          <div>
+            <flux:input wire:model.defer="email" label="{{ __('entity.email') }}" type="email" required autocomplete="off" />
+          </div>
         </div>
-        @error('name') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
-        @error('email') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
 
         <div>
-          <flux:label class="text-xs">{{ __('entity.role') }}</flux:label>
+          <flux:label>{{ __('entity.role') }}</flux:label>
           <div class="flex flex-wrap gap-4 mt-2">
             @foreach ($roles as $id => $name)
               <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-neutral-200">
@@ -291,8 +289,12 @@ session()->flash('success', $this->editMode ? __('entity.updated') : __('entity.
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <flux:input wire:model.defer="password" label="{{ $editMode ? __('entity.new_password') : __('entity.password') }}" type="password" autocomplete="new-password" :required="!$editMode" />
-          <flux:input wire:model.defer="password_confirmation" label="{{ __('entity.password_confirmation') }}" type="password" autocomplete="new-password" :required="!$editMode" />
+            <div>
+                <flux:input wire:model.defer="password" label="{{ $editMode ? __('entity.new_password') : __('entity.password') }}" type="password" autocomplete="new-password" :required="!$editMode" />
+            </div>
+            <div>
+                <flux:input wire:model.defer="password_confirmation" label="{{ __('entity.password_confirmation') }}" type="password" autocomplete="new-password" :required="!$editMode" />
+            </div>
         </div>
 
         <!-- Barra inferior compacta -->
@@ -317,6 +319,14 @@ session()->flash('success', $this->editMode ? __('entity.updated') : __('entity.
 ## 10) Esqueleto Livewire mínimo
 
 ```php
+
+use Livewire\Component;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Layout;
+
+#[Layout('components.layouts.tenant')]
 class Form extends Component
 {
     public ?int $id = null;
@@ -331,7 +341,7 @@ class Form extends Component
     public bool $back = false;
     public bool $editMode = false;
 
-    public function mount(?Model $entity = null)
+    public function mount(?Model $entity)
     {
         $this->roles = Role::orderBy('name')->pluck('name', 'id')->toArray();
         if ($entity && $entity->exists) {

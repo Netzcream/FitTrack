@@ -59,7 +59,7 @@ return [
     'read_more' => 'Ver más',
     'read_less' => 'Ver menos',
     'name' => 'Nombre',
-
+    'exercises' => "Ejercicios",
     'login_title'         => 'Iniciá sesión en tu cuenta',
     'login_subtitle'      => 'Ingresá tu email y contraseña para continuar',
     'email_label'         => 'Correo electrónico',
@@ -238,6 +238,7 @@ return [
     'communication_channels' => 'Canales de comunicación',
 
     'training'              => 'Entrenamiento',
+    'training_plans'              => 'Planes de Entrenamiento',
     'training_goals'        => 'Objetivos de entrenamiento',
     'training_phases'       => 'Fases de entrenamiento',
 

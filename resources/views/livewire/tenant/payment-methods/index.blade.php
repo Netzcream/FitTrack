@@ -21,14 +21,14 @@
         <x-slot name="filters">
           <div class="flex flex-wrap gap-4 w-full items-end">
             <div class="max-w-[260px] flex-1">
-              <flux:label class="text-xs">{{ __('site.search') }}</flux:label>
-              <flux:input size="sm" wire:model.live.debounce.400ms="search"
+
+              <flux:input size="sm" wire:model.live.debounce.400ms="search" :label=" __('site.search')"
                 placeholder="{{ __('site.search_placeholder') }}" class="w-full" />
             </div>
 
             <div class="min-w-[150px]">
-              <flux:label class="text-xs">{{ __('site.active') }}</flux:label>
-              <flux:select size="sm" wire:model="active">
+
+              <flux:select size="sm" wire:model="active" :label="__('site.active')">
                 <option value="">{{ __('site.all') }}</option>
                 <option value="yes">{{ __('site.yes') }}</option>
                 <option value="no">{{ __('site.no') }}</option>

@@ -46,11 +46,19 @@
 
                 ];
             @endphp
-            <flux:navlist.group :heading="__('site.students')" expandable
+            <flux:navlist.group :heading="__('site.training')" expandable
                 :expanded="request()->routeIs(...$businessPatterns)">
                 <flux:navlist.item href="{{ route('tenant.dashboard.students.index') }}"
                     :current="request()->routeIs('tenant.dashboard.students.*')" wire:navigate>
                     {{ __('site.students') }}
+                </flux:navlist.item>
+                 <flux:navlist.item href="{{ route('tenant.dashboard.exercises.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.exercises.*')" wire:navigate>
+                    {{ __('site.exercises') }}
+                </flux:navlist.item>
+                 <flux:navlist.item href="{{ route('tenant.dashboard.students.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.plans.*')" wire:navigate>
+                    {{ __('site.training_plans') }}
                 </flux:navlist.item>
 
 

@@ -24,15 +24,14 @@
                         <div class="flex flex-wrap gap-4 w-full items-end">
                             <!-- Buscador -->
                             <div class="max-w-[260px] flex-1">
-                                <flux:label class="text-xs">{{ __('common.search') }}</flux:label>
-                                <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="search"
+                                <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="search" :label="__('common.search')"
                                     placeholder="{{ __('roles.search_placeholder') }}" />
                             </div>
 
                             <!-- Select de permiso -->
                             <div class="min-w-[200px]">
-                                <flux:label class="text-xs">{{ __('roles.permission_filter') }}</flux:label>
-                                <flux:select size="sm" wire:model.live="permission">
+
+                                <flux:select size="sm" wire:model.live="permission" :label="__('roles.permission_filter')">
                                     <option value="">{{ __('common.all') }}</option>
                                     @foreach ($permissions as $r)
                                         <option value="{{ $r }}">{{ ucfirst($r) }}</option>
