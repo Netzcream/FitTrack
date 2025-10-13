@@ -71,7 +71,8 @@ return [
 
     'select' => 'Seleccionar',
     'save' => 'Guardar',
-
+    'add_images' => 'Agregar imágenes',
+    'images_uploaded' => 'imágenes cargadas',
 
 
 ];

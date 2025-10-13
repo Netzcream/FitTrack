@@ -6,11 +6,12 @@
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
                     <flux:heading size="xl" level="1">{{ __('exercises.index_title') }}</flux:heading>
-                    <flux:subheading size="lg" class="mb-6">{{ __('exercises.index_subheading') }}</flux:subheading>
+                    <flux:subheading size="lg" class="mb-6">{{ __('exercises.index_subheading') }}
+                    </flux:subheading>
                 </div>
 
-                <flux:button as="a" href="{{ route('tenant.dashboard.exercises.create') }}"
-                    variant="primary" icon="plus">
+                <flux:button as="a" href="{{ route('tenant.dashboard.exercises.create') }}" variant="primary"
+                    icon="plus">
                     {{ __('exercises.new_exercise') }}
                 </flux:button>
             </div>
@@ -25,10 +26,8 @@
                 <x-slot name="filters">
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         <div class="max-w-[260px] flex-1">
-                            <flux:input size="sm" class="w-full"
-                                wire:model.live.debounce.250ms="q"
-                                :label="__('common.search')"
-                                placeholder="{{ __('exercises.search_placeholder') }}" />
+                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
+                                :label="__('common.search')" placeholder="{{ __('exercises.search_placeholder') }}" />
                         </div>
 
                         <div class="min-w-[160px]">
@@ -49,6 +48,7 @@
 
                 {{-- 🔹 HEAD --}}
                 <x-slot name="head">
+
                     <th wire:click="sort('name')"
                         class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
                         <span class="inline-flex items-center gap-1">
@@ -57,10 +57,6 @@
                                 {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
                             @endif
                         </span>
-                    </th>
-
-                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
-                        {{ __('exercises.category') }}
                     </th>
 
                     <th wire:click="sort('level')"
@@ -85,14 +81,40 @@
                 @forelse ($exercises as $exercise)
                     <tr wire:key="exercise-{{ $exercise->uuid }}"
                         class="divide-y divide-gray-200 dark:divide-neutral-700">
+                        <td class="align-top px-3 py-4">
+                            <div class="inline-flex items-center gap-3">
+                                <div
+                                    class="h-10 w-10 rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 flex items-center justify-center">
+                                    @php
+                                        $media = $exercise->getFirstMedia('images');
+                                    @endphp
 
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $exercise->name }}
+                                    @if ($media)
+                                        @php
+                                            $thumbUrl = $media->hasGeneratedConversion('thumb')
+                                                ? $media->getUrl('thumb')
+                                                : $media->getUrl();
+                                        @endphp
+                                        <img src="{{ $thumbUrl }}" alt="{{ $exercise->name }}"
+                                            class="object-cover h-full w-full" />
+                                    @else
+                                        <x-icons.lucide.image class="h-5 w-5 text-gray-400 dark:text-neutral-500" />
+                                    @endif
+                                </div>
+
+                                <div class="leading-tight">
+                                    <div class="font-medium text-gray-900 dark:text-neutral-100">
+                                        {{ $exercise->name }}
+                                    </div>
+                                    <div class="text-xs text-gray-500 dark:text-neutral-400 capitalize">
+                                        {{ $exercise->category ?? '—' }}
+                                    </div>
+                                </div>
+                            </div>
                         </td>
 
-                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $exercise->category ?? '—' }}
-                        </td>
+
+
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200 capitalize">
                             {{ $exercise->level ?? '—' }}
@@ -137,8 +159,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="100"
-                            class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
+                        <td colspan="100" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
                             {{ __('common.empty_state') }}
                         </td>
                     </tr>

@@ -42,7 +42,7 @@
                 $businessPatterns = [
                     'tenant.dashboard.students.*',
                     'tenant.dashboard.exercises.*',
-                    'tenant.dashboard.plans.*',
+                    'tenant.dashboard.training-plans.*',
 
                 ];
             @endphp
@@ -56,8 +56,8 @@
                     :current="request()->routeIs('tenant.dashboard.exercises.*')" wire:navigate>
                     {{ __('site.exercises') }}
                 </flux:navlist.item>
-                 <flux:navlist.item href="{{ route('tenant.dashboard.students.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.plans.*')" wire:navigate>
+                 <flux:navlist.item href="{{ route('tenant.dashboard.training-plans.index') }}"
+                    :current="request()->routeIs('tenant.dashboard.training-plans.*')" wire:navigate>
                     {{ __('site.training_plans') }}
                 </flux:navlist.item>
 
