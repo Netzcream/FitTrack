@@ -56,14 +56,24 @@
                             <label for="banner_active" class="text-sm text-zinc-800 dark:text-white">¿Activo?</label>
                         </div>
 
-
-                        <x-preline.file-upload name="banner_image" :label="__('tenant.landing.banners.image')" :preview="$banner_image" :uploadedUrl="isset($banner_uuid)
-                            ? \App\Models\LandingBanner::where('uuid', $banner_uuid)
-                                ->first()
-                                ?->getFirstMediaUrl('cover')
-                            : null"
-                            width="128" height="96" radius="rounded-md" />
+                        <div class="col-span-2">
+                            <x-preline.file-upload name="banner_image" :label="__('tenant.landing.banners.desktop_image')" :preview="$banner_image"
+                                :uploadedUrl="isset($banner_uuid)
+                                    ? \App\Models\LandingBanner::where('uuid', $banner_uuid)
+                                        ->first()
+                                        ?->getFirstMediaUrl('cover')
+                                    : null" width="128" height="96" radius="rounded-md" />
+                        </div>
+                        <div class="col-span-2">
+                            <x-preline.file-upload name="banner_image_mobile" :label="__('tenant.landing.banners.mobile_image')" :preview="$banner_image_mobile"
+                                :uploadedUrl="isset($banner_uuid)
+                                    ? \App\Models\LandingBanner::where('uuid', $banner_uuid)
+                                        ->first()
+                                        ?->getFirstMediaUrl('cover_mobile')
+                                    : null" width="96" height="128" radius="rounded-md" />
+                        </div>
                     </div>
+
 
                     <div class="flex gap-2 mt-4">
                         <flux:button type="button" variant="primary" wire:click="saveBanner">
@@ -83,7 +93,7 @@
                 </div>
             </div>
 
-            <div class="flex flex-col my-6 max-w-1/2">
+            <div class="flex flex-col my-6 w-full">
                 <div class="-m-1.5 overflow-x-auto">
                     <div class="p-1.5 min-w-full inline-block align-middle">
                         <div class="overflow-hidden rounded-lg shadow">
@@ -99,7 +109,7 @@
                                             class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                                             {{ __('Contenido') }}</th>
                                         <th scope="col"
-                                            class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                                            class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                                             {{ __('Activo') }}</th>
                                         <th scope="col"
                                             class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
@@ -147,15 +157,22 @@
                                                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-neutral-200">
                                                 <div class="flex items-start gap-4">
                                                     @if (!empty($banner['image']))
-                                                        @php
-                                                            $imgSrc =
-                                                                is_object($banner['image']) &&
-                                                                method_exists($banner['image'], 'temporaryUrl')
-                                                                    ? $banner['image']->temporaryUrl()
-                                                                    : $banner['image'];
-                                                        @endphp
-                                                        <img src="{{ $imgSrc }}" alt="cover"
-                                                            class="h-12 w-12 rounded object-cover shrink-0" />
+                                                        <div class="flex gap-2">
+                                                            <img src="{{ $banner['image'] }}" alt="desktop"
+                                                                class="h-12 w-12 rounded object-cover shrink-0" />
+                                                            @php
+                                                                $mobile = \App\Models\LandingBanner::where(
+                                                                    'uuid',
+                                                                    $banner['uuid'],
+                                                                )
+                                                                    ->first()
+                                                                    ?->getFirstMediaUrl('cover_mobile', 'thumb');
+                                                            @endphp
+                                                            @if ($mobile)
+                                                                <img src="{{ $mobile }}" alt="mobile"
+                                                                    class="h-12 w-12 rounded object-cover shrink-0" />
+                                                            @endif
+                                                        </div>
                                                     @else
                                                         <img src="https://placehold.co/48x48?text=N/A" alt="cover"
                                                             class="h-12 w-12 rounded object-cover shrink-0" />
@@ -208,22 +225,19 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                                 <div class="inline-flex gap-x-2">
                                                     @if (!empty($banner['to_delete']) && $banner['to_delete'])
-                                                        <button type="button"
-                                                            wire:click="restoreBanner('{{ $banner['uuid'] }}')"
-                                                            class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-gray-600 hover:text-gray-900 focus:outline-none focus:text-gray-900 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-300 dark:hover:text-neutral-100 dark:focus:text-neutral-100">
+                                                        <flux:button size="xs" type="button"
+                                                            wire:click="restoreBanner('{{ $banner['uuid'] }}')">
                                                             {{ __('Restaurar') }}
-                                                        </button>
+                                                        </flux:button>
                                                     @else
-                                                        <button type="button"
-                                                            wire:click="editBanner('{{ $banner['uuid'] }}')"
-                                                            class="cursor-pointer inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-gray-600 hover:text-gray-900 focus:outline-none focus:text-gray-900 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-300 dark:hover:text-neutral-100 dark:focus:text-neutral-100">
+                                                        <flux:button size="xs" type="button"
+                                                            wire:click="editBanner('{{ $banner['uuid'] }}')">
                                                             {{ __('site.edit') }}
-                                                        </button>
-                                                        <button type="button"
-                                                            wire:click="deleteBanner('{{ $banner['uuid'] }}')"
-                                                            class="cursor-pointer inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-800 focus:outline-none focus:text-red-800 disabled:opacity-50 disabled:pointer-events-none dark:text-red-500 dark:hover:text-red-400 dark:focus:text-red-400">
+                                                        </flux:button>
+                                                        <flux:button size="xs" type="button" variant="ghost"
+                                                            wire:click="deleteBanner('{{ $banner['uuid'] }}')">
                                                             {{ __('site.delete') }}
-                                                        </button>
+                                                        </flux:button>
                                                     @endif
                                                 </div>
                                                 @if (!empty($banner['to_delete']) && $banner['to_delete'])
@@ -269,5 +283,5 @@
 
         </form>
 
-        </x-tenant.configuration.layout>
+    </x-tenant.landing.layout>
 </section>

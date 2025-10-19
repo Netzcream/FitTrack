@@ -26,7 +26,8 @@
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         {{-- Búsqueda --}}
                         <div class="max-w-[260px] flex-1">
-                            <flux:input :label="__('common.search')" size="sm" class="w-full" wire:model.live.debounce.250ms="q"
+                            <flux:input :label="__('common.search')" size="sm" class="w-full"
+                                wire:model.live.debounce.250ms="q"
                                 placeholder="{{ __('commercial_plans.search_placeholder') }}" />
                         </div>
 
@@ -119,6 +120,7 @@
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
                                 class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
+
                                 <flux:button size="sm" as="a" wire:navigate
                                     href="{{ route('tenant.dashboard.commercial-plans.edit', $plan) }}">
                                     {{ __('common.edit') }}

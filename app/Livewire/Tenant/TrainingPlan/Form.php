@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\Exercise;
+use App\Models\Tenant\Student;
 use Illuminate\Validation\Rule;
 
 #[Layout('components.layouts.tenant')]
@@ -26,6 +27,13 @@ class Form extends Component
     public array $selectedExercises = [];
     public $availableExercises = [];
 
+    /** Alumno asignado (ID numérico) o null */
+    public ?int $student_id = null;
+
+    /** Fechas de vigencia (solo si hay student_id) */
+    public ?string $assigned_from = null;   // 'Y-m-d'
+    public ?string $assigned_until = null;  // 'Y-m-d'
+
     /* -------------------- Mount -------------------- */
     public function mount(?TrainingPlan $trainingPlan): void
     {
@@ -37,6 +45,10 @@ class Form extends Component
             $this->duration = (string) ($trainingPlan->duration ?? '');
             $this->is_active = (bool) $trainingPlan->is_active;
             $this->editMode = true;
+
+            $this->student_id    = $trainingPlan->student_id;
+            $this->assigned_from = optional($trainingPlan->assigned_from)?->format('Y-m-d');
+            $this->assigned_until = optional($trainingPlan->assigned_until)?->format('Y-m-d');
 
             $this->selectedExercises = $trainingPlan->exercises()
                 ->orderBy('plan_exercise.day')
@@ -54,22 +66,42 @@ class Form extends Component
                     'notes' => $e->pivot->notes,
                 ])
                 ->toArray();
+        } else {
+            // Si viene ?student=<uuid> desde la vista del alumno, convertir a ID
+            if ($uuid = request()->query('student')) {
+                $student = Student::where('uuid', $uuid)->first();
+                if ($student) {
+                    $this->student_id = $student->id;
+                    // Defaults de vigencia cuando creamos un plan asignado
+                    $this->assigned_from  = now()->toDateString();
+                    $this->assigned_until = now()->addMonth()->toDateString();
+                }
+            }
         }
     }
 
     /* -------------------- Reglas -------------------- */
     protected function rules(): array
     {
-        return [
+        $rules = [
             'name'        => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'goal'        => ['nullable', 'string', 'max:255'],
             'duration'    => ['nullable'],
             'is_active'   => ['boolean'],
-            'selectedExercises.*.day' => ['nullable', 'integer', 'min:1', 'max:7'],
+
+            'selectedExercises.*.day'    => ['nullable', 'integer', 'min:1', 'max:7'],
             'selectedExercises.*.detail' => ['nullable', 'string', 'max:50'],
-            'selectedExercises.*.notes' => ['nullable', 'string', 'max:255'],
+            'selectedExercises.*.notes'  => ['nullable', 'string', 'max:255'],
         ];
+
+        // Validar fechas solo si el plan está asignado a un alumno
+        if ($this->student_id) {
+            $rules['assigned_from']  = ['nullable', 'date'];
+            $rules['assigned_until'] = ['nullable', 'date', 'after_or_equal:assigned_from'];
+        }
+
+        return $rules;
     }
 
     /* -------------------- Búsqueda ejercicios -------------------- */
@@ -85,7 +117,7 @@ class Form extends Component
             ->search($this->exerciseSearch)
             ->whereNotIn('id', $excludeIds)
             ->take(5)
-            ->get(['id', 'uuid', 'name','category'])
+            ->get(['id', 'uuid', 'name', 'category'])
             ->toArray();
     }
 
@@ -140,62 +172,85 @@ class Form extends Component
         }
     }
 
-    public function save()
+    /* -------------------- Guardar -------------------- */
+    public function save(): void
     {
-        $data = $this->validate();
+        $this->validate();
 
-        $plan = $this->editMode && $this->plan
-            ? $this->plan
-            : new TrainingPlan();
+        // Crear o editar
+        $plan = $this->editMode && $this->plan ? $this->plan : new TrainingPlan();
 
-        $plan->fill($data);
-        $plan->save();
+        $plan->fill([
+            'name'        => $this->name,
+            'description' => $this->description,
+            'goal'        => $this->goal,
+            'duration'    => $this->duration,
+            'is_active'   => $this->is_active,
+            'student_id'  => $this->student_id, // null para planes generales
+        ]);
 
-        // Sincronizar ejercicios
-        $pivotData = [];
-        foreach ($this->selectedExercises as $ex) {
-            $pivotData[$ex['id']] = [
-                'day' => $ex['day'],
-                'order' => $ex['order'],
-                'detail' => $ex['detail'],
-                'notes' => $ex['notes'],
-            ];
+        // Fechas: solo si hay alumno asignado
+        if ($this->student_id) {
+            $plan->assigned_from  = $this->assigned_from ?: now();
+            $plan->assigned_until = $this->assigned_until ?: now()->addMonth();
+        } else {
+            // Asegurar nulos para planes generales
+            $plan->assigned_from  = null;
+            $plan->assigned_until = null;
         }
-        $plan->exercises()->sync($pivotData);
 
-        // Actualizar estado local (re-render)
+        $plan->save();
+        $plan->refresh();
+
+        // Sincronizar ejercicios (evitar duplicados mismo día)
+        $plan->exercises()->detach();
+
+        $uniqueByDay = collect($this->selectedExercises)
+            ->unique(fn($ex) => $ex['id'] . '-' . ($ex['day'] ?? 0))
+            ->values();
+
+        foreach ($uniqueByDay as $ex) {
+            $plan->exercises()->attach($ex['id'], [
+                'day'    => $ex['day'] ?? null,
+                'order'  => $ex['order'] ?? null,
+                'detail' => $ex['detail'] ?? '',
+                'notes'  => $ex['notes'] ?? '',
+                'meta'   => json_encode([]),
+            ]);
+        }
+
+        if (count($this->selectedExercises) !== $uniqueByDay->count()) {
+            session()->flash('warning', __('training_plans.duplicate_exercises_removed'));
+        }
+
+        // Refrescar para UI
+        $plan->load('exercises');
         $this->plan = $plan;
 
-
-        // Recargar relaciones desde base de datos
-        $this->selectedExercises = $plan->exercises()
-            ->orderBy('plan_exercise.day')
-            ->orderBy('plan_exercise.order')
-            ->get()
-            ->map(fn($e) => [
-                'id' => $e->id,
-                'uuid' => $e->uuid,
-                'name' => $e->name,
-                'category' => $e->category,
-                'image' => $e->getFirstMediaUrl('images', 'thumb'),
-                'day' => $e->pivot->day,
-                'order' => $e->pivot->order,
-                'detail' => $e->pivot->detail,
-                'notes' => $e->pivot->notes,
-            ])
-            ->toArray();
-
-        // Feedback visual
+        // Feedback
         $this->dispatch('saved');
         session()->flash('success', __('training_plans.saved'));
 
-        // Si seleccionó "Volver al listado", redirigir
+        // Navegación
         if ($this->back) {
-            return redirect()->route('tenant.dashboard.training-plans.index');
+            if ($this->student_id && $plan->student) {
+                $this->redirectRoute('tenant.dashboard.students.training-plans', [
+                    'student' => $plan->student->uuid,
+                ]);
+            } else {
+                $this->redirectRoute('tenant.dashboard.training-plans.index');
+            }
+            return;
         }
 
         if (!$this->editMode) {
-            return redirect()->route('tenant.dashboard.training-plans.edit', $plan->uuid);
+            if ($this->student_id && $plan->student) {
+                $this->redirectRoute('tenant.dashboard.students.training-plans', [
+                    'student' => $plan->student->uuid,
+                ]);
+            } else {
+                $this->redirectRoute('tenant.dashboard.training-plans.edit', $plan->uuid);
+            }
         }
     }
 
@@ -204,8 +259,6 @@ class Form extends Component
         $this->exerciseSearch = '';
         $this->availableExercises = [];
     }
-
-
 
     public function render()
     {

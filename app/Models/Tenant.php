@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TenantStatus;
-use App\Models\Central\Plan;
+use App\Models\Central\CommercialPlan;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -17,7 +17,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     use HasDatabase, HasDomains, MaintenanceMode;
 
     protected $fillable = [
-        'plan_id',
+        'commercial_plan_id',
     ];
 
     protected $casts = [
@@ -137,6 +137,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function plan()
     {
-        return $this->belongsTo(Plan::class);
+        return $this->belongsTo(CommercialPlan::class);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Livewire\Central\Dashboard\Clients;
 
 use App\Models\Tenant;
-use App\Models\Central\Plan;
+use App\Models\Central\CommercialPlan;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -55,7 +55,7 @@ class ClientsForm extends Component
     // =========================================================================
     public function mount($client = null)
     {
-        $this->plans = Plan::all();
+        $this->plans = CommercialPlan::all();
         if ($client) {
             $this->client = $client;
             $this->name = $client->name;

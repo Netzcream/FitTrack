@@ -1,6 +1,6 @@
 # Guía de diseño de *Index* (listados) — Estándar Unificado v2.0 (FitTrack)
 
-> **Objetivo**: documentar, de forma precisa y reusable, cómo debe verse y comportarse **cualquier listado (Index)** de FitTrack (Students, Payments, Plans, etc.). Esta versión 2.0 incluye mejoras de consistencia con la guía de *Formularios Simples*, los ejemplos reales (Students / CommercialPlans) y las nuevas convenciones Livewire + Flux.
+> **Objetivo**: documentar, de forma precisa y reusable, cómo debe verse y comportarse **cualquier listado (Index)** de la aplicación. Esta versión 2.0 incluye mejoras de consistencia con la guía de *Formularios Simples*, los ejemplos reales (Students / CommercialPlans) y las nuevas convenciones Livewire + Flux.
 
 ---
 
@@ -194,6 +194,8 @@ Cuando existan acciones masivas (ej. eliminar varios registros o exportar):
 </td>
 ```
 - **Eliminar**: `variant="ghost"` en la tabla.
+- **Eliminar**: Debe usar trigger siempre para modal confirmación
+- Debe reutilizar el mismo modal para todos los registros, asignando el id/uuid a eliminar por livewire.
 - Dentro del modal, el botón confirmatorio usa `variant="danger"`.
 
 **Modal estándar**
@@ -240,6 +242,7 @@ Cuando existan acciones masivas (ej. eliminar varios registros o exportar):
 ## 10) Feedback y eventos Livewire
 
 - Usar `$this->dispatch('<entity>-deleted')`, `$this->dispatch('<entity>-saved')`, etc.
+- Abrir modales usando trigger de flux
 - Cerrar modales escuchando el evento:  
   `@<entity>-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-<entity>' })"`.
 - Mantiene la UX fluida y sin recargas.

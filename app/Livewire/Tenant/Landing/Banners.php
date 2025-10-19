@@ -22,6 +22,7 @@ class Banners extends Component
     public $banner_active = true;
     public $banner_order = 0;
     public $banner_image = null;
+    public $banner_image_mobile = null;
     public $edit_mode = false;
     public string $show;
 
@@ -77,8 +78,10 @@ class Banners extends Component
 
         if (!$this->edit_mode) {
             $rules['banner_image'] = 'required|image|mimes:jpg,jpeg,png,webp|max:20000';
+            $rules['banner_image_mobile'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:20000';
         } else {
             $rules['banner_image'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:20000';
+            $rules['banner_image_mobile'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:20000';
         }
 
         $this->validate($rules, [], [
@@ -106,6 +109,10 @@ class Banners extends Component
                     $banner->clearMediaCollection('cover');
                     $banner->addMedia($this->banner_image)->toMediaCollection('cover');
                 }
+                if ($this->banner_image_mobile) {
+                    $banner->clearMediaCollection('cover_mobile');
+                    $banner->addMedia($this->banner_image_mobile)->toMediaCollection('cover_mobile');
+                }
             }
         } else {
             // Nuevo Banner
@@ -120,6 +127,9 @@ class Banners extends Component
             ]);
             if ($this->banner_image) {
                 $banner->addMedia($this->banner_image)->toMediaCollection('cover');
+            }
+            if ($this->banner_image_mobile) {
+                $banner->addMedia($this->banner_image_mobile)->toMediaCollection('cover_mobile');
             }
         }
 
@@ -139,7 +149,7 @@ class Banners extends Component
         $this->reorderBanners();
 
         $this->newBanner(); // Resetea el form
-        $this->reset('banner_image');
+                $this->reset('banner_image', 'banner_image_mobile');
     }
 
 

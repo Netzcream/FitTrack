@@ -51,7 +51,8 @@
             </div>
         </div>
 
-        <button type="submit" class="w-full text-white py-3 rounded font-semibold transition-colors duration-300 cursor-pointer"
+        <button type="submit" class="w-full py-3 rounded-lg font-semibold backdrop-blur bg-[var(--ftt-color-base-bright)]/90 hover:bg-[var(--ftt-color-base)] text-white shadow-lg transition
+"
             style="background-color: {{ $color }};"
             onmouseover="this.style.backgroundColor='{{ $hover }}';"
             onmouseout="this.style.backgroundColor='{{ $color }}';" wire:loading.attr="disabled">

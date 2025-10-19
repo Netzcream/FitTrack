@@ -76,7 +76,7 @@ return [
     'new_plan' => 'Nuevo plan',
     'search' => 'Buscar',
     'search_placeholder' => 'Nombre, código, slug…',
-
+    'test' => 'Probar',
     // Filtros listado
     'visibility' => 'Visibilidad',
     'all' => 'Todos',

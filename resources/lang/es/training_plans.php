@@ -27,6 +27,7 @@ return [
     'exercises_section' => 'Ejercicios del plan',
     'search_exercise' => 'Buscar ejercicio…',
     'exercise' => 'Ejercicio',
+    'exercises' => 'Ejercicios',
     'day' => 'Día',
     'detail' => 'Detalle',
     'notes' => 'Notas',
@@ -38,4 +39,26 @@ return [
     'image' => 'Imagen',
     'prescription' => 'Prescripción',
     'uncategorized' => 'Sin categoría',
+
+
+    // Modal de asignación
+    'assign_title'       => 'Asignar plan a alumno',
+    'assign_subheading'  => 'Seleccioná un alumno y las fechas de vigencia para este plan.',
+    'assigned_from'      => 'Desde',
+    'assigned_until'     => 'Hasta',
+
+    // Mensajes de feedback (para toasts o dispatch)
+    'assigned_success'   => 'El plan fue asignado correctamente.',
+    'duplicated_success' => 'El plan fue duplicado correctamente.',
+    'deleted_success'    => 'El plan fue eliminado.',
+
+    'active' => 'Activo',
+    'expired' => 'Expirado',
+    'assigned_from' => 'Desde',
+    'assigned_until' => 'Hasta',
+    'assigned_to' => 'Plan asignado al alumno',
+
+    'period' => 'Período',
+    'status' => 'Estado',
+
 ];

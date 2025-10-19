@@ -31,18 +31,18 @@
     <div class="absolute top-4 right-4 z-20 flex gap-2">
         @if (Route::has('tenant.login'))
             @auth
-                <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white rounded-full">
+                <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white">
                     <i class="fa-solid fa-table-columns mr-1"></i> Gestión
                 </a>
 
                 <form method="POST" action="{{ route('tenant.logout') }}">
                     @csrf
-                    <button type="submit" class="btn-outline-white cursor-pointer rounded-full">
+                    <button type="submit" class="btn-outline-white cursor-pointer">
                         <i class="fa-solid fa-right-from-bracket mr-1"></i> Salir
                     </button>
                 </form>
             @else
-                <a href="{{ route('tenant.login') }}" class="btn-outline-white rounded-full">
+                <a href="{{ route('tenant.login') }}" class="btn-outline-white">
                     <i class="fa-solid fa-user mr-1"></i> Ingresar
                 </a>
             @endauth
@@ -57,37 +57,35 @@
 
 
 
-    <div class="relative h-[800px] md:h-[600px] bg-cover bg-center flex items-center justify-center"
+    <div class="relative h-[800px] md:h-[600px]  bg-cover bg-center flex items-center"
         style="background-image: url('{{ $coverUrl }}');">
 
-        {{-- Overlay con gradiente sutil --}}
-        <div
-            class="absolute inset-0 bg-gradient-to-b from-[var(--ftt-color-base-bright)]/80 to-[var(--ftt-color-dark-transparent)]/90">
-        </div>
+        <div class="absolute inset-0" style="background-color: {{ tenant_config('color_base', '#263d83') }}CC;"></div>
 
-        {{-- Contenido centrado --}}
-        <div class="relative z-10 text-center text-white px-6">
-            @if (tenant_config('landing_title'))
-                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-lg">
-                    {{ tenant_config('landing_title') }}
-                </h1>
-            @endif
+        <div class="relative z-10 w-full max-w-6xl mx-auto px-4  items-center gap-4">
 
-            @if (tenant_config('landing_subtitle'))
-                <p class="text-2xl md:text-3xl font-medium text-white/90 max-w-3xl mx-auto leading-relaxed">
-                    {{ tenant_config('landing_subtitle') }}
-                </p>
-            @endif
+            {{-- Columna 1: vacía (espaciado) --}}
 
-            @if (tenant_config('landing_general_show_form'))
-                <a href="#contacto"
-                    class="inline-block mt-10 px-8 py-3 bg-white/80 text-[var(--ftt-color-base)] font-semibold rounded-xl shadow-lg hover:bg-white transition">
-                    Quiero que me contacten
-                </a>
-            @endif
+
+            {{-- Columna 2: Título + subtítulo centrados verticalmente --}}
+            <div class="text-white text-center">
+                @if (tenant_config('landing_title'))
+                    <h1 class=" text-4xl md:text-5xl font-bold mb-3">
+                        {{ tenant_config('landing_title') }}
+                    </h1>
+                @endif
+                @if (tenant_config('landing_subtitle'))
+                    <p class="text-xl">
+                        {{ tenant_config('landing_subtitle') }}
+                    </p>
+                @endif
+
+
+            </div>
+
+
         </div>
     </div>
-
 
 
 
@@ -102,27 +100,13 @@
     @include('tenant.partials.cards')
 
     @if (tenant_config('landing_general_show_form'))
-        <section id="contacto" class="relative py-24 overflow-hidden">
-            {{-- Fondo suave que se integra con el footer --}}
-            <div
-                class="absolute inset-0 bg-gradient-to-b from-[var(--ftt-color-light)] to-[var(--ftt-color-base-transparent)] pointer-events-none">
+        <div class=" py-12 px-4 ">
+            <div class="max-w-6xl mx-auto bg-gray-50 p-8 rounded-lg shadow">
+                <h2 class="text-4xl font-semibold text-gray-800 mb-6 text-left">Te asesoramos</h2>
+                <livewire:tenant.contact-form />
             </div>
-
-            <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                {{-- Mismo ancho visual que tu versión buena (casi todo el contenedor) --}}
-                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10 sm:p-12">
-                    <h2 class="text-4xl font-bold text-center mb-10 text-[var(--ftt-color-base)]">
-                        Te asesoramos
-                    </h2>
-                    <livewire:tenant.contact-form />
-                </div>
-            </div>
-        </section>
+        </div>
     @endif
-
-
-
-
 
     @include('tenant.partials.booklets')
 
@@ -136,33 +120,10 @@
             </svg>
         </a>
     @endif
-
-
     @if (tenant_config('landing_footer'))
-        <footer class="text-sm text-white"
-            style="background: linear-gradient(180deg, var(--ftt-color-base) 0%, var(--ftt-color-dark) 100%);">
-            <div
-                class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div class="text-center sm:text-left opacity-90 leading-relaxed">
-                    {!! tenant_config('landing_footer') !!}
-                </div>
-                <nav class="flex items-center gap-6 opacity-90">
-                    <a href="#" class="hover:opacity-100 transition">Instagram</a>
-                    @if (tenant_config('landing_whatsapp'))
-                        <a href="https://wa.me/{{ tenant_config('landing_whatsapp') }}"
-                            class="hover:opacity-100 transition">WhatsApp</a>
-                    @endif
-                </nav>
-            </div>
+        <footer class="text-center text-xs py-6"
+            style="color: {{ tenant_config('landing_footer_text_color', '#6a7282;') }}; background-color: {{ tenant_config('landing_footer_background_color', '#333') }};">
+            {!! tenant_config('landing_footer') !!}
         </footer>
     @endif
-
-
-
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
-
 </x-layouts.tenant.guest>

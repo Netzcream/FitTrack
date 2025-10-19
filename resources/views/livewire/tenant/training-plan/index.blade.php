@@ -6,10 +6,12 @@
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
                     <flux:heading size="xl" level="1">{{ __('training_plans.index_title') }}</flux:heading>
-                    <flux:subheading size="lg" class="mb-6">{{ __('training_plans.index_subheading') }}</flux:subheading>
+                    <flux:subheading size="lg" class="mb-6">{{ __('training_plans.index_subheading') }}
+                    </flux:subheading>
                 </div>
 
-                <flux:button as="a" href="{{ route('tenant.dashboard.training-plans.create') }}" variant="primary" icon="plus">
+                <flux:button as="a" href="{{ route('tenant.dashboard.training-plans.create') }}" variant="primary"
+                    icon="plus">
                     {{ __('training_plans.new_training_plan') }}
                 </flux:button>
             </div>
@@ -24,8 +26,7 @@
                 <x-slot name="filters">
                     <div class="flex flex-wrap gap-4 w-full items-end">
                         <div class="max-w-[260px] flex-1">
-                            <flux:input size="sm" class="w-full"
-                                wire:model.live.debounce.250ms="q"
+                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
                                 :label="__('common.search')"
                                 placeholder="{{ __('training_plans.search_placeholder') }}" />
                         </div>
@@ -48,7 +49,8 @@
 
                 {{-- Encabezado --}}
                 <x-slot name="head">
-                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-center w-16">
+                    <th
+                        class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-center w-16">
                         {{ __('training_plans.image') }}
                     </th>
                     <th wire:click="sort('name')"
@@ -80,10 +82,11 @@
                 {{-- Filas --}}
                 @forelse ($plans as $plan)
                     @php
-                        $images = $plan->exercises()
+                        $images = $plan
+                            ->exercises()
                             ->get()
-                            ->map(fn ($e) => $e->getFirstMediaUrl('images', 'thumb'))
-                            ->filter(fn ($url) => !empty($url))
+                            ->map(fn($e) => $e->getFirstMediaUrl('images', 'thumb'))
+                            ->filter(fn($url) => !empty($url))
                             ->unique()
                             ->take(4)
                             ->values();
@@ -103,10 +106,13 @@
                                         @foreach (range(0, 3) as $i)
                                             @if (isset($images[$i]))
                                                 <div class="aspect-square w-full h-full">
-                                                    <img src="{{ $images[$i] }}" class="w-full h-full object-cover" />
+                                                    <img src="{{ $images[$i] }}"
+                                                        class="w-full h-full object-cover" />
                                                 </div>
                                             @else
-                                                <div class="aspect-square w-full h-full bg-gray-100/60 dark:bg-neutral-700/40"></div>
+                                                <div
+                                                    class="aspect-square w-full h-full bg-gray-100/60 dark:bg-neutral-700/40">
+                                                </div>
                                             @endif
                                         @endforeach
                                     </div>
@@ -122,6 +128,12 @@
                         {{-- Nombre --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                             {{ $plan->name }}
+
+                            @if ($plan->student_id)
+                            <div class="text-gray-600 dark:text-neutral-400">
+                                {{ $plan->student?->full_name }}
+                            </div>
+                            @endif
                         </td>
 
                         {{-- Objetivo --}}
@@ -160,6 +172,18 @@
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
                                 class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
+
+
+                                <flux:modal.trigger name="assign-plan">
+                                    <flux:button size="sm" wire:click="prepareAssign('{{ $plan->uuid }}')">
+                                        {{ __('common.assign') }}
+                                    </flux:button>
+                                </flux:modal.trigger>
+
+                                <flux:button size="sm" wire:click="clone('{{ $plan->uuid }}')">
+                                    {{ __('common.duplicate') }}
+                                </flux:button>
+
                                 <flux:button size="sm" as="a" wire:navigate
                                     href="{{ route('tenant.dashboard.training-plans.edit', $plan->uuid) }}">
                                     {{ __('common.edit') }}
@@ -176,8 +200,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="100"
-                            class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
+                        <td colspan="100" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
                             {{ __('common.empty_state') }}
                         </td>
                     </tr>
@@ -204,6 +227,58 @@
                         </div>
                     </flux:modal>
                 </x-slot>
+
+                <flux:modal name="assign-plan" class="min-w-[28rem]" x-data
+                    @plan-assigned.window="$dispatch('modal-close', { name: 'assign-plan' })">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">{{ __('training_plans.assign_title') }}</flux:heading>
+                            <flux:text class="mt-2">{{ __('training_plans.assign_subheading') }}</flux:text>
+                        </div>
+
+                        {{-- Buscador de alumno --}}
+                        <div class="space-y-3">
+                            <flux:input size="sm" wire:model.live.debounce.300ms="studentSearch"
+                                :label="__('common.search_student')"
+                                placeholder="{{ __('common.type_student_name') }}" />
+
+                            {{-- Selector dinámico --}}
+                            @if (!empty($students))
+                                <flux:select size="sm" wire:model.live="selectedStudentUuid"
+                                    :label="__('common.select_student')">
+                                    <option value="">{{ __('common.choose_option') }}</option>
+                                    @foreach ($students as $student)
+                                        <option value="{{ $student['uuid'] }}">
+                                            {{ $student['full_name'] }} — {{ $student['email'] }}
+                                        </option>
+                                    @endforeach
+                                </flux:select>
+                            @endif
+                        </div>
+
+                        {{-- Fechas opcionales de vigencia --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <flux:input type="date" size="sm" wire:model="assignedFrom"
+                                :label="__('training_plans.assigned_from')" />
+                            <flux:input type="date" size="sm" wire:model="assignedUntil"
+                                :label="__('training_plans.assigned_until')" />
+                        </div>
+
+                        {{-- Acciones --}}
+                        <div class="flex gap-2">
+                            <flux:spacer />
+                            <flux:modal.close>
+                                <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+                            </flux:modal.close>
+                            <flux:button wire:click="assignToStudent" variant="primary"
+                                :disabled="!$selectedStudentUuid">
+                                {{ __('common.assign') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                </flux:modal>
+
+
 
             </x-data-table>
         </section>

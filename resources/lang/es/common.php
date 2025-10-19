@@ -73,6 +73,25 @@ return [
     'save' => 'Guardar',
     'add_images' => 'Agregar imágenes',
     'images_uploaded' => 'imágenes cargadas',
+    'duplicate' => 'Duplicar',
+    'assign' => 'Asignar',
+
+    'name'          => 'Nombre',
+    'goal'          => 'Objetivo',
+    'duration'      => 'Duración',
+    'search'        => 'Buscar',
+    'search_student' => 'Buscar alumno',
+    'type_student_name' => 'Escribí el nombre o correo del alumno',
+    'select_student' => 'Seleccioná un alumno',
+    'choose_option' => 'Seleccioná una opción',
+
+    // Modales
+    'delete_title'  => '¿Eliminar este registro?',
+    'delete_msg'    => 'Esta acción no se puede deshacer. El registro será movido a la papelera si aplica.',
+
+    // Mensajes vacíos
+    'empty_state'   => 'No se encontraron registros.',
+
 
 
 ];

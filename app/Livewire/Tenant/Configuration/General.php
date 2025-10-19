@@ -9,7 +9,6 @@ use Livewire\Attributes\Layout;
 #[Layout('components.layouts.tenant')]
 class General extends Component
 {
-
     public string $name = '';
     public string $whatsapp = '';
 
@@ -25,9 +24,9 @@ class General extends Component
             'name' => ['required', 'string', 'max:255'],
         ]);
 
-        tenant()->name = $validated['name'];
-        tenant()->save();
+        tenant()->update(['name' => $validated['name']]);
         Configuration::setConf('landing_whatsapp', $this->whatsapp);
+
         $this->dispatch('updated', name: tenant()->name);
     }
 

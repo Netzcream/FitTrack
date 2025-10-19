@@ -30,20 +30,41 @@
                     </flux:navlist.item>
                 @endcan
 
+            </flux:navlist.group>
+
+
+            @php
+                $configPatterns = ['tenant.dashboard.configuration.*'];
+            @endphp
+
+            <flux:navlist.group :heading="__('site.configuration')" expandable
+                :expanded="request()->routeIs(...$configPatterns)">
+
                 @can('gestionar recursos')
-                    <flux:navlist.item icon="cog" href="{{ route('tenant.dashboard.configuration') }}"
-                        :current="request()->routeIs('tenant.dashboard.configuration.*')" wire:navigate>
-                        {{ __('site.configuration') }}
+                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.general') }}"
+                        :current="request()->routeIs('tenant.dashboard.configuration.general')" wire:navigate>
+                        {{ __('tenant.configuration.general.title') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.notifications') }}"
+                        :current="request()->routeIs('tenant.dashboard.configuration.notifications')" wire:navigate>
+                        {{ __('tenant.configuration.notification.title') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.appearance') }}"
+                        :current="request()->routeIs('tenant.dashboard.configuration.appearance')" wire:navigate>
+                        {{ __('tenant.configuration.appearance.title') }}
                     </flux:navlist.item>
                 @endcan
+
+
             </flux:navlist.group>
+
+
 
             @php
                 $businessPatterns = [
                     'tenant.dashboard.students.*',
                     'tenant.dashboard.exercises.*',
                     'tenant.dashboard.training-plans.*',
-
                 ];
             @endphp
             <flux:navlist.group :heading="__('site.training')" expandable
@@ -52,11 +73,11 @@
                     :current="request()->routeIs('tenant.dashboard.students.*')" wire:navigate>
                     {{ __('site.students') }}
                 </flux:navlist.item>
-                 <flux:navlist.item href="{{ route('tenant.dashboard.exercises.index') }}"
+                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.index') }}"
                     :current="request()->routeIs('tenant.dashboard.exercises.*')" wire:navigate>
                     {{ __('site.exercises') }}
                 </flux:navlist.item>
-                 <flux:navlist.item href="{{ route('tenant.dashboard.training-plans.index') }}"
+                <flux:navlist.item href="{{ route('tenant.dashboard.training-plans.index') }}"
                     :current="request()->routeIs('tenant.dashboard.training-plans.*')" wire:navigate>
                     {{ __('site.training_plans') }}
                 </flux:navlist.item>
@@ -67,11 +88,7 @@
 
 
             @php
-                $businessPatterns = [
-                    'tenant.dashboard.commercial-plans.*',
-                    'tenant.dashboard.payment-methods.*',
-
-                ];
+                $businessPatterns = ['tenant.dashboard.commercial-plans.*', 'tenant.dashboard.payment-methods.*'];
             @endphp
             <flux:navlist.group :heading="__('site.business_setup')" expandable
                 :expanded="request()->routeIs(...$businessPatterns)">

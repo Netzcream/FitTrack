@@ -5,7 +5,7 @@
             ->get();
     @endphp
     @if (count($booklets) > 0)
-        <div class="w-full border-t border-gray-200"
+        <div class="w-full"
             style="background-color: {{ tenant_config('color_base', '#263d83') }}CC;">
             <div class="max-w-6xl mx-auto py-8">
 

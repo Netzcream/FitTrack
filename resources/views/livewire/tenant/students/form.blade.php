@@ -33,10 +33,14 @@
 
                 {{-- Nombres --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <flux:input wire:model.defer="first_name" label="{{ __('students.first_name') }}" required
-                        autocomplete="off" />
-                    <flux:input wire:model.defer="last_name" label="{{ __('students.last_name') }}" required
-                        autocomplete="off" />
+                    <div>
+                        <flux:input wire:model.defer="first_name" label="{{ __('students.first_name') }}" required
+                            autocomplete="off" />
+                    </div>
+                    <div>
+                        <flux:input wire:model.defer="last_name" label="{{ __('students.last_name') }}" required
+                            autocomplete="off" />
+                    </div>
                 </div>
 
                 <div>

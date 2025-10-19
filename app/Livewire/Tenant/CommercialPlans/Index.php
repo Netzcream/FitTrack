@@ -68,6 +68,11 @@ class Index extends Component
         $this->dispatch('plan-deleted');
     }
 
+    public function clone($uuid) {
+
+    }
+
+
     public function render()
     {
         $plans = CommercialPlan::query()

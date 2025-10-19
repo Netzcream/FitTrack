@@ -139,6 +139,13 @@
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span
                                 class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
+
+
+                                <flux:button size="sm" as="a" wire:navigate
+                                    href="{{ route('tenant.dashboard.students.training-plans', $student->uuid) }}">
+                                    {{ __('students.training_plans') }}
+                                </flux:button>
+
                                 <flux:button size="sm" as="a" wire:navigate
                                     href="{{ route('tenant.dashboard.students.edit', $student->uuid) }}">
                                     {{ __('common.edit') }}

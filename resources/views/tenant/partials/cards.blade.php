@@ -4,54 +4,54 @@
     @endphp
     @if (count($cards))
 
-        <div class="w-full py-6">
-
+        <div class="w-full py-12">
+            {{-- Título y subtítulo --}}
             @if (tenant_config('landing_cards_title'))
-                <div class="text-center">
-                    <span class="text-2xl font-bold" style="color: {{ tenant_config('color_base', '#263d83') }};">
+                <div class="text-center mb-2">
+                    <span class="text-2xl font-bold"
+                          style="color: {{ tenant_config('color_base', '#263d83') }};">
                         {!! tenant_config('landing_cards_title') !!}
                     </span>
                 </div>
             @endif
             @if (tenant_config('landing_cards_subtitle'))
-                <div class="text-center mb-6">
+                <div class="text-center mb-8">
                     <span class="text-sm text-gray-600">
                         {!! tenant_config('landing_cards_subtitle') !!}
                     </span>
                 </div>
             @endif
 
+            {{-- Contenedor principal --}}
             <div class="max-w-6xl mx-auto text-center">
-
-
                 <div class="swiper landingcard-swiper">
                     <div class="swiper-wrapper">
                         @foreach ($cards as $card)
-                            <div class="swiper-slide pt-12 flex">
+                            <div class="swiper-slide flex">
                                 <a href="{{ $card->link }}" target="{{ $card->target }}"
-                                    class="relative flex flex-col items-center justify-start text-center bg-white rounded-xl px-6 pb-6 h-full transition hover:scale-[1.02] shadow">
-
-                                    {{-- Círculo flotante --}}
-                                    <div class="absolute -top-10 w-20 h-20 rounded-full flex items-center justify-center shadow"
-                                        style="background-color: {{ tenant_config('color_base', '#263d83') }};">
-                                        @if ($card->getFirstMediaUrl('cover'))
+                                   class="flex flex-col text-left bg-white rounded-xl overflow-hidden shadow transition-all hover:shadow-lg hover:-translate-y-1">
+                                    {{-- Imagen rectangular arriba --}}
+                                    @if ($card->getFirstMediaUrl('cover'))
+                                        <div class="w-full h-40 overflow-hidden">
                                             <img src="{{ $card->getFirstMediaUrl('cover') }}" alt=""
-                                                class="w-full h-full object-contain rounded-full" />
-                                        @endif
-                                    </div>
-
-                                    {{-- Título --}}
-                                    <h3 class="text-sm font-bold mb-1 mt-4 pt-10"
-                                        style="color: {{ tenant_config('color_base', '#263d83') }};">
-                                        {!! $card->title !!}
-                                    </h3>
-
-                                    {{-- Descripción --}}
-                                    @if ($card->text)
-                                        <p class="text-xs text-gray-600 leading-snug">
-                                            {!! $card->text !!}
-                                        </p>
+                                                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                        </div>
                                     @endif
+
+                                    {{-- Contenido textual --}}
+                                    <div class="flex-1 flex flex-col justify-between p-6">
+                                        <div>
+                                            <h3 class="text-lg font-semibold mb-2"
+                                                style="color: {{ tenant_config('color_base', '#263d83') }};">
+                                                {!! $card->title !!}
+                                            </h3>
+                                            @if ($card->text)
+                                                <p class="text-sm text-gray-600 leading-relaxed">
+                                                    {!! $card->text !!}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
                         @endforeach
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-
+        {{-- Script Swiper y fallback flex-grid --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const root = document.querySelector('.landingcard-swiper');
@@ -68,21 +68,18 @@
                 const slides = Array.from(root?.querySelectorAll('.swiper-slide') ?? []);
                 const cardsCount = slides.length;
 
-                const SPACING_PX = 24; // gap 6 = 1.5rem
+                const SPACING_PX = 24;
                 let swiper = null;
 
                 const spvFor = (w) => (w >= 1024) ? 4 : (w >= 768) ? 3 : (w >= 640) ? 2 : 1;
 
                 const setAsFlexGrid = () => {
-                    // destruir swiper si existe
                     if (swiper && swiper.destroy) {
                         swiper.destroy(true, true);
                         swiper = null;
                     }
-                    // wrapper como flex centrado
-                    wrapper.style.transform = ''; // quitar transform de swiper
+                    wrapper.style.transform = '';
                     wrapper.classList.add('!flex', '!flex-wrap', '!justify-center', 'gap-6');
-                    // tamaño responsivo por tarjeta (4/3/2/1 cols) y que NO crezcan
                     slides.forEach(slide => {
                         slide.classList.add(
                             'grow-0', 'shrink-0',
@@ -91,13 +88,11 @@
                             'md:basis-[calc((100%-1.5rem*2)/3)]',
                             'lg:basis-[calc((100%-1.5rem*3)/4)]'
                         );
-                        // Swiper suele setear width inline, lo limpiamos
                         slide.style.width = '';
                     });
                 };
 
                 const setAsSwiper = () => {
-                    // limpiar clases del modo flex
                     wrapper.classList.remove('!flex', '!flex-wrap', '!justify-center', 'gap-6');
                     slides.forEach(slide => {
                         slide.classList.remove(
@@ -150,25 +145,17 @@
                 const decide = () => {
                     const spv = spvFor(window.innerWidth);
                     if (cardsCount <= spv) {
-                        setAsFlexGrid(); // sin Swiper, centrado
+                        setAsFlexGrid();
                     } else {
-                        setAsSwiper(); // con Swiper
+                        setAsSwiper();
                     }
-                    // igualar alturas en ambos modos
                     equalizeHeights();
                 };
 
-                // primera decisión
                 decide();
-
-                // reajustar en resize
                 window.addEventListener('resize', () => decide());
-
-                // recalcular cuando cargan imágenes (por si cambian alturas)
                 const images = document.querySelectorAll('.landingcard-swiper img');
-                images.forEach(img => img.addEventListener('load', () => equalizeHeights(), {
-                    once: true
-                }));
+                images.forEach(img => img.addEventListener('load', () => equalizeHeights(), { once: true }));
             });
         </script>
 

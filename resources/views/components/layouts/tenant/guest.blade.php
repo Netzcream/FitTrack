@@ -18,7 +18,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased bg-slate-200">
+
+<body
+    class="font-sans antialiased bg-gradient-to-b from-[var(--ftt-color-base-transparent)] via-white to-[var(--ftt-color-light)]">
+
     <div class="min-h-screen ">
 
 

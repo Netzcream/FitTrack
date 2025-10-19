@@ -58,31 +58,32 @@
 
         <div class="grow">
             <div class="flex items-center gap-x-2">
-                {{-- Botón para seleccionar archivo --}}
-                <label
-                    class="py-2 px-3 inline-flex items-center gap-x-2 text-xs font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">
-                    <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="17 8 12 3 7 8" />
-                        <line x1="12" x2="12" y1="3" y2="15" />
-                    </svg>
-                    {{ __('site.upload_image') }}
+
+
+
+                <div x-data class="relative inline-flex items-center gap-2">
+                    {{-- Input oculto --}}
                     <input id="{{ $name }}" type="file" wire:model="{{ $name }}"
-                        accept="{{ $accept }}" class="hidden" />
-                </label>
+                        accept="{{ $accept }}" class="hidden" x-ref="fileInput" />
+
+                    {{-- Botón Flux que dispara el input --}}
+                    <flux:button size="sm" icon="upload" type="button" @click="$refs.fileInput.click()">
+                        {{ __('site.upload_image') }}
+                    </flux:button>
+                </div>
+
+
+
 
                 {{-- Botón para eliminar preview (Livewire) --}}
                 @if ($preview)
-                    <button type="button" wire:click="removePreview('{{ $name }}')"
-                        class="py-2 px-3 inline-flex items-center gap-x-2 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-500 shadow hover:bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800">
+                    <flux:button size="sm" variant="ghost" wire:click="removePreview('{{ $name }}')">
                         {{ __('site.delete') }}
-                    </button>
+                    </flux:button>
                 @elseif ($uploadedUrl)
-                    <button type="button" wire:click="removeMedia('{{ $name }}')"
-                        class="py-2 px-3 inline-flex items-center gap-x-2 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-500 shadow hover:bg-gray-50 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800">
+                    <flux:button size="sm" wire:click="removeMedia('{{ $name }}')" variant="ghost">
                         {{ __('site.delete') }}
-                    </button>
+                    </flux:button>
                 @endif
             </div>
         </div>

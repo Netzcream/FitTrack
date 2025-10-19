@@ -126,6 +126,7 @@ Route::middleware([
                     Route::get('/', App\Livewire\Tenant\Students\Index::class)->name('index');
                     Route::get('/create', App\Livewire\Tenant\Students\Form::class)->name('create');
                     Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
+                    Route::get('/{student}/training-plans', App\Livewire\Tenant\Students\TrainingPlans::class)->name('training-plans');
                 });
 
                 Route::prefix('exercises')->name('exercises.')->group(function () {
@@ -153,10 +154,11 @@ Route::middleware([
                 Route::get('landing/booklets', LandingBooklets::class)->name('landing.booklets')->middleware('permission:gestionar recursos');
 
 
-                Route::redirect('configuration', 'configuration/general')->name('configuration')->middleware('permission:gestionar recursos');
-                Route::get('configuration/general', ConfigGeneral::class)->name('configuration.general')->middleware('permission:gestionar recursos');
-                Route::get('configuration/notifications', ConfigNotification::class)->name('configuration.notifications')->middleware('permission:gestionar recursos');
-                Route::get('configuration/appearance', ConfigAppearance::class)->name('configuration.appearance')->middleware('permission:gestionar recursos');
+                Route::prefix('configuration')->name('configuration.')->group(function () {
+                    Route::get('general', ConfigGeneral::class)->name('general')->middleware('permission:gestionar recursos');
+                    Route::get('notifications', ConfigNotification::class)->name('notifications')->middleware('permission:gestionar recursos');
+                    Route::get('appearance', ConfigAppearance::class)->name('appearance')->middleware('permission:gestionar recursos');
+                });
             });
         });
 

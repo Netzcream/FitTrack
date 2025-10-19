@@ -86,4 +86,14 @@ return [
     // ----- Extra data -----
     'emergency_contact_name' => 'Nombre del contacto de emergencia',
     'emergency_contact_phone' => 'Teléfono del contacto de emergencia',
+
+    'training_plans' => 'Planes de entrenamiento',
+    'training_plans_title' => 'Planes de entrenamiento del alumno',
+    'assign_new_plan' => 'Asignar nuevo plan',
+    'no_training_plans' => 'Este alumno aún no tiene planes de entrenamiento asignados.',
+
+    'training_plans_title' => 'Planes de entrenamiento del alumno',
+    'assign_new_plan' => 'Asignar nuevo plan',
+    'no_training_plans' => 'Este alumno aún no tiene planes asignados.',
+
 ];
