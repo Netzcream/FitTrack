@@ -1,27 +1,45 @@
-{{-- resources/views/layouts/student.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <title>{{ config('app.name') }} — Panel del alumno</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
-</head>
-<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <x-tenant.favicon />
 
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto flex justify-between items-center px-4 py-3">
-            <div class="font-semibold text-green-700 text-lg">
+    @vite(['resources/css/student.css', 'resources/js/app.js'])
+    @livewireStyles
+
+    <style>
+        :root {
+            --ftt-color-base: {{ tenant_config('color_base', '#263d83') }};
+            --ftt-color-dark: {{ tenant_config('color_dark', '#1d2d5e') }};
+            --ftt-color-light: {{ tenant_config('color_light', '#f9fafb') }};
+            --ftt-color-base-transparent: {{ tenant_config('color_base', '#263d83') }}55;
+            --ftt-color-base-bright: {{ tenant_config('color_base', '#263d83') }}CC;
+            --ftt-color-dark-transparent: {{ tenant_config('color_dark', '#263d83') }}55;
+            --ftt-color-light-transparent: {{ tenant_config('color_light', '#fafafa') }}55;
+            --ftt-color-text-footer: {{ tenant_config('footer_text_color', '#000000') }};
+            --ftt-color-background-footer: {{ tenant_config('footer_background_color', '#ffffff') }}55;
+        }
+    </style>
+</head>
+
+<body class="text-gray-900 min-h-screen flex flex-col">
+
+    <header class="student-header sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto flex justify-between items-center px-4 py-2 md:py-3">
+            <div class="student-greeting text-base md:text-lg">
                 ¡Hola, {{ auth()->user()->student->first_name ?? auth()->user()->name }}!
             </div>
-            <nav class="flex items-center gap-5 text-sm text-gray-600">
-                <a href="{{ route('tenant.student.dashboard') }}" class="hover:text-green-700">Inicio</a>
-                <a href="{{ route('tenant.student.progress') }}" class="hover:text-green-700">Progreso</a>
-                <a href="{{ route('tenant.student.workout-today') }}" class="hover:text-green-700">Rutina</a>
-                <a href="{{ route('tenant.student.messages') }}" class="hover:text-green-700">Mensajes</a>
-                <a href="{{ route('tenant.student.payments') }}" class="hover:text-green-700">Pagos</a>
-                <a href="{{ route('tenant.logout') }}" class="hover:text-red-600">Salir</a>
+
+            <nav class="flex items-center gap-4 text-xs md:text-sm">
+                <a href="{{ route('tenant.student.dashboard') }}">Inicio</a>
+                <a href="{{ route('tenant.student.progress') }}">Progreso</a>
+                <a href="{{ route('tenant.student.workout-today') }}">Rutina</a>
+                <a href="{{ route('tenant.student.messages') }}">Mensajes</a>
+                <a href="{{ route('tenant.student.payments') }}">Pagos</a>
+                <a href="{{ route('tenant.logout') }}" class="text-red-200 hover:text-red-300 font-medium">Salir</a>
             </nav>
         </div>
     </header>
@@ -30,10 +48,11 @@
         {{ $slot }}
     </main>
 
-    <footer class="text-center text-xs text-gray-400 py-4">
+    <footer class="text-center text-xs text-gray-400 py-3">
         FitTrack © {{ date('Y') }}
     </footer>
 
     @livewireScripts
 </body>
+
 </html>

@@ -31,14 +31,27 @@
     <div class="absolute top-4 right-4 z-20 flex gap-2">
         @if (Route::has('tenant.login'))
             @auth
-                <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white rounded-full">
-                    <i class="fa-solid fa-table-columns mr-1"></i> Gestión
-                </a>
+
+
+                @hasanyrole('Admin|Asistente|Entrenador')
+                    <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white flex items-center rounded-full">
+                        <x-icons.lucide.layout-dashboard class="w-4 h-4 mr-1" />
+                        Gestión
+                    </a>
+                @endhasanyrole
+                @hasrole('Alumno')
+                    <a href="{{ route('tenant.student.dashboard') }}" class="btn-outline-white flex items-center rounded-full">
+                        <x-icons.lucide.user-round class="w-4 h-4 mr-1" />
+                        Área Alumno
+                    </a>
+                @endhasrole
+
 
                 <form method="POST" action="{{ route('tenant.logout') }}">
                     @csrf
-                    <button type="submit" class="btn-outline-white cursor-pointer rounded-full">
-                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Salir
+                    <button type="submit" class="btn-outline-white flex items-center cursor-pointer rounded-full">
+                        <x-icons.lucide.log-out class="w-4 h-4 mr-1" />
+                        Salir
                     </button>
                 </form>
             @else

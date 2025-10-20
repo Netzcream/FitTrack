@@ -60,5 +60,21 @@ return [
 
     'period' => 'Período',
     'status' => 'Estado',
+    'image'   => 'Imagen',
+    'name'    => 'Nombre',
+    'period'  => 'Período',
+    'status'  => 'Estado',
+
+    // 🔹 Nuevos estados de plan
+    'current'  => 'Vigente',
+    'active'   => 'Activo (fuera de rango)',
+    'inactive' => 'Inactivo',
+    'expired'  => 'Vencido',
+
+    // 🔹 Mensajes de error o validación
+    'overlap_error' => 'Ya existe un plan vigente en ese período para el alumno.',
+    'saved' => 'El plan de entrenamiento se guardó correctamente.',
+    'duplicate_exercises_removed' => 'Se eliminaron ejercicios duplicados por día.',
+    'overlap_error' => 'Ya existe un plan vigente en ese período para el alumno.',
 
 ];

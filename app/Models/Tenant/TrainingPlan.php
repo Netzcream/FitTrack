@@ -79,6 +79,7 @@ class TrainingPlan extends Model implements HasMedia
     /* ---------------- Boot ---------------- */
     protected static function booted(): void
     {
+        // 🔹 Inicialización al crear
         static::creating(function (self $model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
@@ -90,7 +91,35 @@ class TrainingPlan extends Model implements HasMedia
             $meta['origin']  = $meta['origin']  ?? 'new';
             $model->meta = $meta;
         });
+
+        static::saving(function (self $model) {
+            $graceDays = 2; // ← cantidad de días de gracia permitidos
+
+            if ($model->is_active && $model->assigned_from && $model->assigned_until && $model->student_id) {
+                // Rango ampliado con días de gracia
+                $from = $model->assigned_from->copy()->subDays($graceDays);
+                $until = $model->assigned_until->copy()->addDays($graceDays);
+
+                $overlap = static::where('student_id', $model->student_id)
+                    ->where('id', '!=', $model->id)
+                    ->where('is_active', true)
+                    ->where(function ($q) use ($from, $until) {
+                        $q->whereBetween('assigned_from', [$from, $until])
+                            ->orWhereBetween('assigned_until', [$from, $until])
+                            ->orWhere(function ($qq) use ($from, $until) {
+                                $qq->where('assigned_from', '<=', $from)
+                                    ->where('assigned_until', '>=', $until);
+                            });
+                    })
+                    ->exists();
+
+                if ($overlap) {
+                    throw new \Exception('Ya existe un plan vigente en ese período (considerando días de gracia).');
+                }
+            }
+        });
     }
+
 
     public function getRouteKeyName(): string
     {
@@ -230,5 +259,18 @@ class TrainingPlan extends Model implements HasMedia
     public function __toString(): string
     {
         return $this->name ?? static::class;
+    }
+
+
+    public function getExercisesByDayAttribute()
+    {
+        return $this->exercises->groupBy(fn($ex) => $ex->pivot->day ?? 0)->sortKeys();
+    }
+    public function getIsCurrentAttribute(): bool
+    {
+        $today = now();
+        return $this->is_active
+            && (!$this->assigned_from || $this->assigned_from->lte($today))
+            && (!$this->assigned_until || $this->assigned_until->isFuture());
     }
 }

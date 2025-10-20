@@ -189,15 +189,33 @@ class Form extends Component
             'student_id'  => $this->student_id, // null para planes generales
         ]);
 
-        // Fechas: solo si hay alumno asignado
-        if ($this->student_id) {
-            $plan->assigned_from  = $this->assigned_from ?: now();
-            $plan->assigned_until = $this->assigned_until ?: now()->addMonth();
-        } else {
-            // Asegurar nulos para planes generales
-            $plan->assigned_from  = null;
-            $plan->assigned_until = null;
+
+        // 🔹 Validar solapamiento de fechas para el alumno
+        if ($this->student_id && $this->is_active) {
+            $graceDays = 2;
+
+            $from  = $plan->assigned_from ?? now();
+            $until = $plan->assigned_until ?? now()->addDays(30);
+
+            $overlap = TrainingPlan::where('student_id', $this->student_id)
+                ->where('id', '!=', $plan->id)
+                ->where('is_active', true)
+                ->where(function ($q) use ($from, $until, $graceDays) {
+                    $q->whereBetween('assigned_from', [$from->copy()->subDays($graceDays), $until->copy()->addDays($graceDays)])
+                        ->orWhereBetween('assigned_until', [$from->copy()->subDays($graceDays), $until->copy()->addDays($graceDays)])
+                        ->orWhere(function ($qq) use ($from, $until, $graceDays) {
+                            $qq->where('assigned_from', '<=', $from->copy()->subDays($graceDays))
+                                ->where('assigned_until', '>=', $until->copy()->addDays($graceDays));
+                        });
+                })
+                ->exists();
+
+            if ($overlap) {
+                $this->addError('assigned_from', __('training_plans.overlap_error'));
+                return;
+            }
         }
+
 
         $plan->save();
         $plan->refresh();

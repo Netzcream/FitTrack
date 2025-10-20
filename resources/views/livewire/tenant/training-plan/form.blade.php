@@ -68,18 +68,22 @@
                     <flux:input wire:model.defer="duration" label="{{ __('training_plans.duration') }}"
                         placeholder="2 semanas" autocomplete="off" />
                     <div class="flex items-center gap-2 pt-5">
-                        <flux:checkbox wire:model.defer="is_active" size="sm" />
-                        <flux:label class="text-sm">{{ __('training_plans.is_active') }}</flux:label>
+                        <flux:checkbox wire:model.defer="is_active" size="sm" :label="__('training_plans.is_active')" />
+
                     </div>
                 </div>
 
                 {{-- Fechas: solo si pertenece a un alumno --}}
                 @if ($student_id)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <flux:input type="date" wire:model.defer="assigned_from"
-                            label="{{ __('training_plans.assigned_from') }}" />
-                        <flux:input type="date" wire:model.defer="assigned_until"
-                            label="{{ __('training_plans.assigned_until') }}" />
+                        <div>
+                            <flux:input type="date" wire:model.defer="assigned_from"
+                                label="{{ __('training_plans.assigned_from') }}" />
+                        </div>
+                        <div>
+                            <flux:input type="date" wire:model.defer="assigned_until"
+                                label="{{ __('training_plans.assigned_until') }}" />
+                        </div>
                     </div>
                 @endif
 
@@ -165,21 +169,22 @@
                                     @foreach ($selectedExercises as $i => $ex)
                                         <tr class="align-middle">
                                             <td rowspan="2" class="px-4 py-2 align-middle text-left">
-                            <div class="flex items-center h-full">
-                                @if ($ex['image'])
-                                    <img src="{{ $ex['image'] }}"
-                                         class="h-10 w-10 rounded object-cover border border-gray-200 dark:border-neutral-700" />
-                                @else
-                                    <div
-                                        class="h-10 w-10 flex items-center justify-center rounded border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-[11px] font-medium text-gray-500 dark:text-neutral-400">
-                                        {{ strtoupper(substr($ex['name'], 0, 2)) }}
-                                    </div>
-                                @endif
-                            </div>
+                                                <div class="flex items-center h-full">
+                                                    @if ($ex['image'])
+                                                        <img src="{{ $ex['image'] }}"
+                                                            class="h-10 w-10 rounded object-cover border border-gray-200 dark:border-neutral-700" />
+                                                    @else
+                                                        <div
+                                                            class="h-10 w-10 flex items-center justify-center rounded border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                                                            {{ strtoupper(substr($ex['name'], 0, 2)) }}
+                                                        </div>
+                                                    @endif
+                                                </div>
                                             </td>
 
                                             <td rowspan="2" class="px-2 py-2 text-center align-middle">
-                                                <div class="flex flex-col items-center justify-center gap-1 leading-none">
+                                                <div
+                                                    class="flex flex-col items-center justify-center gap-1 leading-none">
                                                     <a wire:click.prevent="moveUp({{ $i }})"
                                                         title="{{ __('common.move_up') }}"
                                                         class="cursor-pointer text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300">
@@ -213,20 +218,25 @@
 
                                         <tr class="align-middle border-b border-gray-200 dark:border-neutral-700">
                                             <td class="px-3 pt-0 pb-3 text-sm w-24">
-                                                <flux:select wire:model.defer="selectedExercises.{{ $i }}.day" size="sm">
+                                                <flux:select
+                                                    wire:model.defer="selectedExercises.{{ $i }}.day"
+                                                    size="sm">
                                                     @for ($d = 1; $d <= 7; $d++)
-                                                        <option value="{{ $d }}">{{ $d }}</option>
+                                                        <option value="{{ $d }}">{{ $d }}
+                                                        </option>
                                                     @endfor
                                                 </flux:select>
                                             </td>
 
                                             <td class="px-3 pt-0 pb-3 text-sm w-44">
-                                                <flux:input wire:model.defer="selectedExercises.{{ $i }}.detail"
+                                                <flux:input
+                                                    wire:model.defer="selectedExercises.{{ $i }}.detail"
                                                     size="sm" placeholder="4x10" />
                                             </td>
 
                                             <td class="px-3 pt-0 pb-3 text-sm">
-                                                <flux:input wire:model.defer="selectedExercises.{{ $i }}.notes"
+                                                <flux:input
+                                                    wire:model.defer="selectedExercises.{{ $i }}.notes"
                                                     size="sm" placeholder="RPE 7" />
                                             </td>
                                         </tr>

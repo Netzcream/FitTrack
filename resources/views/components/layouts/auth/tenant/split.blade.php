@@ -68,15 +68,8 @@
                     </span>
 
                 </a>
-
-
-
-                {{-- SLOT: tu formulario de login ya traducido (site.php) --}}
                 {{ $slot }}
-
-                {{-- Ajustes de color para enlaces del form (ej. “forgot password”, “sign up”) --}}
                 <style>
-                    /* Links del panel derecho según tema del tenant */
                     .tenant-accent a,
                     a.tenant-accent {
                         color: var(--lnq-color-base);

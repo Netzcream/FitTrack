@@ -152,19 +152,29 @@
                         {{-- Estado --}}
                         <td class="align-middle px-6 py-4 text-sm">
                             @php
-                                $isExpired = $plan->assigned_until && $plan->assigned_until->isPast();
-                                $state = $isExpired ? 'expired' : 'active';
+                                $state = $plan->is_current ? 'current' : ($plan->is_active ? 'active' : 'inactive');
+
+                                if ($plan->assigned_until && $plan->assigned_until->isPast()) {
+                                    $state = 'expired';
+                                }
+
                                 $styles = [
-                                    'active' =>
+                                    'current' =>
                                         'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-900',
+                                    'active' =>
+                                        'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
+                                    'inactive' =>
+                                        'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800',
                                     'expired' =>
                                         'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800',
                                 ];
                             @endphp
+
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium {{ $styles[$state] }}">
                                 {{ __('training_plans.' . $state) }}
                             </span>
+
                         </td>
 
                         {{-- Acciones --}}

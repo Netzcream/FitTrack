@@ -31,9 +31,16 @@
     <div class="absolute top-4 right-4 z-20 flex gap-2">
         @if (Route::has('tenant.login'))
             @auth
-                <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white">
-                    <i class="fa-solid fa-table-columns mr-1"></i> Gestión
-                </a>
+                @hasanyrole('Admin|Asistente|Entrenador')
+                    <a href="{{ route('tenant.dashboard') }}" class="btn-outline-white">
+                        <i class="fa-solid fa-table-columns mr-1"></i> Gestión
+                    </a>
+                @endhasanyrole
+                @hasrole('Alumno')
+                    <a href="{{ route('tenant.student.dashboard') }}" class="btn-outline-white">
+                        <i class="fa-solid fa-table-columns mr-1"></i> Área Alumno
+                    </a>
+                @endhasrole
 
                 <form method="POST" action="{{ route('tenant.logout') }}">
                     @csrf

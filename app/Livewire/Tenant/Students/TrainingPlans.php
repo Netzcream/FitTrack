@@ -31,8 +31,13 @@ class TrainingPlans extends Component
     public function render()
     {
         $plans = TrainingPlan::where('student_id', $this->student->id)
+            ->orderByDesc('is_active')
             ->orderByDesc('assigned_from')
+            ->orderByDesc('assigned_until')
+            ->orderByDesc('created_at')
             ->get();
+
+
 
         return view('livewire.tenant.students.training-plans', [
             'student' => $this->student,

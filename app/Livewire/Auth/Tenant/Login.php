@@ -42,8 +42,14 @@ class Login extends Component
 
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
-
-        $this->redirectIntended(default: route('tenant.dashboard', absolute: false), navigate: true);
+        $dashboard = route('tenant.dashboard', absolute: false);
+        $url = $dashboard;
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->hasRole('Alumno')) {
+            $url = route('tenant.student.dashboard', absolute: false);
+        }
+        $this->redirectIntended(default: $url, navigate: true);
     }
 
     /**
@@ -72,6 +78,6 @@ class Login extends Component
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
     }
 }

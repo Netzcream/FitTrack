@@ -79,7 +79,7 @@ Route::middleware([
         })->where('path', '.*')
             ->name('file');
 
-        Route::middleware(['tenant.auth'])->group(function () {
+        Route::middleware(['tenant.auth', 'role:Admin|Asistente|Entrenador'])->group(function () {
             Route::get('/dashboard', function () {
                 return view('tenant.dashboard');
             })->name('dashboard');

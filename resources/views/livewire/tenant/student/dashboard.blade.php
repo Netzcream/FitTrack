@@ -1,93 +1,126 @@
-<div class="space-y-6">
-    {{-- Bloque principal --}}
-    <div class="bg-white rounded-2xl shadow p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="space-y-6 md:space-y-8">
+
+    {{-- ENCABEZADO --}}
+    <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-            <h2 class="text-lg font-semibold text-gray-800">
-                {{ $trainingsThisMonth }} entrenamientos completados este mes
-            </h2>
-            <p class="text-sm text-gray-500">
-                Tu meta: {{ $goalThisMonth }} entrenamientos mensuales.
+            <h1 class="text-2xl font-bold text-gray-800">
+                🏋️ Panel de entrenamiento
+            </h1>
+            <p class="text-gray-500">
+                Resumen de tu actividad y tus próximos pasos
             </p>
-            <div class="w-56 bg-gray-200 h-2 rounded-full mt-2">
-                <div class="bg-green-500 h-2 rounded-full transition-all duration-500"
-                    style="width: {{ min(100, ($trainingsThisMonth / max(1,$goalThisMonth)) * 100) }}%">
+        </div>
+
+
+        @if ($student->hasMedia('avatar'))
+            <img src="{{ $student->getFirstMediaUrl('avatar', 'thumb') }}" alt="{{ $student->full_name }}"
+                class="w-12 h-12 rounded-full border border-gray-200 object-cover shadow-sm">
+        @endif
+    </div>
+
+    {{-- ALERTAS (ahora arriba del contenido principal) --}}
+    @if ($goalThisMonth && $trainingsThisMonth >= $goalThisMonth)
+        <div class="rounded p-4 border-l-4"
+            style="border-color: var(--ftt-color-base);
+                    background-color: var(--ftt-color-base-transparent);">
+            <p class="text-sm font-medium text-gray-800">
+                🎉 ¡Excelente! Completaste tu meta mensual 🎯
+            </p>
+        </div>
+    @endif
+
+    @if ($hasPendingPayment)
+        <div class="border-l-4 p-4 rounded bg-red-50 border-red-500">
+            <p class="text-sm text-red-700">
+                ⚠️ Tenés un pago pendiente.
+                <a href="{{ route('tenant.student.payments') }}" class="underline">Ver pagos</a>
+            </p>
+        </div>
+    @endif
+
+    @if (!$assignment)
+        <div class="border-l-4 p-4 rounded bg-gray-50 border-gray-400">
+            <p class="text-sm text-gray-700">
+                ⚠️ No tenés un plan activo. Contactá a tu entrenador.
+            </p>
+        </div>
+    @endif
+
+    {{-- PROGRESO MENSUAL --}}
+    <div
+        class="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+        <div>
+            <p class="text-sm text-gray-500">Entrenamientos este mes</p>
+            <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base)">
+                {{ $trainingsThisMonth }}
+            </h2>
+            <p class="text-xs text-gray-400">Meta: {{ $goalThisMonth }}</p>
+
+            <div class="w-56 bg-gray-100 h-2 rounded-full mt-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-500"
+                    style="width: {{ min(100, ($trainingsThisMonth / max(1, $goalThisMonth)) * 100) }}%;
+                            background-color: var(--ftt-color-base)">
                 </div>
             </div>
         </div>
 
-        <button wire:click="startOrContinueWorkout"
-            class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-medium flex items-center gap-2 transition">
-            @if($todaySession)
-                🔁 Continuar entrenamiento de hoy
+        <button wire:click="startOrContinueWorkout" class="start-button">
+            @if ($todaySession)
+                🔁 Continuar entrenamiento
             @else
                 💪 Comenzar nuevo entrenamiento
             @endif
         </button>
     </div>
 
-    {{-- Estado del plan --}}
-    <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">🏋️ Plan actual</h3>
-        @if($assignment)
-            <p class="text-gray-800 font-medium">{{ $currentRoutine }}</p>
-            <p class="text-sm text-gray-500">
-                Desde {{ $assignment->start_date->format('d/m/Y') }}
-            </p>
-        @else
-            <p class="text-sm text-gray-500">
-                No tenés un plan activo en este momento.
-            </p>
-        @endif
-    </div>
-
-    {{-- Accesos rápidos --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{{ route('tenant.student.workout-today') }}"
-            class="bg-white hover:bg-green-50 border rounded-xl shadow-sm p-5 flex flex-col items-center text-center transition">
-            <span class="text-3xl mb-2">🏋️‍♀️</span>
-            <h3 class="font-semibold text-gray-700">Mi rutina</h3>
-            <p class="text-xs text-gray-500">Ver y marcar ejercicios</p>
-        </a>
-
-        <a href="{{ route('tenant.student.progress') }}"
-            class="bg-white hover:bg-blue-50 border rounded-xl shadow-sm p-5 flex flex-col items-center text-center transition">
-            <span class="text-3xl mb-2">📈</span>
-            <h3 class="font-semibold text-gray-700">Progreso</h3>
-            <p class="text-xs text-gray-500">Estadísticas y evolución</p>
-        </a>
-
-        <a href="{{ route('tenant.student.messages') }}"
-            class="bg-white hover:bg-purple-50 border rounded-xl shadow-sm p-5 flex flex-col items-center text-center transition">
-            <span class="text-3xl mb-2">💬</span>
-            <h3 class="font-semibold text-gray-700">Mensajes</h3>
-            <p class="text-xs text-gray-500">Habla con tu entrenador</p>
-        </a>
-    </div>
-
-    {{-- Alertas --}}
-    <div class="space-y-3">
-        @if($goalThisMonth && $trainingsThisMonth >= $goalThisMonth)
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                <p class="text-sm font-medium text-yellow-700">
-                    🎉 ¡Felicitaciones! Completaste tu objetivo mensual. Nueva meta: {{ $goalThisMonth + 3 }} entrenamientos.
+    {{-- PLAN ACTUAL --}}
+    @if ($assignment)
+        <div
+            class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-semibold mb-2 flex items-center gap-2" style="color: var(--ftt-color-base)">
+                    🏋️ <span>Plan actual</span>
+                </h3>
+                <p class="font-medium text-gray-800">
+                    {{ $assignment->name }}
+                    <span class="text-sm text-gray-500 ml-1">
+                        ({{ $assignment->version_label }})
+                    </span>
+                </p>
+                <p class="text-sm text-gray-500">
+                    Desde {{ $assignment->assigned_from?->format('d/m/Y') ?? '—' }}
                 </p>
             </div>
-        @endif
 
-        @if($hasPendingPayment)
-            <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                <p class="text-sm text-red-700">
-                    ⚠️ Abono próximo a vencer. <a href="{{ route('tenant.student.payments') }}" class="underline font-medium">Pagar ahora</a>
-                </p>
-            </div>
-        @endif
+            {{-- BOTÓN DESCARGAR --}}
+            <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm transition"
+                style="background-color: var(--ftt-color-base);">
+                <x-icons.lucide.file-down class="w-4 h-4" />
+                Descargar PDF
+            </a>
+        </div>
+    @endif
 
-        @if(!$assignment)
-            <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
-                <p class="text-sm text-gray-700">
-                    ⚠️ No tenés un plan de entrenamiento activo. Contactá a tu entrenador para que te asigne uno.
-                </p>
-            </div>
-        @endif
+
+    {{-- ACCESOS RÁPIDOS --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+        <a href="{{ route('tenant.student.workout-today') }}" class="student-card">
+            <x-icons.lucide.dumbbell class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Mi rutina</h3>
+            <p>Ver ejercicios</p>
+        </a>
+
+        <a href="{{ route('tenant.student.progress') }}" class="student-card">
+            <x-icons.lucide.line-chart class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Progreso</h3>
+            <p>Ver métricas</p>
+        </a>
+
+        <a href="{{ route('tenant.student.messages') }}" class="student-card">
+            <x-icons.lucide.message-circle class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Mensajes</h3>
+            <p>Hablar con tu entrenador</p>
+        </a>
     </div>
 </div>
