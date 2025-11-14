@@ -16,11 +16,16 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains, MaintenanceMode;
 
+    protected $guarded = [];
     protected $fillable = [
+        'id',
+        'data',
+        'status',
         'commercial_plan_id',
     ];
 
     protected $casts = [
+        'data' => 'array',
         'status' => TenantStatus::class,
         'ssl_provisioned_at' => 'datetime',
     ];

@@ -39,7 +39,14 @@
                 <a href="{{ route('tenant.student.workout-today') }}">Rutina</a>
                 <a href="{{ route('tenant.student.messages') }}">Mensajes</a>
                 <a href="{{ route('tenant.student.payments') }}">Pagos</a>
-                <a href="{{ route('tenant.logout') }}" class="text-red-200 hover:text-red-300 font-medium">Salir</a>
+
+               <form method="POST" action="{{ route('tenant.logout') }}">
+                    @csrf
+                    <button type="submit" class="cursor-pointer">
+                        Salir
+                    </button>
+                </form>
+
             </nav>
         </div>
     </header>

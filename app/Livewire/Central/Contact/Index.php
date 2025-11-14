@@ -9,9 +9,8 @@ use App\Models\Central\Contact;
 class Index extends Component
 {
     use WithPagination;
-    public ?Contact $viewing = null;
 
-    /** @var array<string> */
+    public ?Contact $viewing = null;
     public array $selected = [];
 
     public bool $selectPage = false;
@@ -19,60 +18,55 @@ class Index extends Component
     public ?string $deletingId = null;
     public ?int $noLeidos = 0;
 
-    protected $listeners = [
-        'refreshContacts' => '$refresh',
-    ];
+    // Filtro de búsqueda
+    public string $q = '';
 
-    public function mount()
+    protected $listeners = ['refreshContacts' => '$refresh'];
+
+    public function mount(): void
     {
         $this->noLeidos = Contact::unread()->count();
     }
 
     // ---------------------------------------------------------------------
-    // Helpers selección
+    // Selección y acciones bulk
     // ---------------------------------------------------------------------
 
-    public function confirmDeleteAsk(string $id): void
+    public function updatedSelectPage($value): void
     {
-        $this->deletingId = $id;
-    }
-    public function deleteConfirmed(): void
-    {
-        if ($this->deletingId && ($c = Contact::find($this->deletingId))) {
-            $c->delete();
-            session()->flash('message', __('site.deleted_successfully'));
+        if ($value) {
+            $this->selected = $this->currentPageContactIds();
+        } else {
+            $this->reset(['selected', 'selectAll']);
         }
-
-        $this->deletingId = null;
-
-        $this->dispatch('contact-deleted');
-
-        $this->dispatch('refreshContacts');
     }
 
-
-    public function confirmBulkDeleteAsk(): void
+    public function selectAll(): void
     {
-        if (empty($this->selected)) return;
+        $this->selectAll = true;
+        $this->selected = Contact::pluck('id')->map(fn($id) => (string)$id)->toArray();
     }
 
-    public function deleteSelectedConfirmed(): void
+    public function clearSelection(): void
     {
-        if (empty($this->selected)) return;
-
-        Contact::whereIn('id', $this->selected)->delete();
-        $this->clearSelection();
-
-        session()->flash('message', __('site.deleted_successfully'));
-
-        // Cierra por listener
-        $this->dispatch('contacts-deleted');
-
-        // Refrescar tabla
-        $this->dispatch('refreshContacts');
+        $this->reset(['selected', 'selectPage', 'selectAll']);
     }
 
-    /** Abre el modal, setea el contacto y marca como leído */
+    /** IDs de la página actual */
+    protected function currentPageContactIds(): array
+    {
+        $page = (int)($this->page ?? 1);
+        return Contact::orderBy('created_at', 'desc')
+            ->paginate(10, ['*'], 'page', $page)
+            ->pluck('id')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+    }
+
+    // ---------------------------------------------------------------------
+    // CRUD y estados
+    // ---------------------------------------------------------------------
+
     public function openAndMark(string $id): void
     {
         $contact = Contact::findOrFail($id);
@@ -82,124 +76,95 @@ class Index extends Component
         }
 
         $this->viewing = $contact;
-
-        // Abre el Flux Modal por evento del navegador
         $this->dispatch('modal-open', name: 'view-contact');
-
-        // refresco listado (para quitar highlight de no leído)
         $this->dispatch('refreshContacts');
     }
 
-
-    public function updatedSelectPage($value)
-    {
-        if ($value) {
-            $this->selected = $this->currentPageContactIds();
-        } else {
-            $this->reset(['selected', 'selectAll']);
-        }
-    }
-
-    public function selectAll()
-    {
-        $this->selectAll = true;
-        $this->selected = Contact::pluck('id')->map(fn($id) => (string)$id)->toArray();
-    }
-
-    public function clearSelection()
-    {
-        $this->reset(['selected', 'selectPage', 'selectAll']);
-    }
-
-    /** @return array<string> */
-    protected function currentPageContactIds(): array
-    {
-        // Respetamos la página actual del paginador de Livewire
-        $page = (int)($this->page ?? 1);
-
-        return Contact::orderBy('created_at', 'desc')
-            ->paginate(10, ['*'], 'page', $page)
-            ->pluck('id')
-            ->map(fn($id) => (string)$id)
-            ->toArray();
-    }
-
-    // ---------------------------------------------------------------------
-    // Acciones individuales
-    // ---------------------------------------------------------------------
-    public function toggleRead(string $id)
+    public function toggleRead(string $id): void
     {
         $contact = Contact::find($id);
-        if (!$contact) {
-            return;
-        }
+        if (!$contact) return;
 
         if ($contact->unread) {
             $contact->markAsRead();
-            session()->flash('message', __('site.marked_as_read'));
+            session()->flash('message', __('common.marked_as_read'));
         } else {
             $contact->markAsUnread();
-            session()->flash('message', __('site.marked_as_unread'));
+            session()->flash('message', __('common.marked_as_unread'));
         }
 
         $this->dispatch('refreshContacts');
     }
 
-    public function confirmDelete(string $id)
+    public function confirmDeleteAsk(string $id): void
     {
-        $contact = Contact::find($id);
+        $this->deletingId = $id;
+    }
 
-        if ($contact) {
-            $contact->delete();
-            session()->flash('message', __('site.deleted_successfully'));
-            $this->clearSelection();
-            $this->dispatch('refreshContacts');
+    public function deleteConfirmed(): void
+    {
+        if ($this->deletingId && ($c = Contact::find($this->deletingId))) {
+            $c->delete();
+            session()->flash('message', __('common.deleted_successfully'));
         }
+
+        $this->deletingId = null;
+        $this->dispatch('contact-deleted');
+        $this->dispatch('refreshContacts');
     }
 
     // ---------------------------------------------------------------------
-    // Acciones bulk
+    // Acciones masivas
     // ---------------------------------------------------------------------
-    public function markSelectedAsRead()
+
+    public function markSelectedAsRead(): void
     {
         if (empty($this->selected)) return;
-
         Contact::whereIn('id', $this->selected)->update(['unread' => false]);
-        session()->flash('message', __('site.marked_as_read_bulk'));
+        session()->flash('message', __('common.marked_as_read_bulk'));
         $this->clearSelection();
         $this->dispatch('refreshContacts');
     }
 
-    public function markSelectedAsUnread()
+    public function markSelectedAsUnread(): void
     {
         if (empty($this->selected)) return;
-
         Contact::whereIn('id', $this->selected)->update(['unread' => true]);
-        session()->flash('message', __('site.marked_as_unread_bulk'));
+        session()->flash('message', __('common.marked_as_unread_bulk'));
         $this->clearSelection();
         $this->dispatch('refreshContacts');
     }
 
-    public function deleteSelected()
+    public function deleteSelectedConfirmed(): void
     {
         if (empty($this->selected)) return;
-
         Contact::whereIn('id', $this->selected)->delete();
-        session()->flash('message', __('site.deleted_successfully'));
+        session()->flash('message', __('common.deleted_successfully'));
         $this->clearSelection();
+        $this->dispatch('contacts-deleted');
         $this->dispatch('refreshContacts');
     }
 
-    // Si cambias de página, reseteo selección de página (opcional)
-    public function updatingPage()
+    public function updatingPage(): void
     {
         $this->reset(['selectPage', 'selectAll', 'selected']);
     }
 
-
+    // ---------------------------------------------------------------------
+    // Render
+    // ---------------------------------------------------------------------
     public function render()
     {
-        $contacts = Contact::orderBy('created_at', 'desc')->paginate(5);
+        $contacts = Contact::query()
+            ->when($this->q, fn($q) => $q->where(function ($qq) {
+                $t = "%{$this->q}%";
+                $qq->where('name', 'like', $t)
+                   ->orWhere('email', 'like', $t)
+                   ->orWhere('phone', 'like', $t);
+            }))
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return view('livewire.central.contact.index', [
             'contacts' => $contacts,
             'totalMatching' => Contact::count(),

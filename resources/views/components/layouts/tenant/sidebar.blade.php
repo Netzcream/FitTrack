@@ -11,7 +11,7 @@
 
         <a href="{{ route('tenant.dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse"
             wire:navigate>
-            <x-tenant.app-logo />
+            <x-tenant.app-favicon-sidebar />
         </a>
 
 

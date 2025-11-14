@@ -8,6 +8,7 @@ return [
             'site_name' => 'Nombre del sitio',
             'color' => 'Color',
             'whatsapp' => 'Whatsapp',
+            'social_title' => 'Redes sociales',
         ],
         'notification' => [
             'title' => 'Notificaciones',
@@ -20,9 +21,25 @@ return [
             'logo' => 'Logo',
             'favicon' => 'Favicon',
         ],
+
         'landing' => [
-            'landing_whatsapp' => 'WhatsApp'
-        ]
+
+            // Campos
+            'landing_whatsapp'   => 'WhatsApp',
+            'landing_instagram'  => 'Instagram',
+            'landing_facebook'   => 'Facebook',
+            'landing_youtube'    => 'YouTube',
+            'landing_twitter'    => 'Twitter / X',
+            'landing_tiktok'     => 'TikTok',
+
+            // Helpers
+            'helper_whatsapp'  => 'Ingresá solo el número, sin + ni espacios.',
+            'helper_instagram' => 'Ingresá solo tu usuario, sin @.',
+            'helper_facebook'  => 'Ingresá solo el nombre de tu página o perfil.',
+            'helper_youtube'   => 'Ingresá el nombre de tu canal.',
+            'helper_twitter'   => 'Ingresá solo tu usuario, sin @.',
+            'helper_tiktok'    => 'Ingresá solo tu usuario.',
+        ],
 
     ],
 

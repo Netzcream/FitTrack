@@ -34,7 +34,7 @@ class ClientsForm extends Component
 
     public string $name = '';
     public string $admin_email = '';
-    public string $admin_password = 'password123';
+    public string $admin_password = 'password1234';
     public $status = null;
     public string $id = ''; // subdominio, readonly
     public bool $edit_mode = false;
@@ -43,7 +43,7 @@ class ClientsForm extends Component
     public string $slug = '';
     public ?string $slug_suggestion = null;
     public bool $slug_manually_edited = false;
-    public $plan_id = null;
+    public $commercial_plan_id = null;
 
     // Si querés mostrar mensajes de error custom, podés agregar:
     public array $reservedSubdomains = ['www', 'admin', 'mail', 'api', 'ftp', 'cpanel', 'webmail', 'lunico', 'test'];
@@ -58,11 +58,11 @@ class ClientsForm extends Component
         $this->plans = CommercialPlan::all();
         if ($client) {
             $this->client = $client;
-            $this->name = $client->name;
-            $this->admin_email = $client->admin_email;
-            $this->status = $client->status->value;
+            $this->name = $client->name ?? "";
+            $this->admin_email = $client->admin_email ?? "";
+            $this->status = $client->status->value ?? "";
             $this->id = $this->client->id;
-            $this->plan_id = $client->plan_id;
+            $this->commercial_plan_id = $client->commercial_plan_id;
             $this->edit_mode = true;
             $this->domains = $this->client->domains()->orderBy('id')->get(['id', 'domain'])->toArray();
             $this->slug = $this->id;
@@ -129,9 +129,9 @@ class ClientsForm extends Component
                 'required',
                 'string',
                 'between:3,32',
-                'regex:/^[a-z][a-z0-9-]*$/',   // empieza con letra, válidos a-z0-9-
-                'not_regex:/--/',               // sin dobles guiones
-                'not_regex:/-$/',               // no termina en guion
+                'regex:/^[a-z][a-z0-9-]*$/',
+                'not_regex:/--/',
+                'not_regex:/-$/',
                 Rule::notIn($this->reservedSubdomains),
                 Rule::unique('tenants', 'id'),
             ];
@@ -187,32 +187,51 @@ class ClientsForm extends Component
                 'name' => $this->name,
                 'admin_email' => $this->admin_email,
                 'status' => $this->status,
-                'plan_id' => $this->plan_id,
+                'commercial_plan_id' => $this->commercial_plan_id,
             ]);
 
+            $this->client->name = $this->name;
+            $this->client->admin_email = $this->admin_email;
+            $this->client->status = $this->status;
+            $this->client->commercial_plan_id = $this->commercial_plan_id;
+            $this->client->save();
+
+
+            // dd($this->client);
             session()->flash('success', __('central.client_updated'));
             $this->redirect(route('central.dashboard.clients.index', $this->client), navigate: true);
         } else {
             // Alta nueva, igual que el paso anterior
             //$id = Str::slug(Str::lower($this->name), '-');
             $id = $this->slug;
-            $tenant = \App\Models\Tenant::create([
+
+            $tenant = Tenant::create([
                 'id' => $id,
                 'name' => $this->name,
                 'admin_email' => $this->admin_email,
                 'status' => $this->status,
-                'plan_id' => $this->plan_id,
+                'commercial_plan_id' => $this->commercial_plan_id,
             ]);
+
+            $tenant->name = $this->name;
+            $tenant->admin_email = $this->admin_email;
+            $tenant->status = $this->status;
+            $tenant->commercial_plan_id = $this->commercial_plan_id;
+            $tenant->save();
+
             $subdomain = $id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
             $tenant->domains()->create([
                 'domain' => $subdomain,
             ]);
-            $tenant->run(function () use ($tenant) {
+            $adminPassword = $this->admin_password; // Guardar antes del closure
+            $adminMail = $this->admin_email;
+            $tenant->run(function () use ($adminMail, $adminPassword) {
                 $user = \App\Models\User::create([
                     'name' => 'Admin',
-                    'email' => $tenant->admin_email,
-                    'password' => \Illuminate\Support\Facades\Hash::make($this->admin_password),
+                    'email' => $adminMail,
+                    'password' => \Illuminate\Support\Facades\Hash::make($adminPassword),
                 ]);
+
                 if (\Spatie\Permission\Models\Role::where('name', 'Admin')->exists()) {
                     $user->assignRole('Admin');
                 }

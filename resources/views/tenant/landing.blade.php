@@ -151,24 +151,74 @@
     @endif
 
 
-    @if (tenant_config('landing_footer'))
-        <footer class="text-sm text-white"
-            style="background: linear-gradient(180deg, var(--ftt-color-base) 0%, var(--ftt-color-dark) 100%);">
-            <div
-                class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div class="text-center sm:text-left opacity-90 leading-relaxed">
+
+    <footer class="text-sm text-white"
+        style="background: linear-gradient(180deg, var(--ftt-color-base) 0%, var(--ftt-color-dark) 100%);">
+        <div
+            class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+
+            {{-- Texto o HTML libre del footer --}}
+            <div class="text-center sm:text-left opacity-90 leading-relaxed">
+                @if (tenant_config('landing_footer'))
                     {!! tenant_config('landing_footer') !!}
-                </div>
-                <nav class="flex items-center gap-6 opacity-90">
-                    <a href="#" class="hover:opacity-100 transition">Instagram</a>
-                    @if (tenant_config('landing_whatsapp'))
-                        <a href="https://wa.me/{{ tenant_config('landing_whatsapp') }}"
-                            class="hover:opacity-100 transition">WhatsApp</a>
-                    @endif
-                </nav>
+                @endif
             </div>
-        </footer>
-    @endif
+
+            <nav class="flex flex-wrap items-center justify-center sm:justify-end gap-6 text-white/80">
+                @php
+                    $links = [
+                        'instagram' => tenant_config('landing_instagram'),
+                        'facebook' => tenant_config('landing_facebook'),
+                        'youtube' => tenant_config('landing_youtube'),
+                        'twitter' => tenant_config('landing_twitter'),
+                        'tiktok' => tenant_config('landing_tiktok'),
+                        'whatsapp' => tenant_config('landing_whatsapp'),
+                    ];
+
+                    $icons = [
+                        'instagram' => 'instagram',
+                        'facebook' => 'facebook',
+                        'youtube' => 'youtube',
+                        'twitter' => 'x',
+                        'tiktok' => 'tiktok',
+                        'whatsapp' => 'message-circle',
+                    ];
+
+                    $labels = [
+                        'instagram' => 'Instagram',
+                        'facebook' => 'Facebook',
+                        'youtube' => 'YouTube',
+                        'twitter' => 'X',
+                        'tiktok' => 'TikTok',
+                        'whatsapp' => 'WhatsApp',
+                    ];
+
+                    $urls = [
+                        'instagram' => fn($h) => "https://instagram.com/$h",
+                        'facebook' => fn($h) => "https://facebook.com/$h",
+                        'youtube' => fn($h) => "https://youtube.com/@$h",
+                        'twitter' => fn($h) => "https://x.com/$h",
+                        'tiktok' => fn($h) => "https://tiktok.com/@$h",
+                        'whatsapp' => fn($h) => "https://wa.me/$h",
+                    ];
+                @endphp
+
+                @foreach ($links as $platform => $handle)
+                    @continue(empty($handle))
+                    <a href="{{ $urls[$platform]($handle) }}" target="_blank" rel="noopener"
+                        class="flex items-center gap-2 transition-all duration-200 text-white/80 hover:text-white">
+                        <x-dynamic-component :component="'icons.lucide.' . $icons[$platform]" class="w-4 h-4 transition-colors duration-200" />
+                        <span class="hidden sm:inline">{{ $labels[$platform] }}</span>
+                    </a>
+                @endforeach
+            </nav>
+
+
+
+
+        </div>
+    </footer>
+
 
 
 

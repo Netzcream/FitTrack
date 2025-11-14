@@ -418,4 +418,7 @@ return [
     'new_students' => 'Altas',
     'churn' => 'Bajas',
     'students_in_out_weekly' => 'Altas vs Bajas por semana',
+    'contacts_search_placeholder' => 'Nombre, email, asunto...',
+    'unred' => 'No leído',
+    'read' => 'Leído',
 ];

@@ -20,6 +20,7 @@ return [
     'central_domains' => [
         env('APP_DOMAIN'),
         'www.' . env('APP_DOMAIN'),
+        'app.' . env('APP_DOMAIN'),
 /*        '69.62.98.168',
         '127.0.0.1',**/
     ],
