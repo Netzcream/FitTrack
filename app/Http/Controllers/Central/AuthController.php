@@ -66,20 +66,80 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $token = $user->createToken('pwa')->plainTextToken;
+        $token = $user->createToken('mobile-app')->plainTextToken;
 
         /*
         |--------------------------------------------------------------------------
-        | 4) Responder a la PWA con el tenant real + token
+        | 4) Obtener datos del estudiante asociado al usuario
+        |--------------------------------------------------------------------------
+        */
+
+        $student = \App\Models\Tenant\Student::where('email', $user->email)->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 5) Responder a la app móvil con datos completos
         |--------------------------------------------------------------------------
         */
 
         $scheme = app()->environment('local') ? 'http' : 'https';
 
+        $response = [
+            'tenant' => [
+                'id'     => $tenant->id,
+                'name'   => $tenant->name ?? $tenant->id,
+                'domain' => "{$scheme}://{$tenant->id}.fittrack.test",
+            ],
+            'user' => [
+                'id'    => $user->id,
+                'email' => $user->email,
+                'name'  => $user->name,
+            ],
+            'token' => $token,
+        ];
+
+        // Agregar datos del estudiante si existe
+        if ($student) {
+            $response['student'] = [
+                'id'                  => $student->id,
+                'uuid'                => $student->uuid,
+                'email'               => $student->email,
+                'first_name'          => $student->first_name,
+                'last_name'           => $student->last_name,
+                'full_name'           => $student->full_name,
+                'phone'               => $student->phone,
+                'goal'                => $student->goal,
+                'status'              => $student->status,
+                'timezone'            => $student->timezone,
+                'current_level'       => $student->current_level,
+
+                // Datos personales
+                'birth_date'          => $student->birth_date,
+                'gender'              => $student->gender,
+                'height_cm'           => $student->height_cm,
+                'weight_kg'           => $student->weight_kg,
+                'imc'                 => $student->imc,
+
+                // Datos de comunicación
+                'language'            => $student->language,
+                'notifications'       => $student->notifications,
+
+                // Datos de entrenamiento (si existen en training_data)
+                'training_experience' => $student->training_data['experience'] ?? null,
+                'days_per_week'       => $student->training_data['days_per_week'] ?? null,
+            ];
+        }
+
+        return response()->json($response);
+    }
+
+    public function logout(Request $request)
+    {
+        // El usuario ya debe estar autenticado (middleware auth:sanctum)
+        $request->user()->currentAccessToken()->delete();
+
         return response()->json([
-            'tenant'        => $tenant->id,
-            'tenant_domain' => "{$scheme}://{$tenant->id}.fittrack.test",
-            'token'         => $token
+            'message' => 'Sesión cerrada correctamente'
         ]);
     }
 }
