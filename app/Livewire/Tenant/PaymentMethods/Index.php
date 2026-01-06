@@ -15,7 +15,7 @@ class Index extends Component
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
     public string $search = '';
-    public $active = null; // "yes" | "no" | null
+    public string $status = ''; // "1" | "0" | ""
     public int $perPage = 10;
 
     public ?int $methodToDelete = null;
@@ -30,13 +30,16 @@ class Index extends Component
         }
     }
 
-    public function updatedSearch(): void
+    public function updating($field): void
     {
-        $this->resetPage();
+        if (in_array($field, ['search', 'status'])) {
+            $this->resetPage();
+        }
     }
 
-    public function filter(): void
+    public function clearFilters(): void
     {
+        $this->reset(['search', 'status']);
         $this->resetPage();
     }
 
@@ -66,8 +69,8 @@ class Index extends Component
                        ->orWhere('code', 'like', "%{$this->search}%")
                 )
             )
-            ->when(!empty($this->active), fn($q) =>
-                $q->where('is_active', $this->active === 'yes')
+            ->when($this->status !== '', fn($q) =>
+                $q->where('is_active', $this->status === '1')
             )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);

@@ -20,11 +20,19 @@ class TenantUsersTable extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
-    // Confirm make admin
-    public ?int $confirmAdminUserId = null;
+    // Asignar roles
+    public ?int $selectedUserForRoles = null;
+    public array $selectedRoles = [];
+    public array $availableRoles = [];
 
     protected string $paginationTheme = 'tailwind';
     protected $queryString = ['page' => ['as' => 'tenantUsersPage']];
+
+    public bool $showCreateModal = false;
+    public string $new_name = '';
+    public string $new_email = '';
+    public string $new_password = '';
+
 
     protected function rules(): array
     {
@@ -39,6 +47,58 @@ class TenantUsersTable extends Component
         $this->tenant   = $this->tenantId ? Tenant::find($this->tenantId) : null;
     }
 
+    public function openCreateModal(): void
+    {
+        $this->resetValidation();
+        $this->new_name = '';
+        $this->new_email = '';
+        $this->new_password = '';
+
+        $this->dispatch('modal-open', name: 'tenant-user-create');
+    }
+
+    public function saveNewUser(): void
+    {
+        $this->validate([
+            'new_name' => ['required', 'string', 'max:255'],
+            'new_email' => ['required', 'email', 'max:255'],
+            'new_password' => ['required', Password::min(8)],
+        ]);
+
+        if (! $this->tenant) return;
+
+        $data = [
+            'name'     => $this->new_name,
+            'email'    => $this->new_email,
+            'password' => Hash::make($this->new_password),
+        ];
+
+        $this->tenant->run(function () use ($data) {
+            \App\Models\User::create($data);
+        });
+
+        $this->dispatch('modal-close', name: 'tenant-user-create');
+        $this->dispatch('saved');
+        $this->reset(['new_name', 'new_email', 'new_password']);
+        $this->resetPage('tenantUsersPage');
+    }
+
+
+
+    public function impersonate(int $userId): void
+    {
+        if (! $this->tenant) return;
+        $tenantDomain = $this->tenant->mainDomain();
+        $signature = hash_hmac('sha256', $userId, config('app.key'));
+        $url = "https://{$tenantDomain}/_impersonate-login/{$userId}/{$signature}";
+        if (env('APP_ENV') === 'local') {
+            $url = "http://{$tenantDomain}/_impersonate-login/{$userId}/{$signature}";
+        }
+
+
+        $this->dispatch('open-url', url: $url);
+    }
+
     public function getUsersProperty()
     {
         if (! $this->tenant) return null;
@@ -50,6 +110,12 @@ class TenantUsersTable extends Component
                 ->paginate(10, pageName: 'tenantUsersPage');
 
             $paginator->getCollection()->transform(function ($u) {
+                $roles = [];
+                if (method_exists($u, 'getRoleNames')) {
+                    // Convertir Collection de Spatie a array de strings simples
+                    $roles = $u->getRoleNames()->map(fn($role) => (string) $role)->values()->toArray();
+                }
+
                 return (object) [
                     'id'                   => $u->id,
                     'name'                 => $u->name,
@@ -57,6 +123,7 @@ class TenantUsersTable extends Component
                     'email_verified_at'    => $u->email_verified_at,
                     'created_at'           => $u->created_at,
                     'created_at_formatted' => optional($u->created_at)?->format('d/m/Y H:i'),
+                    'roles'                => $roles,
                 ];
             });
 
@@ -98,29 +165,49 @@ class TenantUsersTable extends Component
         $this->reset(['password', 'password_confirmation']);
     }
 
-    // 2) Hacer Administrador (con confirmación)
-    public function confirmMakeAdmin(int $userId): void
+    // 2) Asignar roles
+    public function openRolesModal(int $userId): void
     {
-        $this->confirmAdminUserId = $userId;
-        $this->dispatch('modal-open', name: 'confirm-make-admin');
-    }
+        if (! $this->tenant) return;
 
-    public function makeAdmin(): void
-    {
-        if (! $this->tenant || ! $this->confirmAdminUserId) return;
+        $this->selectedUserForRoles = $userId;
 
-        $userId = $this->confirmAdminUserId;
-
+        // Obtener roles disponibles y roles actuales del usuario
         $this->tenant->run(function () use ($userId) {
+            // Obtener todos los roles disponibles en el tenant
+            $allRoles = \Spatie\Permission\Models\Role::all()->pluck('name')->toArray();
+            $this->availableRoles = $allRoles;
+
+            // Obtener los roles actuales del usuario
             $user = \App\Models\User::findOrFail($userId);
-            if (method_exists($user, 'syncRoles')) {
-                $user->syncRoles(['Admin']); // limpia y asigna sólo Admin
+            if (method_exists($user, 'getRoleNames')) {
+                $this->selectedRoles = $user->getRoleNames()->toArray();
+            } else {
+                $this->selectedRoles = [];
             }
         });
 
-        $this->dispatch('modal-close', name: 'confirm-make-admin');
+        $this->dispatch('modal-open', name: 'assign-roles');
+    }
+
+    public function saveRoles(): void
+    {
+        if (! $this->tenant || ! $this->selectedUserForRoles) return;
+
+        $userId = $this->selectedUserForRoles;
+        $roles = $this->selectedRoles;
+
+        $this->tenant->run(function () use ($userId, $roles) {
+            $user = \App\Models\User::findOrFail($userId);
+            if (method_exists($user, 'syncRoles')) {
+                $user->syncRoles($roles);
+            }
+        });
+
+        $this->dispatch('modal-close', name: 'assign-roles');
         $this->dispatch('saved');
 
+        $this->reset(['selectedUserForRoles', 'selectedRoles', 'availableRoles']);
         $this->resetPage('tenantUsersPage');
     }
 

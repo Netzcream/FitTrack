@@ -13,7 +13,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $q = '';
+    public string $search = '';
     public ?string $status = null;
     public ?int $plan = null;
     public string $sortBy = 'last_name';
@@ -22,6 +22,9 @@ class Index extends Component
 
     public ?string $deleteUuid = null;
 
+    /** @var array<string> */
+    protected array $sortableColumns = ['first_name', 'last_name', 'email', 'status', 'last_login_at'];
+
     public function updated($field): void
     {
         $this->resetPage();
@@ -29,6 +32,10 @@ class Index extends Component
 
     public function sort(string $column): void
     {
+        if (!in_array($column, $this->sortableColumns, true)) {
+            return;
+        }
+
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -37,9 +44,10 @@ class Index extends Component
         }
     }
 
-    public function resetFilters(): void
+    public function clearFilters(): void
     {
-        $this->reset(['q', 'status', 'plan']);
+        $this->reset(['search', 'status', 'plan']);
+        $this->resetPage();
     }
 
     public function confirmDelete(string $uuid): void
@@ -60,12 +68,17 @@ class Index extends Component
     {
         $students = Student::query()
             ->with('commercialPlan')
-            ->when($this->q, fn($q) => $q
-                ->where('first_name', 'like', "%{$this->q}%")
-                ->orWhere('last_name', 'like', "%{$this->q}%")
-                ->orWhere('email', 'like', "%{$this->q}%"))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->plan, fn($q) => $q->where('commercial_plan_id', $this->plan))
+            // Búsqueda agrupada para evitar problemas de precedencia con orWhere
+            ->when($this->search, function ($q) {
+                $t = "%{$this->search}%";
+                $q->where(function ($qq) use ($t) {
+                    $qq->where('first_name', 'like', $t)
+                        ->orWhere('last_name', 'like', $t)
+                        ->orWhere('email', 'like', $t);
+                });
+            })
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->plan, fn ($q) => $q->where('commercial_plan_id', $this->plan))
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
 

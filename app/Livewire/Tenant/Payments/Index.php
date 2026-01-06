@@ -14,13 +14,13 @@ class Index extends Component
 
     public string $sortBy = 'created_at';
     public string $sortDirection = 'desc';
-    public string $q = '';
+    public string $search = '';
     public string $status = '';
     public int $perPage = 10;
     public ?int $paymentToMark = null;
 
     protected $queryString = [
-        'q' => ['except' => ''],
+        'search' => ['except' => ''],
         'status' => ['except' => ''],
         'sortBy' => ['except' => 'created_at'],
         'sortDirection' => ['except' => 'desc'],
@@ -37,12 +37,16 @@ class Index extends Component
         }
     }
 
-    public function updatedQ() { $this->resetPage(); }
-    public function updatedStatus() { $this->resetPage(); }
-
-    public function resetFilters(): void
+    public function updating($field): void
     {
-        $this->reset(['q', 'status']);
+        if (in_array($field, ['search', 'status'])) {
+            $this->resetPage();
+        }
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['search', 'status']);
         $this->resetPage();
     }
 
@@ -70,13 +74,17 @@ class Index extends Component
     {
         $query = Payment::query()
             ->with(['student', 'paymentMethod'])
-            ->when($this->q, fn($q) =>
-                $q->whereHas('student', fn($s) =>
-                    $s->where('first_name', 'like', "%{$this->q}%")
-                      ->orWhere('last_name', 'like', "%{$this->q}%")
-                      ->orWhere('email', 'like', "%{$this->q}%")
-                )
-            )
+            // Búsqueda agrupada correctamente
+            ->when($this->search, function ($q) {
+                $t = "%{$this->search}%";
+                $q->whereHas('student', function ($s) use ($t) {
+                    $s->where(function ($sq) use ($t) {
+                        $sq->where('first_name', 'like', $t)
+                           ->orWhere('last_name', 'like', $t)
+                           ->orWhere('email', 'like', $t);
+                    });
+                });
+            })
             ->when($this->status, fn($q) => $q->where('status', $this->status))
             ->orderBy($this->sortBy, $this->sortDirection);
 

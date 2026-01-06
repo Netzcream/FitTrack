@@ -25,6 +25,11 @@ class Index extends Component
 
     public function mount(): void
     {
+        $this->updateUnreadCount();
+    }
+
+    protected function updateUnreadCount(): void
+    {
         $this->noLeidos = Contact::unread()->count();
     }
 
@@ -73,6 +78,7 @@ class Index extends Component
 
         if ($contact->unread) {
             $contact->markAsRead();
+            $this->updateUnreadCount();
         }
 
         $this->viewing = $contact;
@@ -93,6 +99,7 @@ class Index extends Component
             session()->flash('message', __('common.marked_as_unread'));
         }
 
+        $this->updateUnreadCount();
         $this->dispatch('refreshContacts');
     }
 
@@ -109,6 +116,7 @@ class Index extends Component
         }
 
         $this->deletingId = null;
+        $this->updateUnreadCount();
         $this->dispatch('contact-deleted');
         $this->dispatch('refreshContacts');
     }
@@ -122,6 +130,7 @@ class Index extends Component
         if (empty($this->selected)) return;
         Contact::whereIn('id', $this->selected)->update(['unread' => false]);
         session()->flash('message', __('common.marked_as_read_bulk'));
+        $this->updateUnreadCount();
         $this->clearSelection();
         $this->dispatch('refreshContacts');
     }
@@ -131,6 +140,7 @@ class Index extends Component
         if (empty($this->selected)) return;
         Contact::whereIn('id', $this->selected)->update(['unread' => true]);
         session()->flash('message', __('common.marked_as_unread_bulk'));
+        $this->updateUnreadCount();
         $this->clearSelection();
         $this->dispatch('refreshContacts');
     }
@@ -140,9 +150,16 @@ class Index extends Component
         if (empty($this->selected)) return;
         Contact::whereIn('id', $this->selected)->delete();
         session()->flash('message', __('common.deleted_successfully'));
+        $this->updateUnreadCount();
         $this->clearSelection();
         $this->dispatch('contacts-deleted');
         $this->dispatch('refreshContacts');
+    }
+
+    public function clearFilters(): void
+    {
+        $this->q = '';
+        $this->resetPage();
     }
 
     public function updatingPage(): void

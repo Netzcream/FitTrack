@@ -36,7 +36,7 @@
             FAQ
         </a>
 
-        <a href="{{ route('register') }}"
+        <a href="{{ route('central.contact') }}"
             class="ml-2 px-4 py-2 rounded-md font-semibold shadow transition
               bg-indigo-600 hover:bg-indigo-700 text-white
               dark:bg-indigo-500 dark:hover:bg-indigo-600"

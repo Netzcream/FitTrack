@@ -14,20 +14,22 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $q = '';
+    public string $search = '';
     public ?string $status = '';
     public int $perPage = 10;
 
+    public ?int $deleteId = null;
+
     public function updating($field)
     {
-        if (in_array($field, ['q', 'status'])) {
+        if (in_array($field, ['search', 'status'])) {
             $this->resetPage();
         }
     }
 
-    public function resetFilters(): void
+    public function clearFilters(): void
     {
-        $this->reset(['q', 'status']);
+        $this->reset(['search', 'status']);
     }
 
     public function moveUp(int $id): void
@@ -62,10 +64,18 @@ class Index extends Component
         }
     }
 
-    public function delete(int $id): void
+    public function confirmDelete(int $id): void
     {
-        CommercialPlan::findOrFail($id)->delete();
-        $this->dispatch('plan-deleted');
+        $this->deleteId = $id;
+    }
+
+    public function delete(): void
+    {
+        if ($this->deleteId) {
+            CommercialPlan::findOrFail($this->deleteId)->delete();
+            $this->dispatch('plan-deleted');
+            $this->deleteId = null;
+        }
     }
 
     public function clone($uuid) {
@@ -76,7 +86,7 @@ class Index extends Component
     public function render()
     {
         $plans = CommercialPlan::query()
-            ->search($this->q)
+            ->search($this->search)
             ->when($this->status !== '', function (Builder $q) {
                 $q->where('is_active', $this->status === '1');
             })

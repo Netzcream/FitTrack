@@ -19,20 +19,7 @@
             <x-data-table :pagination="$contacts">
                 {{-- Filtros --}}
                 <x-slot name="filters">
-                    <div class="flex flex-wrap gap-4 w-full items-end">
-
-                        <div class="max-w-[260px] flex-1">
-                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
-                                :label="__('common.search')" placeholder="{{ __('contacts.search_placeholder') }}" />
-
-                        </div>
-                        <div>
-                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
-                                {{ __('common.clear') }}</flux:button>
-                        </div>
-
-
-                    </div>
+                    <x-index-filters :searchPlaceholder="__('contacts.search_placeholder')" />
                 </x-slot>
 
                 {{-- Encabezado --}}
@@ -72,7 +59,8 @@
 
                 {{-- Filas --}}
                 @forelse ($contacts as $contact)
-                    <tr class="divide-y divide-gray-200 dark:divide-neutral-700">
+                    <tr wire:key="contact-{{ $contact->uuid }}"
+                        class="divide-y divide-gray-200 dark:divide-neutral-700">
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                             {{ $contact->name }}
                         </td>
@@ -101,8 +89,11 @@
 
 
 
-                                <flux:modal.trigger name="confirm-delete-{{ $contact->uuid }}">
-                                    <flux:button size="sm" variant="ghost">{{ __('common.delete') }}</flux:button>
+                                <flux:modal.trigger name="confirm-delete-contact">
+                                    <flux:button size="sm" variant="ghost"
+                                        wire:click="confirmDelete('{{ $contact->uuid }}')">
+                                        {{ __('common.delete') }}
+                                    </flux:button>
                                 </flux:modal.trigger>
                             </span>
                         </td>
@@ -115,27 +106,26 @@
                     </tr>
                 @endforelse
 
-                {{-- Modal de confirmación --}}
+                {{-- Modal único de confirmación --}}
                 <x-slot name="modal">
-                    @foreach ($contacts as $contact)
-                        <flux:modal name="confirm-delete-{{ $contact->uuid }}" class="min-w-[22rem]">
-                            <div class="space-y-6">
-                                <div>
-                                    <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
-                                    <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
-                                </div>
-                                <div class="flex gap-2">
-                                    <flux:spacer />
-                                    <flux:modal.close>
-                                        <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
-                                    </flux:modal.close>
-                                    <flux:button variant="danger" wire:click="delete('{{ $contact->uuid }}')">
-                                        {{ __('common.confirm_delete') }}
-                                    </flux:button>
-                                </div>
+                    <flux:modal name="confirm-delete-contact" class="min-w-[22rem]" x-data
+                        @contact-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-contact' })">
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
+                                <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
                             </div>
-                        </flux:modal>
-                    @endforeach
+                            <div class="flex gap-2">
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+                                </flux:modal.close>
+                                <flux:button variant="danger" wire:click="delete">
+                                    {{ __('common.confirm_delete') }}
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
                 </x-slot>
             </x-data-table>
         </section>

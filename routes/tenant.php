@@ -30,7 +30,7 @@ use App\Livewire\Tenant\Roles\Index as RolesIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Middleware\EnsureTenantIsActive;
-
+use App\Models\User;
 use App\Models\Tenant\Student;
 
 /*
@@ -68,7 +68,14 @@ Route::middleware([
             ]);
         });
 
+        Route::get('/_impersonate-login/{id}/{signature}', function ($id, $signature) {
+            abort_unless(hash_equals($signature, hash_hmac('sha256', $id, config('app.key'))), 403);
 
+            $user = User::findOrFail($id);
+            Auth::login($user);
+
+            return redirect()->route('tenant.dashboard');
+        })->name('tenant.impersonate.login');
 
         Route::get('/file/{path}', function ($path) {
             $path = Storage::path($path);

@@ -120,6 +120,14 @@ return [
         'suspended' => 'Suspendido',
         'deleted' => 'Eliminado',
     ],
+    'site' => [
+        'cover' => 'Portada',
+        'title' => 'Título',
+        'subtitle' => 'Subtítulo',
+        'description' => 'Descripción',
+        'footer' => 'Footer',
+        'whatsapp' => 'WhatsApp',
+    ]
 
 
 ];

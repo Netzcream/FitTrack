@@ -23,30 +23,18 @@
 
                 {{-- Filtros --}}
                 <x-slot name="filters">
-                    <div class="flex flex-wrap gap-4 w-full items-end">
-                        {{-- Búsqueda --}}
-                        <div class="max-w-[260px] flex-1">
-                            <flux:input :label="__('common.search')" size="sm" class="w-full"
-                                wire:model.live.debounce.250ms="q"
-                                placeholder="{{ __('commercial_plans.search_placeholder') }}" />
-                        </div>
-
-                        {{-- Estado --}}
-                        <div class="min-w-[150px]">
-                            <flux:select size="sm" :label="__('common.status')" wire:model.live="status">
-                                <option value="">{{ __('common.all') }}</option>
-                                <option value="1">{{ __('common.active') }}</option>
-                                <option value="0">{{ __('common.inactive') }}</option>
-                            </flux:select>
-                        </div>
-
-                        {{-- Acciones --}}
-                        <div>
-                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
-                                {{ __('common.clear') }}
-                            </flux:button>
-                        </div>
-                    </div>
+                    <x-index-filters :searchPlaceholder="__('commercial_plans.search_placeholder')">
+                        <x-slot name="additionalFilters">
+                            {{-- Estado --}}
+                            <div class="min-w-[150px]">
+                                <flux:select size="sm" :label="__('common.status')" wire:model.live="status">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    <option value="1">{{ __('common.active') }}</option>
+                                    <option value="0">{{ __('common.inactive') }}</option>
+                                </flux:select>
+                            </div>
+                        </x-slot>
+                    </x-index-filters>
                 </x-slot>
 
                 {{-- Encabezados --}}
@@ -126,8 +114,8 @@
                                     {{ __('common.edit') }}
                                 </flux:button>
 
-                                <flux:modal.trigger name="confirm-delete-{{ $plan->id }}">
-                                    <flux:button size="sm" variant="ghost">
+                                <flux:modal.trigger name="confirm-delete-commercial-plan">
+                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $plan->id }})">
                                         {{ __('common.delete') }}
                                     </flux:button>
                                 </flux:modal.trigger>
@@ -142,28 +130,26 @@
                     </tr>
                 @endforelse
 
-                {{-- Modal de confirmación --}}
+                {{-- Modal único de confirmación --}}
                 <x-slot name="modal">
-                    @foreach ($plans as $plan)
-                        <flux:modal name="confirm-delete-{{ $plan->id }}" class="min-w-[22rem]" x-data
-                            @plan-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-{{ $plan->id }}' })">
-                            <div class="space-y-6">
-                                <div>
-                                    <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
-                                    <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
-                                </div>
-                                <div class="flex gap-2">
-                                    <flux:spacer />
-                                    <flux:modal.close>
-                                        <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
-                                    </flux:modal.close>
-                                    <flux:button variant="danger" wire:click="delete({{ $plan->id }})">
-                                        {{ __('common.confirm_delete') }}
-                                    </flux:button>
-                                </div>
+                    <flux:modal name="confirm-delete-commercial-plan" class="min-w-[22rem]" x-data
+                        @plan-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-commercial-plan' })">
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
+                                <flux:text class="mt-2">{{ __('common.delete_msg') }}</flux:text>
                             </div>
-                        </flux:modal>
-                    @endforeach
+                            <div class="flex gap-2">
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+                                </flux:modal.close>
+                                <flux:button variant="danger" wire:click="delete">
+                                    {{ __('common.confirm_delete') }}
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
                 </x-slot>
             </x-data-table>
         </section>

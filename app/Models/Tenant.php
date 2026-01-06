@@ -142,6 +142,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function plan()
     {
-        return $this->belongsTo(CommercialPlan::class);
+        return $this->belongsTo(CommercialPlan::class, 'commercial_plan_id');
     }
 }

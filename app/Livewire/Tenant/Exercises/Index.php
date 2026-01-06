@@ -13,7 +13,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $q = '';
+    public string $search = '';
     public string $status = ''; // activo/inactivo
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
@@ -24,7 +24,7 @@ class Index extends Component
     /* ------------------------- Reglas reactivas ------------------------- */
     public function updating($field)
     {
-        if (in_array($field, ['q', 'status'])) {
+        if (in_array($field, ['search', 'status'])) {
             $this->resetPage();
         }
     }
@@ -40,9 +40,9 @@ class Index extends Component
         }
     }
 
-    public function resetFilters(): void
+    public function clearFilters(): void
     {
-        $this->q = '';
+        $this->search = '';
         $this->status = '';
     }
 
@@ -68,7 +68,7 @@ class Index extends Component
     public function render()
     {
         $query = Exercise::query()
-            ->search($this->q)
+            ->search($this->search)
             ->when($this->status !== '', fn (Builder $q) =>
                 $q->where('is_active', (bool) $this->status))
             ->orderBy($this->sortBy, $this->sortDirection);

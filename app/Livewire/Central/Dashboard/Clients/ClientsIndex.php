@@ -44,6 +44,12 @@ class ClientsIndex extends Component
         $this->resetPage();
     }
 
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->resetPage();
+    }
+
     #[Computed]
     public function clients()
     {

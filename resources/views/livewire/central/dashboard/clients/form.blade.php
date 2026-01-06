@@ -74,12 +74,14 @@
 
 
                     <div>
-                        <flux:label for="status">{{ __('Plan') }}</flux:label>
-                        <select wire:model.defer="commercial_plan_id" id="commercial_plan_id"
+                        <flux:label for="commercial_plan_id">{{ __('Plan') }}</flux:label>
+                        <select wire:model="commercial_plan_id" id="commercial_plan_id"
                             class="mt-2 p-5 w-full rounded-lg block text-base sm:text-sm py-2 h-10 bg-white dark:bg-white/10 text-zinc-700 dark:text-zinc-300">
                             <option value="">{{ __('Seleccionar') }}</option>
                             @foreach ($plans as $plan)
-                                <option value="{{ $plan->id }}">{{ $plan->name }}</option>
+                                <option value="{{ $plan->id }}" @selected($plan->id == $commercial_plan_id)>
+                                    {{ $plan->name }}
+                                </option>
                             @endforeach
                         </select>
                         @error('commercial_plan_id')

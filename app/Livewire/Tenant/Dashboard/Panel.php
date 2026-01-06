@@ -4,7 +4,10 @@ namespace App\Livewire\Tenant\Dashboard;
 
 use Livewire\Component;
 use App\Models\Tenant\Student;
+use App\Models\User;
 use Illuminate\Support\Carbon;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 
 class Panel extends Component
 {
@@ -27,15 +30,30 @@ class Panel extends Component
     public function saveStudent()
     {
         $data = $this->validate();
+        $studentRole = Role::firstOrCreate(['name' => 'Alumno']);
+
+        $user = User::firstOrCreate(
+            ['email' => $data['email']],
+            [
+                'name' => trim($data['first_name'] . ' ' . $data['last_name']),
+                'password' => Str::random(20),
+            ]
+        );
+        if (! $user->hasRole($studentRole)) {
+            $user->assignRole($studentRole);
+        }
 
         $student = Student::create([
+            'user_id'             => $user->id,
             'first_name' => $data['first_name'],
             'last_name'  => $data['last_name'],
             'phone'      => $data['phone'] ?? null,
             'email'      => $data['email'] ?? null,
             'status'     => 'prospect',
-            'is_user_enabled' => 'false'
+            'is_user_enabled' => '0'
         ]);
+
+
 
         // Redirige directo a la edición del alumno
         return redirect()->route('tenant.dashboard.students.edit', $student);

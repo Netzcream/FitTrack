@@ -17,7 +17,7 @@
     <div class="flex flex-col">
         <div class="-m-1.5 overflow-x-auto">
             <div class="p-1.5 min-w-full inline-block align-middle">
-                <div class="overflow-hidden border border-zinc-700 rounded-lg">
+                <div class="overflow-hidden border border-gray-200 dark:border-neutral-700 rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
                         @isset($head)
                             <thead>

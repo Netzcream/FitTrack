@@ -16,33 +16,26 @@
             <flux:separator variant="subtle" />
         </div>
 
-        {{-- Filtros --}}
-        <div class="flex flex-wrap gap-4 w-full items-end">
-            <div class="max-w-[260px] flex-1">
-
-                <flux:input size="sm" class="w-full" :label="__('common.search')"
-                    wire:model.live.debounce.250ms="q" placeholder="{{ __('payments.search_placeholder') }}" />
-            </div>
-
-            <div class="min-w-[150px]">
-
-                <flux:select size="sm" wire:model.live="status" :label="__('common.status')">
-                    <option value="">{{ __('common.all') }}</option>
-                    <option value="pending">{{ __('payments.status.pending') }}</option>
-                    <option value="paid">{{ __('payments.status.paid') }}</option>
-                    <option value="overdue">{{ __('payments.status.overdue') }}</option>
-                </flux:select>
-            </div>
-
-            <div class="flex items-end gap-2 ml-auto">
-                <flux:button size="sm" variant="ghost" wire:click="resetFilters">{{ __('common.clear') }}
-                </flux:button>
-            </div>
-        </div>
-
         {{-- Tabla --}}
         <section class="w-full">
             <x-data-table :pagination="$payments">
+                {{-- Filtros --}}
+                <x-slot name="filters">
+                    <x-index-filters :searchPlaceholder="__('payments.search_placeholder')">
+                        <x-slot name="additionalFilters">
+                            {{-- Filtro por status --}}
+                            <div class="min-w-[150px]">
+                                <flux:select size="sm" wire:model.live="status" :label="__('common.status')">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    <option value="pending">{{ __('payments.status.pending') }}</option>
+                                    <option value="paid">{{ __('payments.status.paid') }}</option>
+                                    <option value="overdue">{{ __('payments.status.overdue') }}</option>
+                                </flux:select>
+                            </div>
+                        </x-slot>
+                    </x-index-filters>
+                </x-slot>
+
                 <x-slot name="head">
                     <th wire:click="sort('student_id')"
                         class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
@@ -85,7 +78,8 @@
                 </x-slot>
 
                 @forelse ($payments as $payment)
-                    <tr class="divide-y divide-gray-200 dark:divide-neutral-700">
+                    <tr wire:key="payment-{{ $payment->id }}"
+                        class="divide-y divide-gray-200 dark:divide-neutral-700">
                         {{-- Columna alumno --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                             <div class="inline-flex items-center gap-3">

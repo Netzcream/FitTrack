@@ -21,31 +21,19 @@
             <section class="w-full">
                 <x-data-table :pagination="$roles">
                     <x-slot name="filters">
-                        <div class="flex flex-wrap gap-4 w-full items-end">
-                            <!-- Buscador -->
-                            <div class="max-w-[260px] flex-1">
-                                <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="search" :label="__('common.search')"
-                                    placeholder="{{ __('roles.search_placeholder') }}" />
-                            </div>
-
-                            <!-- Select de permiso -->
-                            <div class="min-w-[200px]">
-
-                                <flux:select size="sm" wire:model.live="permission" :label="__('roles.permission_filter')">
-                                    <option value="">{{ __('common.all') }}</option>
-                                    @foreach ($permissions as $r)
-                                        <option value="{{ $r }}">{{ ucfirst($r) }}</option>
-                                    @endforeach
-                                </flux:select>
-
-
-                            </div>
-                            <div>
-                                <flux:button size="sm" variant="ghost" wire:click="resetFilters">
-                                    {{ __('common.clear') }}</flux:button>
-                            </div>
-
-                        </div>
+                        <x-index-filters :searchPlaceholder="__('roles.search_placeholder')">
+                            <x-slot name="additionalFilters">
+                                {{-- Select de permiso --}}
+                                <div class="min-w-[200px]">
+                                    <flux:select size="sm" wire:model.live="permission" :label="__('roles.permission_filter')">
+                                        <option value="">{{ __('common.all') }}</option>
+                                        @foreach ($permissions as $r)
+                                            <option value="{{ $r }}">{{ ucfirst($r) }}</option>
+                                        @endforeach
+                                    </flux:select>
+                                </div>
+                            </x-slot>
+                        </x-index-filters>
                     </x-slot>
 
 
@@ -75,16 +63,70 @@
                     </x-slot>
 
                     @forelse ($roles as $role)
-                        <tr>
+                        <tr wire:key="role-{{ $role->id }}">
                             <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200">
                                 {{ $role->name }}
                             </td>
 
                             <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                                @foreach ($role->permissions as $permission)
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold mr-1">{{ ucfirst($permission->name) }}</span>
-                                @endforeach
+                                @php
+                                    $permissions = $role->permissions;
+                                    $visibleCount = 2;
+                                    $totalCount = $permissions->count();
+                                    $remainingCount = $totalCount - $visibleCount;
+                                @endphp
+
+                                <div class="inline-flex items-center gap-1 flex-wrap">
+                                    {{-- Primeros 2 badges --}}
+                                    @foreach ($permissions->take($visibleCount) as $permission)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900">
+                                            {{ ucfirst($permission->name) }}
+                                        </span>
+                                    @endforeach
+
+                                    {{-- Badge +X con popover si hay más permisos --}}
+                                    @if ($remainingCount > 0)
+                                        <div x-data="{ open: false }" class="relative inline-block">
+                                            <span
+                                                @mouseenter="open = true"
+                                                @mouseleave="open = false"
+                                                class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800 cursor-help"
+                                                x-ref="trigger"
+                                            >
+                                                +{{ $remainingCount }}
+                                            </span>
+
+                                            {{-- Popover con posicionamiento fijo --}}
+                                            <div
+                                                x-show="open"
+                                                x-transition:enter="transition ease-out duration-200"
+                                                x-transition:enter-start="opacity-0 scale-95"
+                                                x-transition:enter-end="opacity-100 scale-100"
+                                                x-transition:leave="transition ease-in duration-150"
+                                                x-transition:leave-start="opacity-100 scale-100"
+                                                x-transition:leave-end="opacity-0 scale-95"
+                                                @mouseenter="open = true"
+                                                @mouseleave="open = false"
+                                                class="fixed z-[9999] w-56 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg p-3"
+                                                style="display: none;"
+                                                x-anchor.bottom-start="$refs.trigger"
+                                            >
+                                                <div class="text-xs font-semibold text-gray-700 dark:text-neutral-300 mb-2">
+                                                    {{ __('Todos los permisos') }} ({{ $totalCount }})
+                                                </div>
+                                                <div class="space-y-1 max-h-48 overflow-y-auto">
+                                                    @foreach ($permissions as $permission)
+                                                        <div class="text-xs text-gray-600 dark:text-neutral-400 flex items-center gap-1">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                            {{ ucfirst($permission->name) }}
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
                                 {{ $role->created_at ? $role->created_at->format('d/m/Y H:i') : '-' }}

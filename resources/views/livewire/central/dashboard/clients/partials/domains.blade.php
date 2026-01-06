@@ -5,7 +5,21 @@
             {{ __('Podés agregar dominios propios del entrenador (apex y/o www). El subdominio principal no puede eliminarse.') }}
         </flux:subheading>
 
-        {{-- Listado --}}
+        {{-- Form agregar dominio --}}
+        <div class="mt-4 flex items-end gap-4">
+            <div class="flex-1">
+                <flux:input class="" :label="__('Agregar dominio')" id="new_domain" wire:model.defer="new_domain"
+                    type="text" placeholder="pepe.com.ar o www.pepe.com.ar" />
+                @error('new_domain')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <flux:button type="button" wire:click="addDomain" variant="primary" icon="plus">
+                    {{ __('Agregar') }}
+                </flux:button>
+            </div>
+        </div>
         <div class="mt-4 overflow-hidden border rounded-lg dark:border-neutral-500">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
                 <thead>
@@ -14,7 +28,8 @@
                             class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                             {{ __('Dominio') }}
                         </th>
-                        <th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+                        <th
+                            class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
                             {{ __('Acciones') }}
                         </th>
                     </tr>
@@ -65,21 +80,6 @@
             </table>
         </div>
 
-        {{-- Form agregar dominio --}}
-        <div class="mt-4 flex items-end gap-3">
-            <div class="flex-1">
-                <flux:label for="new_domain">{{ __('Agregar dominio') }}</flux:label>
-                <flux:input class="mt-2" id="new_domain" wire:model.defer="new_domain" type="text"
-                    placeholder="pepe.com.ar o www.pepe.com.ar" />
-                @error('new_domain')
-                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
-            <div class="pb-1">
-                <flux:button type="button" wire:click="addDomain" variant="primary" icon="plus">
-                    {{ __('Agregar') }}
-                </flux:button>
-            </div>
-        </div>
+
     </div>
 @endif

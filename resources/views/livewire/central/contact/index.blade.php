@@ -35,14 +35,14 @@
             </div>
 
             <div>
-              <flux:button size="sm" variant="ghost" wire:click="$set('q', '')">
+              <flux:button size="sm" variant="ghost" wire:click="clearFilters">
                 {{ __('common.clear') }}
               </flux:button>
             </div>
 
             @if (!empty($selected))
               <div class="ms-auto flex gap-2 flex-wrap items-center">
-                <span class="text-sm text-gray-600 dark:text-neutral-300">
+                <span class="text-sm text-gray-600 dark:text-neutral-400">
                   {{ trans_choice('central.contacts.selected_count', count($selected), ['count' => count($selected)]) }}
                 </span>
 
@@ -50,11 +50,11 @@
                   {{ __('central.contacts.mark_as_read') }}
                 </flux:button>
 
-                <flux:button size="sm"  wire:click="markSelectedAsUnread">
+                <flux:button size="sm" wire:click="markSelectedAsUnread">
                   {{ __('central.contacts.mark_as_unread') }}
                 </flux:button>
 
-                <flux:button size="sm"  wire:click="clearSelection">
+                <flux:button size="sm" wire:click="clearSelection">
                   {{ __('common.clear_selection') }}
                 </flux:button>
 
@@ -70,8 +70,8 @@
 
         {{-- Encabezado --}}
         <x-slot name="head">
-          <th class="px-4 py-3 text-start">
-            <input type="checkbox" class="rounded border-gray-300" wire:model.live="selectPage">
+          <th class="px-4 py-3 text-left">
+            <input type="checkbox" class="rounded border-gray-300 dark:border-neutral-600" wire:model.live="selectPage">
           </th>
           <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
             {{ __('central.contacts.name') }}
@@ -92,20 +92,22 @@
 
         {{-- Filas --}}
         @forelse ($contacts as $contact)
-          <tr wire:key="contact-{{ $contact->id }}" @class(['bg-yellow-50 dark:bg-neutral-800' => $contact->unread])>
-            <td class="px-4 py-4">
-              <input type="checkbox" class="rounded border-gray-300" value="{{ $contact->id }}" wire:model.live="selected">
+          <tr wire:key="contact-{{ $contact->id }}">
+            <td class="align-top px-4 py-4">
+              <input type="checkbox" class="rounded border-gray-300 dark:border-neutral-600" value="{{ $contact->id }}" wire:model.live="selected">
             </td>
-            <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">{{ $contact->name }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
+            <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">{{ $contact->name }}</td>
+            <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
               @if($contact->email)
-                <a href="mailto:{{ $contact->email }}" class="hover:underline">{{ $contact->email }}</a>
+                <a href="mailto:{{ $contact->email }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $contact->email }}</a>
+              @else
+                <span class="text-gray-400 dark:text-neutral-500">—</span>
               @endif
             </td>
-            <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-              {{ $contact->phone ?? '-' }}
+            <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
+              {{ $contact->phone ?? '—' }}
             </td>
-            <td class="px-6 py-4 text-sm">
+            <td class="align-top px-6 py-4 text-sm">
               <button type="button" wire:click="toggleRead('{{ $contact->id }}')"
                 class="p-2 rounded hover:bg-gray-100 dark:hover:bg-neutral-700 transition">
                 @if ($contact->unread)
@@ -115,17 +117,19 @@
                 @endif
               </button>
             </td>
-            <td class="px-6 py-4 text-end text-sm font-medium space-x-2">
-              <flux:modal.trigger name="view-contact">
-                <flux:button size="sm" wire:click="openAndMark('{{ $contact->id }}')">
-                  {{ __('common.view') }}
-                </flux:button>
-              </flux:modal.trigger>
-              <flux:modal.trigger name="confirm-delete-contact">
-                <flux:button variant="ghost" size="sm" wire:click="confirmDeleteAsk('{{ $contact->id }}')">
-                  {{ __('common.delete') }}
-                </flux:button>
-              </flux:modal.trigger>
+            <td class="align-top px-6 py-4 text-end text-sm font-medium">
+              <span class="inline-flex items-center gap-2">
+                <flux:modal.trigger name="view-contact">
+                  <flux:button size="sm" wire:click="openAndMark('{{ $contact->id }}')">
+                    {{ __('common.view') }}
+                  </flux:button>
+                </flux:modal.trigger>
+                <flux:modal.trigger name="confirm-delete-contact">
+                  <flux:button variant="ghost" size="sm" wire:click="confirmDeleteAsk('{{ $contact->id }}')">
+                    {{ __('common.delete') }}
+                  </flux:button>
+                </flux:modal.trigger>
+              </span>
             </td>
           </tr>
         @empty

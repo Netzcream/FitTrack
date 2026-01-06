@@ -14,7 +14,7 @@ class Index extends Component
 
     public string $sortBy = 'created_at';
     public string $sortDirection = 'desc';
-    public string $q = '';
+    public string $search = '';
     public int $perPage = 10;
     public ?string $contactToDelete = null;
 
@@ -34,19 +34,16 @@ class Index extends Component
     }
 
     /* ---------------------------- Filtros ---------------------------- */
-    public function updatedQ(): void
+    public function updating($field): void
     {
-        $this->resetPage();
+        if ($field === 'search') {
+            $this->resetPage();
+        }
     }
 
-    public function applyFilters(): void
+    public function clearFilters(): void
     {
-        $this->resetPage();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->q = '';
+        $this->search = '';
         $this->resetPage();
     }
 
@@ -70,12 +67,12 @@ class Index extends Component
     public function render()
     {
         $contacts = Contact::query()
-            ->when($this->q, function ($query) {
+            ->when($this->search, function ($query) {
                 $query->where(fn($q) => $q
-                    ->where('name', 'like', "%{$this->q}%")
-                    ->orWhere('email', 'like', "%{$this->q}%")
-                    ->orWhere('mobile', 'like', "%{$this->q}%")
-                    ->orWhere('message', 'like', "%{$this->q}%"));
+                    ->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('email', 'like', "%{$this->search}%")
+                    ->orWhere('mobile', 'like', "%{$this->search}%")
+                    ->orWhere('message', 'like', "%{$this->search}%"));
             })
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);

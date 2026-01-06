@@ -30,6 +30,9 @@ class Index extends Component
         'page' => ['except' => 1],
     ];
 
+    /** @var array<string> */
+    protected array $sortableColumns = ['name', 'email', 'created_at'];
+
     public function mount(): void
     {
         $this->roles = Role::orderBy('name')->pluck('name')->toArray();
@@ -37,6 +40,10 @@ class Index extends Component
 
     public function sort(string $column): void
     {
+        if (! in_array($column, $this->sortableColumns, true)) {
+            return;
+        }
+
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -45,10 +52,14 @@ class Index extends Component
         }
     }
 
-    public function updatedSearch() { $this->resetPage(); }
-    public function updatedRole() { $this->resetPage(); }
+    public function updating($field): void
+    {
+        if (in_array($field, ['search', 'role'])) {
+            $this->resetPage();
+        }
+    }
 
-    public function resetFilters(): void
+    public function clearFilters(): void
     {
         $this->reset(['search', 'role']);
         $this->resetPage();
@@ -76,10 +87,15 @@ class Index extends Component
     public function render()
     {
         $query = User::query()
-            ->when($this->search, fn($q) =>
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%")
-            )
+            ->with(['roles', 'student'])
+            // Búsqueda agrupada para evitar problemas de precedencia con orWhere
+            ->when($this->search, function ($q) {
+                $t = "%{$this->search}%";
+                $q->where(function ($qq) use ($t) {
+                    $qq->where('name', 'like', $t)
+                       ->orWhere('email', 'like', $t);
+                });
+            })
             ->when($this->role, fn($q) =>
                 $q->whereHas('roles', fn($r) => $r->where('name', $this->role))
             )

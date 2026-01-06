@@ -8,7 +8,10 @@ use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\CommercialPlan;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 #[Layout('components.layouts.tenant')]
 class Form extends Component
@@ -26,49 +29,32 @@ class Form extends Component
     public string $last_name = '';
     public string $email = '';
     public ?string $phone = null;
-    public ?string $status = 'prospect';
+    public ?string $status = 'active';
     public ?int $commercial_plan_id = null;
-    public ?string $current_level = null;
     public ?string $billing_frequency = 'monthly';
-    public ?string $account_status = 'ok';
+    public ?string $account_status = 'on_time';
     public bool $is_user_enabled = true;
     public ?string $goal = null;
 
     public array $plans = [];
 
-    /* ------------------------- Bloques JSON ------------------------- */
-    public array $personal = [
+    /** Datos adicionales unificados */
+    public array $data = [
         'birth_date' => null,
         'gender' => null,
         'height_cm' => null,
         'weight_kg' => null,
-    ];
-
-    public array $health = [
         'injuries' => null,
-    ];
-
-    public array $training = [
-        'experience' => null,
-        'days_per_week' => null,
-    ];
-
-    public array $communication = [
-        'language' => 'es',
         'notifications' => [
             'new_plan' => false,
             'session_reminder' => false,
         ],
-    ];
-
-    public array $extra = [
         'emergency_contact' => [
             'name' => '',
             'phone' => '',
         ],
     ];
 
-    /* ---------------------------- Mount ---------------------------- */
     public function mount(?Student $student): void
     {
         $this->plans = CommercialPlan::orderBy('name')->pluck('name', 'id')->toArray();
@@ -82,25 +68,19 @@ class Form extends Component
                 'phone',
                 'status',
                 'commercial_plan_id',
-                'current_level',
                 'billing_frequency',
                 'account_status',
                 'is_user_enabled',
-                'goal'
+                'goal',
             ]));
 
-            $this->personal = $student->personal_data ?? $this->personal;
-            $this->health = $student->health_data ?? $this->health;
-            $this->training = $student->training_data ?? $this->training;
-            $this->communication = $student->communication_data ?? $this->communication;
-            $this->extra = $student->extra_data ?? $this->extra;
+            $this->data = array_replace_recursive($this->data, $student->data ?? []);
 
             $this->editMode = true;
             $this->currentAvatarUrl = $student->getFirstMediaUrl('avatar', 'thumb');
         }
     }
 
-    /* ---------------------------- Reglas ---------------------------- */
     protected function rules(): array
     {
         return [
@@ -110,38 +90,53 @@ class Form extends Component
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('students', 'email')->ignore($this->student?->id)
+                Rule::unique('students', 'email')->ignore($this->student?->id),
             ],
-            'phone'               => ['nullable', 'string', 'max:30'],
-            'status'              => ['required', 'string', 'in:active,paused,inactive,prospect'],
-            'commercial_plan_id'  => ['nullable', 'integer', 'exists:commercial_plans,id'],
-            'current_level'       => ['nullable', 'string', 'max:50'],
-            'billing_frequency'   => ['nullable', 'string', 'in:monthly,yearly'],
-            'account_status'      => ['nullable', 'string', 'in:ok,pending,debt'],
-            'is_user_enabled'     => ['boolean'],
-            'goal'                => ['nullable', 'string', 'max:500'],
-            'avatar'              => ['nullable', 'image', 'max:2048'],
+            'phone'              => ['nullable', 'string', 'max:30'],
+            'status'             => ['required', 'string', 'in:active,paused,inactive,prospect'],
+            'commercial_plan_id' => ['nullable', 'integer', 'exists:commercial_plans,id'],
+            'billing_frequency'  => ['required', 'string', 'in:monthly,quarterly,yearly'],
+            'account_status'     => ['required', 'string', 'in:on_time,due,review'],
+            'is_user_enabled'    => ['boolean'],
+            'goal'               => ['nullable', 'string', 'max:500'],
+            'avatar'             => ['nullable', 'image', 'max:2048'],
+
+            'data.birth_date'                 => ['nullable', 'date'],
+            'data.gender'                     => ['nullable', 'in:male,female,other'],
+            'data.height_cm'                  => ['nullable', 'numeric', 'min:0'],
+            'data.weight_kg'                  => ['nullable', 'numeric', 'min:0'],
+            'data.injuries'                   => ['nullable', 'string', 'max:500'],
+            'data.notifications.new_plan'     => ['boolean'],
+            'data.notifications.session_reminder' => ['boolean'],
+            'data.emergency_contact.name'     => ['nullable', 'string', 'max:150'],
+            'data.emergency_contact.phone'    => ['nullable', 'string', 'max:30'],
         ];
     }
 
-    /* ----------------------------- Save ----------------------------- */
     public function save(): void
     {
-        $data = $this->validate();
+        $validated = $this->validate();
+
+        $user = $this->ensureUser();
 
         $student = $this->student ?? new Student();
-        $student->fill($data);
+        $student->fill([
+            'user_id' => $user->id,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'status' => $this->status,
+            'commercial_plan_id' => $this->commercial_plan_id,
+            'billing_frequency' => $this->billing_frequency,
+            'account_status' => $this->account_status,
+            'is_user_enabled' => $this->is_user_enabled,
+            'goal' => $this->goal,
+        ]);
 
-        // Asignar datos JSON
-        $student->personal_data = $this->personal;
-        $student->health_data = $this->health;
-        $student->training_data = $this->training;
-        $student->communication_data = $this->communication;
-        $student->extra_data = $this->extra;
-
+        $student->data = $this->data;
         $student->save();
 
-        // Imagen
         if ($this->avatar instanceof TemporaryUploadedFile) {
             $student->clearMediaCollection('avatar');
             $student->addMedia($this->avatar->getRealPath())
@@ -158,23 +153,61 @@ class Form extends Component
             return;
         }
 
+        if (! $this->editMode) {
+            redirect()->route('tenant.dashboard.students.edit', $student->uuid);
+            return;
+        }
+
         $this->student = $student;
         $this->editMode = true;
         session()->flash('success', __('students.saved'));
     }
 
-    /* -------------------------- Avatar ops -------------------------- */
+    protected function ensureUser(): User
+    {
+        $name = trim($this->first_name . ' ' . $this->last_name) ?: $this->email;
+
+        if ($this->student && $this->student->user) {
+            $user = $this->student->user;
+        } else {
+            $user = User::where('email', $this->email)->first();
+        }
+
+        if (! $user) {
+            $user = User::create([
+                'name' => $name,
+                'email' => $this->email,
+                'password' => Str::random(20),
+            ]);
+        } else {
+            $user->name = $name;
+            if ($user->email !== $this->email) {
+                $user->email = $this->email;
+            }
+            $user->save();
+        }
+
+        $role = Role::firstOrCreate(['name' => 'Alumno']);
+        if (! $user->hasRole($role)) {
+            $user->assignRole($role);
+        }
+
+        return $user;
+    }
+
     public function deleteAvatar(): void
     {
         if ($this->avatar) {
             $this->avatar = null;
-        } elseif ($this->student) {
+            return;
+        }
+
+        if ($this->student) {
             $this->student->clearMediaCollection('avatar');
             $this->currentAvatarUrl = null;
         }
     }
 
-    /* ----------------------------- View ----------------------------- */
     public function render()
     {
         return view('livewire.tenant.students.form');

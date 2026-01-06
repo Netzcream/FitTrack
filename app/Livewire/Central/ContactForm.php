@@ -20,6 +20,20 @@ class ContactForm extends Component
     public function mount(): void
     {
         $this->formKey = (string) Str::uuid();
+
+        // Precargar mensaje según el plan seleccionado
+        $plan = request()->query('plan');
+        if ($plan) {
+            $planNames = [
+                'starter' => 'Starter',
+                'pro' => 'Pro',
+                'equipo' => 'Equipo'
+            ];
+
+            if (isset($planNames[$plan])) {
+                $this->body = "Me interesa conocer más sobre el plan {$planNames[$plan]}";
+            }
+        }
     }
 
 

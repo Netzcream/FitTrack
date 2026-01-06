@@ -1,6 +1,7 @@
 <div class="flex items-start max-md:flex-col">
     <div class="flex-1 self-stretch max-md:pt-6 space-y-6">
 
+        {{-- Header --}}
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
@@ -8,8 +9,7 @@
                     <flux:subheading size="lg" class="mb-6">{{ __('students.index_subheading') }}</flux:subheading>
                 </div>
 
-                <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary"
-                    icon="plus">
+                <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary" icon="plus">
                     {{ __('students.new_student') }}
                 </flux:button>
             </div>
@@ -19,49 +19,40 @@
         <section class="w-full">
             <x-data-table :pagination="$students">
 
+                {{-- Filtros --}}
                 <x-slot name="filters">
-                    <div class="flex flex-wrap gap-4 w-full items-end">
-                        <div class="max-w-[260px] flex-1">
-                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
-                                :label="__('common.search')" placeholder="{{ __('students.search_placeholder') }}" />
-                        </div>
+                    <x-index-filters :searchPlaceholder="__('students.search_placeholder')">
+                        <x-slot name="additionalFilters">
+                            <div class="min-w-[160px]">
+                                <flux:select size="sm" wire:model.live="status" :label="__('students.status')">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    <option value="active">{{ __('students.status.active') }}</option>
+                                    <option value="paused">{{ __('students.status.paused') }}</option>
+                                    <option value="inactive">{{ __('students.status.inactive') }}</option>
+                                    <option value="prospect">{{ __('students.status.prospect') }}</option>
+                                </flux:select>
+                            </div>
 
-                        <div class="min-w-[160px]">
-
-                            <flux:select size="sm" wire:model.live="status" :label="__('students.status')">
-                                <option value="">{{ __('common.all') }}</option>
-                                <option value="active">{{ __('students.status.active') }}</option>
-                                <option value="paused">{{ __('students.status.paused') }}</option>
-                                <option value="inactive">{{ __('students.status.inactive') }}</option>
-                                <option value="prospect">{{ __('students.status.prospect') }}</option>
-                            </flux:select>
-                        </div>
-
-                        <div class="min-w-[160px]">
-
-                            <flux:select size="sm" wire:model.live="plan" :label="__('students.plan')">
-                                <option value="">{{ __('common.all') }}</option>
-                                @foreach ($plans as $id => $name)
-                                    <option value="{{ $id }}">{{ $name }}</option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        <div class="">
-                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
-                                {{ __('common.clear') }}
-                            </flux:button>
-                        </div>
-                    </div>
+                            <div class="min-w-[160px]">
+                                <flux:select size="sm" wire:model.live="plan" :label="__('students.plan')">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    @foreach ($plans as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
+                        </x-slot>
+                    </x-index-filters>
                 </x-slot>
 
+                {{-- Cabecera --}}
                 <x-slot name="head">
                     <th wire:click="sort('last_name')"
                         class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
                         <span class="inline-flex items-center gap-1">
                             {{ __('students.name') }}
                             @if ($sortBy === 'last_name')
-                                {!! $sortDirection === 'asc' ? '↑' : '↓' !!}
+                                {!! $sortDirection === 'asc' ? '&#9650;' : '&#9660;' !!}
                             @endif
                         </span>
                     </th>
@@ -76,7 +67,12 @@
 
                     <th wire:click="sort('last_login_at')"
                         class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
-                        {{ __('students.last_login_at') }}
+                        <span class="inline-flex items-center gap-1">
+                            {{ __('students.last_login_at') }}
+                            @if ($sortBy === 'last_login_at')
+                                {!! $sortDirection === 'asc' ? '&#9650;' : '&#9660;' !!}
+                            @endif
+                        </span>
                     </th>
 
                     <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-end">
@@ -84,6 +80,7 @@
                     </th>
                 </x-slot>
 
+                {{-- Filas --}}
                 @forelse ($students as $student)
                     <tr wire:key="student-{{ $student->uuid }}"
                         class="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -137,10 +134,7 @@
                         </td>
 
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
-                            <span
-                                class="inline-flex items-center gap-2 space-x-1 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
-
-
+                            <span class="inline-flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
                                 <flux:button size="sm" as="a" wire:navigate
                                     href="{{ route('tenant.dashboard.students.training-plans', $student->uuid) }}">
                                     {{ __('students.training_plans') }}
@@ -168,7 +162,7 @@
                     </tr>
                 @endforelse
 
-
+                {{-- Modal único --}}
                 <x-slot name="modal">
                     <flux:modal name="confirm-delete-student" class="min-w-[22rem]" x-data
                         @student-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-student' })">
@@ -189,8 +183,6 @@
                         </div>
                     </flux:modal>
                 </x-slot>
-
-
 
             </x-data-table>
         </section>

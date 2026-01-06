@@ -24,26 +24,18 @@
 
                 {{-- 🔹 FILTROS --}}
                 <x-slot name="filters">
-                    <div class="flex flex-wrap gap-4 w-full items-end">
-                        <div class="max-w-[260px] flex-1">
-                            <flux:input size="sm" class="w-full" wire:model.live.debounce.250ms="q"
-                                :label="__('common.search')" placeholder="{{ __('exercises.search_placeholder') }}" />
-                        </div>
-
-                        <div class="min-w-[160px]">
-                            <flux:select size="sm" wire:model.live="status" :label="__('common.status')">
-                                <option value="">{{ __('common.all') }}</option>
-                                <option value="1">{{ __('common.active') }}</option>
-                                <option value="0">{{ __('common.inactive') }}</option>
-                            </flux:select>
-                        </div>
-
-                        <div>
-                            <flux:button size="sm" variant="ghost" wire:click="resetFilters">
-                                {{ __('common.clear') }}
-                            </flux:button>
-                        </div>
-                    </div>
+                    <x-index-filters :searchPlaceholder="__('exercises.search_placeholder')">
+                        <x-slot name="additionalFilters">
+                            {{-- Filtro por status --}}
+                            <div class="min-w-[160px]">
+                                <flux:select size="sm" wire:model.live="status" :label="__('common.status')">
+                                    <option value="">{{ __('common.all') }}</option>
+                                    <option value="1">{{ __('common.active') }}</option>
+                                    <option value="0">{{ __('common.inactive') }}</option>
+                                </flux:select>
+                            </div>
+                        </x-slot>
+                    </x-index-filters>
                 </x-slot>
 
                 {{-- 🔹 HEAD --}}

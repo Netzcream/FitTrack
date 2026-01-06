@@ -28,7 +28,7 @@ class Index extends Component
 
     public string $roleToDelete = '';
     public $perPage = 10;
-    public $permission = '';
+    public string $permission = '';
     public $permissions = [];
 
     public function mount()
@@ -46,17 +46,16 @@ class Index extends Component
             $this->sortDirection = 'asc';
         }
     }
-    public function filter()
+    public function updating($field): void
     {
-        $this->resetPage();
+        if (in_array($field, ['search', 'permission'])) {
+            $this->resetPage();
+        }
     }
 
-    public function updatedSearch()
+    public function clearFilters(): void
     {
-        $this->resetPage();
-    }
-    public function updatedPermission()
-    {
+        $this->reset(['search', 'permission']);
         $this->resetPage();
     }
 

@@ -13,7 +13,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    public string $q = '';
+    public string $search = '';
     public string $status = '';
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
@@ -36,7 +36,7 @@ class Index extends Component
     /* -------------------- Reactividad -------------------- */
     public function updating($field): void
     {
-        if (in_array($field, ['q', 'status', 'includeAssigned'])) {
+        if (in_array($field, ['search', 'status', 'includeAssigned'])) {
             $this->resetPage();
         }
     }
@@ -53,9 +53,9 @@ class Index extends Component
     }
 
     /* -------------------- Filtros -------------------- */
-    public function resetFilters(): void
+    public function clearFilters(): void
     {
-        $this->reset(['q', 'status']);
+        $this->reset(['search', 'status']);
         $this->resetPage();
     }
 
@@ -165,7 +165,7 @@ class Index extends Component
             )
 
             // Filtro de búsqueda
-            ->search($this->q)
+            ->search($this->search)
 
             // Excluir asignados salvo que $includeAssigned sea true
             ->when(

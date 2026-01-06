@@ -33,7 +33,7 @@
                             <path d="M20 6 9 17l-5-5" />
                         </svg> Estadísticas básicas</li>
                 </ul>
-                <x-primary-outline-button href="#registro">Probar gratis</x-primary-outline-button>
+                <x-primary-outline-button as="a"  href="{{ route('central.contact', ['plan' => 'starter']) }}">Probar gratis</x-primary-outline-button>
             </div>
             <!-- Pro -->
             <div
@@ -67,7 +67,7 @@
                             <path d="M20 6 9 17l-5-5" />
                         </svg> Branding y personalización</li>
                 </ul>
-                <x-primary-button as="a" href="#registro">Ser Pro</x-primary-button>
+                <x-primary-button as="a" href="{{ route('central.contact', ['plan' => 'pro']) }}">Ser Pro</x-primary-button>
             </div>
             <!-- Equipo -->
             <div
@@ -95,7 +95,7 @@
                             <path d="M20 6 9 17l-5-5" />
                         </svg> Soporte prioritario</li>
                 </ul>
-                <x-primary-outline-button href="#registro">Contactar</x-primary-outline-button>
+                <x-primary-outline-button as="a"  href="{{ route('central.contact', ['plan' => 'equipo']) }}">Contactar</x-primary-outline-button>
             </div>
         </div>
     </div>

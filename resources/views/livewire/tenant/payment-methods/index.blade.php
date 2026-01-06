@@ -19,26 +19,18 @@
     <section class="w-full">
       <x-data-table :pagination="$methods">
         <x-slot name="filters">
-          <div class="flex flex-wrap gap-4 w-full items-end">
-            <div class="max-w-[260px] flex-1">
-
-              <flux:input size="sm" wire:model.live.debounce.400ms="search" :label=" __('site.search')"
-                placeholder="{{ __('site.search_placeholder') }}" class="w-full" />
-            </div>
-
-            <div class="min-w-[150px]">
-
-              <flux:select size="sm" wire:model="active" :label="__('site.active')">
-                <option value="">{{ __('site.all') }}</option>
-                <option value="yes">{{ __('site.yes') }}</option>
-                <option value="no">{{ __('site.no') }}</option>
-              </flux:select>
-            </div>
-
-            <flux:button size="sm" variant="ghost" wire:click="filter" class="self-end">
-              {{ __('site.filter') }}
-            </flux:button>
-          </div>
+          <x-index-filters :searchPlaceholder="__('site.search_placeholder')">
+            <x-slot name="additionalFilters">
+              {{-- Filtro por estado activo --}}
+              <div class="min-w-[150px]">
+                <flux:select size="sm" wire:model.live="status" :label="__('site.active')">
+                  <option value="">{{ __('site.all') }}</option>
+                  <option value="1">{{ __('site.yes') }}</option>
+                  <option value="0">{{ __('site.no') }}</option>
+                </flux:select>
+              </div>
+            </x-slot>
+          </x-index-filters>
         </x-slot>
 
         <x-slot name="head">
@@ -63,7 +55,7 @@
         </x-slot>
 
         @forelse ($methods as $method)
-          <tr>
+          <tr wire:key="payment-method-{{ $method->id }}">
             <td class="align-top px-6 py-4 text-sm font-medium text-gray-800 dark:text-neutral-200">
               {{ $method->name }}
             </td>
@@ -71,8 +63,15 @@
               {{ $method->code }}
             </td>
             <td class="align-top px-6 py-4 text-sm">
-              <span class="text-xs {{ $method->is_active ? 'text-green-600 dark:text-green-400' : 'text-gray-500' }}">
-                {{ $method->is_active ? __('site.yes') : __('site.no') }}
+              @php
+                $state = $method->is_active ? 'active' : 'inactive';
+                $styles = [
+                  'active' => 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-900',
+                  'inactive' => 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-neutral-900/60 dark:text-neutral-300 dark:ring-neutral-800',
+                ];
+              @endphp
+              <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium {{ $styles[$state] }}">
+                {{ __('common.' . $state) }}
               </span>
             </td>
             <td class="align-top px-6 py-4 text-end text-sm font-medium">
