@@ -133,6 +133,7 @@ Route::middleware([
                     Route::get('/', App\Livewire\Tenant\Students\Index::class)->name('index');
                     Route::get('/create', App\Livewire\Tenant\Students\Form::class)->name('create');
                     Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
+                    Route::get('/{student}/plans-history', App\Livewire\Tenant\Students\PlansHistory::class)->name('plans-history');
                     Route::get('/{student}/training-plans', App\Livewire\Tenant\Students\TrainingPlans::class)->name('training-plans');
                 });
 
@@ -145,8 +146,8 @@ Route::middleware([
                     Route::get('/', App\Livewire\Tenant\TrainingPlan\Index::class)->name('index');
                     Route::get('/create', App\Livewire\Tenant\TrainingPlan\Form::class)->name('create');
                     Route::get('/{trainingPlan}/edit', App\Livewire\Tenant\TrainingPlan\Form::class)->name('edit');
+                    Route::get('/{plan}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'download'])->name('download');
                 });
-
 
                 Route::prefix('roles')->name('roles.')->group(function () {
                     Route::get('/', RolesIndex::class)->name('index');

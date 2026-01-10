@@ -100,8 +100,17 @@
                 <div class="space-y-4">
                     {{-- Buscador --}}
                     <div class="relative">
-                        <flux:input size="sm" wire:model.live.debounce.300ms="exerciseSearch"
-                            wire:blur="clearSearch" placeholder="{{ __('training_plans.search_exercise') }}" />
+                        <div class="flex gap-2 items-center">
+                            <div class="flex-1">
+                                <flux:input size="sm" wire:model.live.debounce.300ms="exerciseSearch"
+                                    wire:blur="clearSearch" placeholder="{{ __('training_plans.search_exercise') }}" />
+                            </div>
+                            <flux:modal.trigger name="quick-create-exercise-plan">
+                                <flux:button size="sm" variant="primary" icon="plus" type="button">
+                                    Crear Nuevo
+                                </flux:button>
+                            </flux:modal.trigger>
+                        </div>
 
                         @if (!empty($availableExercises))
                             <div
@@ -134,6 +143,24 @@
                                         </div>
                                     </button>
                                 @endforeach
+                            </div>
+                        @elseif(strlen($exerciseSearch) >= 2)
+                            <div class="absolute z-20 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-md mt-1 shadow-sm w-full p-3">
+                                <div class="text-center py-2">
+                                    <p class="text-sm text-gray-600 dark:text-neutral-400 mb-2">
+                                        No se encontraron ejercicios para <strong>"{{ $exerciseSearch }}"</strong>
+                                    </p>
+                                    <flux:modal.trigger name="quick-create-exercise-plan">
+                                        <flux:button
+                                            size="xs"
+                                            variant="primary"
+                                            icon="plus"
+                                            type="button"
+                                            @click="$dispatch('prefill-exercise-name', { name: '{{ $exerciseSearch }}' })">
+                                            Crear ejercicio
+                                        </flux:button>
+                                    </flux:modal.trigger>
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -278,4 +305,15 @@
             <flux:separator variant="subtle" class="mt-8" />
         </form>
     </div>
+
+    {{-- Modal para crear ejercicio rápido --}}
+    <flux:modal name="quick-create-exercise-plan" class="max-w-lg" variant="flyout">
+        <form class="space-y-6">
+            <div>
+                <flux:heading size="lg">Crear Nuevo Ejercicio</flux:heading>
+            </div>
+
+            <livewire:tenant.exercises.quick-create />
+        </form>
+    </flux:modal>
 </div>

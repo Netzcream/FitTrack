@@ -20,7 +20,8 @@ return [
     'confirm_delete'  => 'Sí, eliminar',
     'delete_title'    => '¿Eliminar elemento?',
     'delete_msg'      => 'Esta acción eliminará el registro seleccionado. ¿Estás seguro?',
-
+    'download' => 'Descargar',
+    'back' => 'Volver',
     // ===== Estados / Filtros =====
     'status'          => 'Estado',
     'all'             => 'Todos',

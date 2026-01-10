@@ -79,9 +79,11 @@
                 {{-- Filas --}}
                 @forelse ($plans as $plan)
                     @php
-                        $images = $plan
-                            ->exercises()
-                            ->get()
+                        // Obtener imágenes desde exercises usando exercises_data
+                        $exerciseIds = collect($plan->exercises_data ?? [])->pluck('exercise_id')->toArray();
+                        $exerciseModels = !empty($exerciseIds) ? \App\Models\Tenant\Exercise::whereIn('id', $exerciseIds)->get() : collect([]);
+
+                        $images = $exerciseModels
                             ->map(fn($e) => $e->getFirstMediaUrl('images', 'thumb'))
                             ->filter(fn($url) => !empty($url))
                             ->unique()

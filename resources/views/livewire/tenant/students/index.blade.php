@@ -126,7 +126,36 @@
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $student->commercialPlan?->name ?? '—' }}
+                            @php
+                                $assignment = $student->currentPlanAssignment;
+                            @endphp
+                            @if ($assignment)
+                                <div class="space-y-1">
+                                    <div class="font-medium text-gray-900 dark:text-neutral-100">{{ $assignment->name }}</div>
+                                    @if ($assignment->ends_at)
+                                        @php
+                                            $days = now()->startOfDay()->diffInDays($assignment->ends_at->startOfDay(), false);
+                                            $color = $days < 0
+                                                ? 'text-red-600 dark:text-red-400'
+                                                : ($days <= 7 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400');
+                                        @endphp
+                                        <div class="text-xs text-gray-500 dark:text-neutral-400 flex items-center gap-2">
+                                            <span>{{ $assignment->ends_at->format('d/m/Y') }}</span>
+                                            <span class="font-semibold {{ $color }}">
+                                                @if ($days >= 0)
+                                                    vence en {{ $days }} {{ \Illuminate\Support\Str::plural('día', $days) }}
+                                                @else
+                                                    venció hace {{ abs($days) }} {{ \Illuminate\Support\Str::plural('día', abs($days)) }}
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="text-xs text-gray-500 dark:text-neutral-400">Sin fecha de finalización</div>
+                                    @endif
+                                </div>
+                            @else
+                                <span class="text-gray-500 dark:text-neutral-400">Sin plan vigente</span>
+                            @endif
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
@@ -135,9 +164,18 @@
 
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span class="inline-flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
-                                <flux:button size="sm" as="a" wire:navigate
-                                    href="{{ route('tenant.dashboard.students.training-plans', $student->uuid) }}">
-                                    {{ __('students.training_plans') }}
+                                <flux:modal.trigger name="assign-plan-drawer">
+                                    <flux:button size="sm" variant="ghost"
+                                        wire:click="selectStudent('{{ $student->uuid }}')"
+                                        icon="plus">
+                                        {{ __('students.assign_plan') }}
+                                    </flux:button>
+                                </flux:modal.trigger>
+
+                                <flux:button size="sm" variant="ghost" as="a" wire:navigate
+                                    href="{{ route('tenant.dashboard.students.plans-history', $student->uuid) }}"
+                                    icon="list">
+                                    {{ __('students.view_plans') }}
                                 </flux:button>
 
                                 <flux:button size="sm" as="a" wire:navigate
@@ -162,10 +200,9 @@
                     </tr>
                 @endforelse
 
-                {{-- Modal único --}}
+                {{-- Delete modal --}}
                 <x-slot name="modal">
-                    <flux:modal name="confirm-delete-student" class="min-w-[22rem]" x-data
-                        @student-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-student' })">
+                    <flux:modal name="confirm-delete-student" class="min-w-[22rem]">
                         <div class="space-y-6">
                             <div>
                                 <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>
@@ -181,6 +218,20 @@
                                 </flux:button>
                             </div>
                         </div>
+                    </flux:modal>
+
+                    {{-- Drawer para asignar plan --}}
+                    <flux:modal name="assign-plan-drawer" variant="flyout" class="max-w-lg">
+                        @if ($selectedStudentUuid)
+                            @php $student = \App\Models\Tenant\Student::where('uuid', $selectedStudentUuid)->first(); @endphp
+                            @if ($student)
+                                <div class="space-y-2 mb-6">
+                                    <flux:heading size="lg">{{ __('students.assign_plan_modal_title') }}</flux:heading>
+                                    <flux:subheading>{{ __('students.assign_plan_modal_description') }}</flux:subheading>
+                                </div>
+                                <livewire:tenant.students.assign-plan :student="$student" :key="'assign-' . $student->uuid" />
+                            @endif
+                        @endif
                     </flux:modal>
                 </x-slot>
 

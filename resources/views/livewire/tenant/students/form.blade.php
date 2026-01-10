@@ -27,7 +27,107 @@
             </div>
 
             {{-- Contenido --}}
-            <div class="max-w-3xl space-y-4 pt-2">
+            <div class="max-w-3xl space-y-4">
+
+                {{-- Resumen del plan actual --}}
+                @if ($editMode && $this->currentPlan)
+                    @php
+                        $plan = $this->currentPlan;
+                        $now = now();
+                        $isExpired = $plan->ends_at && $plan->ends_at->isPast();
+                        $daysRemaining = $plan->ends_at ? (int) $now->diffInDays($plan->ends_at, false) : null;
+                    @endphp
+                    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-100">{{ $plan->name }}</h3>
+                                    @if ($plan->is_active && !$isExpired)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            Activo
+                                        </span>
+                                    @elseif ($isExpired)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                                            Vencido
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                                            Inactivo
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-blue-700 dark:text-blue-300">
+                                    @if ($plan->starts_at)
+                                        <span>Inicio: {{ $plan->starts_at->format('d/m/Y') }}</span>
+                                    @endif
+                                    @if ($plan->ends_at)
+                                        <span>Vence: {{ $plan->ends_at->format('d/m/Y') }}</span>
+                                        @if (!$isExpired && $daysRemaining !== null)
+                                            <span class="font-medium">
+                                                @if ($daysRemaining == 0)
+                                                    (vence hoy)
+                                                @elseif ($daysRemaining == 1)
+                                                    (1 día restante)
+                                                @elseif ($daysRemaining > 1)
+                                                    ({{ $daysRemaining }} días restantes)
+                                                @endif
+                                            </span>
+                                        @elseif ($isExpired && $daysRemaining !== null)
+                                            <span class="font-medium text-red-600 dark:text-red-400">
+                                                (hace {{ abs($daysRemaining) }} {{ abs($daysRemaining) == 1 ? 'día' : 'días' }})
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span>Sin fecha de vencimiento</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Estado y acciones de plan --}}
+                @php
+                    $statusColors = [
+                        'active' => 'bg-emerald-500',
+                        'paused' => 'bg-amber-500',
+                        'inactive' => 'bg-gray-400',
+                        'prospect' => 'bg-sky-500',
+                    ];
+                @endphp
+                <div class="flex flex-wrap items-end justify-between gap-3 pb-4 border-b border-gray-200 dark:border-neutral-700">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-700 dark:text-neutral-300 flex items-center gap-2">
+                            {{ __('students.status') }}
+                            <span class="h-2.5 w-2.5 rounded-full flex-shrink-0 {{ $statusColors[$status] ?? 'bg-gray-300' }}"></span>
+                        </label>
+                        <flux:select wire:model.live="status" size="sm" class="w-auto">
+                            <option value="active">{{ __('students.status.active') }}</option>
+                            <option value="paused">{{ __('students.status.paused') }}</option>
+                            <option value="inactive">{{ __('students.status.inactive') }}</option>
+                            <option value="prospect">{{ __('students.status.prospect') }}</option>
+                        </flux:select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        @if ($editMode && $student)
+                            <flux:modal.trigger name="assign-plan-drawer">
+                                <flux:button size="sm" variant="outline" icon="plus">
+                                    {{ __('students.assign_plan') }}
+                                </flux:button>
+                            </flux:modal.trigger>
+                            <flux:button size="sm" variant="ghost" as="a" wire:navigate
+                                href="{{ route('tenant.dashboard.students.plans-history', ['student' => $student->uuid, 'back' => 'form']) }}">
+                                {{ __('students.view_plans') }}
+                            </flux:button>
+                        @else
+                            <flux:button size="sm" variant="outline" disabled>
+                                {{ __('students.assign_plan') }}
+                            </flux:button>
+                        @endif
+                    </div>
+                </div>
 
                 {{-- Nombres --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,16 +192,9 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <flux:select wire:model.defer="status" :label="__('students.status')">
-                            <option value="active">{{ __('students.status.active') }}</option>
-                            <option value="paused">{{ __('students.status.paused') }}</option>
-                            <option value="inactive">{{ __('students.status.inactive') }}</option>
-                            <option value="prospect">{{ __('students.status.prospect') }}</option>
-                        </flux:select>
-                    </div>
-                    <div>
+                {{-- Plan comercial y facturación --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2">
                         <flux:select wire:model.defer="commercial_plan_id" :label="__('students.plan')">
                             <option value="">{{ __('common.none') }}</option>
                             @foreach ($plans as $id => $name)
@@ -109,9 +202,6 @@
                             @endforeach
                         </flux:select>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <flux:select wire:model.defer="billing_frequency" :label="__('students.billing_frequency')">
                             <option value="monthly">{{ __('students.monthly') }}</option>
@@ -119,6 +209,9 @@
                             <option value="yearly">{{ __('students.yearly') }}</option>
                         </flux:select>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <flux:select wire:model.defer="account_status" :label="__('students.account_status')">
                             <option value="on_time">{{ __('students.account_status_on_time') }}</option>
@@ -153,10 +246,314 @@
                         </flux:select>
                     </div>
                     <div>
-                        <flux:input type="number" step="1" wire:model.defer="data.height_cm" :label="__('students.height_cm')" />
+                        <flux:input type="number" step="1" wire:model.live.debounce.250ms="data.height_cm" :label="__('students.height_cm')" />
                     </div>
                     <div>
-                        <flux:input type="number" step="0.1" wire:model.defer="data.weight_kg" :label="__('students.weight_kg')" />
+                        <flux:input type="number" step="0.1" wire:model.live.debounce.250ms="data.weight_kg" :label="__('students.weight_kg')" />
+                    </div>
+                    @php
+                        $height = $data['height_cm'] ?? null;
+                        $weight = $data['weight_kg'] ?? null;
+                        $bmi = null;
+
+                        if ($height && $weight) {
+                            $heightM = $height / 100;
+                            if ($heightM > 0) {
+                                $bmi = round($weight / ($heightM ** 2), 1);
+                            }
+                        }
+
+                        $idealRange = null;
+                        $scaleMin = null;
+                        $scaleMax = null;
+                        $currentPosition = null;
+                        $idealCenter = null;
+                        $chartIdeal = [];
+                        $chartSeries = [];
+                        $chartAnnotations = [];
+                        $pi = null;
+                        $ppi = null;
+                        $asc = null;
+                        $mcm = null;
+                        $act = null;
+                        $bmi20 = null;
+                        $bmi25 = null;
+                        $obesityType = null;
+                        $genderLabel = null;
+                        $age = null;
+                        $chartKey = 'chart-' . ($height ?? 'x') . '-' . ($weight ?? 'x');
+
+                        if ($height) {
+                            $heightM = $height / 100;
+                            $idealMinKg = round(18.5 * ($heightM ** 2), 1);
+                            $idealMaxKg = round(24.9 * ($heightM ** 2), 1);
+                            $idealRange = [$idealMinKg, $idealMaxKg];
+                            $idealCenter = round(($idealMinKg + $idealMaxKg) / 2, 1);
+
+                            if (!empty($data['birth_date'])) {
+                                $birthDate = \Carbon\Carbon::parse($data['birth_date']);
+                                $age = (int) abs(now()->diffInYears($birthDate));
+                            }
+
+                            if (!empty($data['gender'])) {
+                                $genderLabel = $data['gender'] === 'female' ? 'mujer' : ($data['gender'] === 'male' ? 'hombre' : 'otro');
+                            }
+
+                            if (!empty($data['gender'])) {
+                                if ($data['gender'] === 'female') {
+                                    $pi = 45.5 + (0.9 * ($height - 152.4));
+                                } elseif ($data['gender'] === 'male') {
+                                    $pi = 50 + (0.9 * ($height - 152.4));
+                                } else {
+                                    $pi = 47.75 + (0.9 * ($height - 152.4));
+                                }
+                                $pi = round($pi, 1);
+                            }
+
+                            if ($weight !== null && $pi) {
+                                $ppi = round(($weight / $pi) * 100, 1);
+                            }
+
+                            if ($weight !== null) {
+                                $asc = round(sqrt(($height * $weight) / 3600), 1);
+                            }
+
+                            if ($weight !== null) {
+                                if (!empty($data['gender']) && $data['gender'] === 'female') {
+                                    $mcm = (1.07 * $weight) - (148 * (($weight / $height) ** 2));
+                                } elseif (!empty($data['gender']) && $data['gender'] === 'male') {
+                                    $mcm = (1.10 * $weight) - (128 * (($weight / $height) ** 2));
+                                } else {
+                                    $mcm = (1.085 * $weight) - (138 * (($weight / $height) ** 2));
+                                }
+                                $mcm = round($mcm, 1);
+                            }
+
+                            if ($weight !== null) {
+                                if (!empty($data['gender']) && $data['gender'] === 'female') {
+                                    $act = -2.097 + (0.1069 * $height) + (0.2466 * $weight);
+                                } elseif (!empty($data['gender']) && $data['gender'] === 'male' && $age !== null) {
+                                    $act = 2.447 - (0.09156 * $age) + (0.1074 * $height) + (0.3362 * $weight);
+                                }
+                                if ($act !== null) {
+                                    $act = round($act, 1);
+                                }
+                            }
+
+                            if ($heightM) {
+                                $bmi20 = round(20 * ($heightM ** 2), 1);
+                                $bmi25 = round(25 * ($heightM ** 2), 1);
+                            }
+
+                            if ($bmi !== null) {
+                                if ($bmi >= 40) {
+                                    $obesityType = 'Obesidad tipo III';
+                                } elseif ($bmi >= 35) {
+                                    $obesityType = 'Obesidad tipo II';
+                                } elseif ($bmi >= 30) {
+                                    $obesityType = 'Obesidad tipo I';
+                                } elseif ($bmi >= 25) {
+                                    $obesityType = 'Sobrepeso';
+                                } else {
+                                    $obesityType = 'Normopeso';
+                                }
+                            }
+
+                            $scaleMin = max(0, $idealCenter - 5);
+                            $scaleMax = $weight !== null ? $weight + 10 : ($idealCenter + 5);
+
+                            if ($weight !== null && $scaleMax > $scaleMin) {
+                                $currentPosition = max(0, min(100, (($weight - $scaleMin) / ($scaleMax - $scaleMin)) * 100));
+                            }
+
+                            if ($scaleMax > $scaleMin) {
+                                $points = 120;
+                                $step = ($scaleMax - $scaleMin) / ($points - 1);
+                                $sigma = max(0.5, 10 / 6);
+
+                                for ($i = 0; $i < $points; $i++) {
+                                    $xWeight = round($scaleMin + ($step * $i), 1);
+                                    $distance = abs($xWeight - $idealCenter);
+                                    $value = round(1.4 * exp(-($distance ** 2) / (2 * ($sigma ** 2))), 3);
+                                    $chartIdeal[] = ['x' => $xWeight, 'y' => $value];
+                                }
+
+                                $chartSeries = [
+                                    ['name' => 'Ideal', 'data' => $chartIdeal],
+                                ];
+
+                                if ($idealCenter !== null) {
+                                    $bandMin = max(0, $idealCenter - 0.6);
+                                    $bandMax = $idealCenter + 0.6;
+                                    $chartAnnotations[] = [
+                                        'x' => round($bandMin, 1),
+                                        'x2' => round($bandMax, 1),
+                                        'fillColor' => '#38bdf8',
+                                        'opacity' => 0.2,
+                                        'borderColor' => 'transparent',
+                                    ];
+                                    $chartAnnotations[] = [
+                                        'x' => round($idealCenter, 1),
+                                        'borderColor' => '#38bdf8',
+                                        'strokeDashArray' => 0,
+                                        'label' => [
+                                            'text' => 'Ideal ' . $idealCenter . ' kg',
+                                            'style' => [
+                                                'color' => '#0f172a',
+                                                'background' => '#38bdf8',
+                                            ],
+                                        ],
+                                    ];
+                                }
+
+                                if ($weight !== null) {
+                                    $labelSuffix = '';
+                                    if ($weight < $scaleMin) {
+                                        $markerWeight = $scaleMin;
+                                        $labelSuffix = ' (por debajo)';
+                                    } elseif ($weight > $scaleMax) {
+                                        $markerWeight = $scaleMax;
+                                        $labelSuffix = ' (por encima)';
+                                    } else {
+                                        $markerWeight = $weight;
+                                    }
+                                    $chartAnnotations[] = [
+                                        'x' => round($markerWeight, 1),
+                                        'borderColor' => '#f59e0b',
+                                        'strokeDashArray' => 0,
+                                        'label' => [
+                                            'text' => 'Actual ' . round($weight, 1) . ' kg' . $labelSuffix,
+                                            'style' => [
+                                                'color' => '#111827',
+                                                'background' => '#f59e0b',
+                                            ],
+                                        ],
+                                    ];
+                                }
+                            }
+                        }
+                    @endphp
+                    <div class="md:col-span-2">
+                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 space-y-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Curva peso ideal</p>
+                                    @if ($idealRange)
+                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Centro ideal: {{ $idealCenter }} kg</p>
+                                    @else
+                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Se necesita altura para estimar rango</p>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+                                    <span class="inline-flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
+                                        Ideal
+                                    </span>
+                                    <span class="inline-flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                                        Actual
+                                    </span>
+                                </div>
+                            </div>
+                            @if ($idealRange && count($chartIdeal))
+                                <div class="space-y-3">
+                                    <div id="weight-ideal-chart" data-apex-placeholder
+                                        wire:key="weight-ideal-chart-{{ $chartKey }}"
+                                        data-apex-force="true"
+                                        data-chart-type="area"
+                                        data-chart-height="170"
+                                        data-chart-stroke="1.6"
+                                        data-chart-marker-size="0"
+                                        data-chart-fill-opacity="0.50"
+                                        data-chart-ymin="0"
+                                        data-chart-ymax="5"
+                                        data-chart-xaxis-type="numeric"
+                                        data-chart-xmin="{{ $scaleMin }}"
+                                        data-chart-xmax="{{ $scaleMax }}"
+                                        data-chart-sparkline="true"
+                                        data-chart-xlabels="false"
+                                        data-chart-ylabels="false"
+                                        data-chart-grid="false"
+                                        data-chart-colors='@json(["#38bdf8"])'
+                                        data-chart-x-annotations='@json($chartAnnotations)'
+                                        data-series='@json($chartSeries)'
+                                        class="h-[170px]"></div>
+                                    <div class="grid grid-cols-4 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                        <span class="text-left">{{ $scaleMin }} kg</span>
+                                        <span class="text-center">{{ $idealCenter }} kg</span>
+                                        <span class="text-center">{{ $weight !== null ? $weight : '—' }} kg</span>
+                                        <span class="text-right">{{ $scaleMax }} kg</span>
+                                    </div>
+                                    @if ($weight === null)
+                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Anade peso para ubicar el marcador.</p>
+                                    @endif
+                                </div>
+                            @else
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">Anade altura para mostrar la curva y el rango ideal.</p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 space-y-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Cálculos antropométricos</p>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                        {{ $genderLabel ?? '—' }}
+                                        @if ($age !== null)
+                                            | {{ $age }} años
+                                        @endif
+                                        @if ($height !== null)
+                                            | {{ number_format($height / 100, 2) }} m
+                                        @endif
+                                        @if ($weight !== null)
+                                            | {{ $weight }} kg
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">Peso Ideal (PI)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $pi !== null ? number_format($pi, 1, ',', '.') . ' kg' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">% Peso Ideal (PPI)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $ppi !== null ? number_format($ppi, 1, ',', '.') . ' %' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">Índice Masa Corporal (IMC)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi !== null ? number_format($bmi, 1, ',', '.') . ' kg/m²' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">Área Sup. Corporal (ASC)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $asc !== null ? number_format($asc, 2, ',', '.') . ' m²' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">Masa Corporal Magra (MCM)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $mcm !== null ? number_format($mcm, 1, ',', '.') . ' kg' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-neutral-500 dark:text-neutral-400">Agua Corporal Total (ACT)</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $act !== null ? number_format($act, 1, ',', '.') . ' L' : '—' }}</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3 space-y-2 text-sm">
+                                <p class="text-neutral-700 dark:text-neutral-200 font-medium">Peso ideal (rango IMC 20-25)</p>
+                                <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                                    <span>IMC 20 kg/m²</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi20 !== null ? number_format($bmi20, 1, ',', '.') . ' kg' : '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+                                    <span>IMC 25 kg/m²</span>
+                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi25 !== null ? number_format($bmi25, 1, ',', '.') . ' kg' : '—' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-sm border-t border-neutral-200 dark:border-neutral-800 pt-3">
+                                <span class="text-neutral-600 dark:text-neutral-300">Clasificación (Obesidad)</span>
+                                <span class="font-semibold text-neutral-800 dark:text-neutral-100">{{ $obesityType ?? '—' }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -213,5 +610,15 @@
                 <flux:separator variant="subtle" class="mt-8" />
             </div>
         </form>
+
+        @if ($editMode && $student)
+            <flux:modal name="assign-plan-drawer" variant="flyout" class="max-w-lg">
+                <div class="space-y-2 mb-6">
+                    <flux:heading size="lg">{{ __('students.assign_plan_modal_title') }}</flux:heading>
+                    <flux:subheading>{{ __('students.assign_plan_modal_description') }}</flux:subheading>
+                </div>
+                <livewire:tenant.students.assign-plan :student="$student" :key="'assign-' . $student->uuid" />
+            </flux:modal>
+        @endif
     </div>
 </div>

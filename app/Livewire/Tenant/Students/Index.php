@@ -5,6 +5,7 @@ namespace App\Livewire\Tenant\Students;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\CommercialPlan;
 
@@ -21,6 +22,7 @@ class Index extends Component
     public int $perPage = 10;
 
     public ?string $deleteUuid = null;
+    public ?string $selectedStudentUuid = null;
 
     /** @var array<string> */
     protected array $sortableColumns = ['first_name', 'last_name', 'email', 'status', 'last_login_at'];
@@ -64,10 +66,21 @@ class Index extends Component
         }
     }
 
+    public function selectStudent(string $uuid): void
+    {
+        $this->selectedStudentUuid = $uuid;
+    }
+
+    #[On('plan-assigned')]
+    public function refreshStudents(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $students = Student::query()
-            ->with('commercialPlan')
+            ->with(['commercialPlan', 'currentPlanAssignment'])
             // Búsqueda agrupada para evitar problemas de precedencia con orWhere
             ->when($this->search, function ($q) {
                 $t = "%{$this->search}%";

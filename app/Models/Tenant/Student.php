@@ -65,6 +65,18 @@ class Student extends Model implements HasMedia
         return $this->belongsTo(\App\Models\User::class);
     }
 
+    public function planAssignments()
+    {
+        return $this->hasMany(StudentPlanAssignment::class);
+    }
+
+    public function currentPlanAssignment()
+    {
+        return $this->hasOne(StudentPlanAssignment::class)
+            ->where('is_active', true)
+            ->orderByDesc('starts_at');
+    }
+
     /* ------------------------------ UUID boot ----------------------------- */
 
     protected static function booted(): void

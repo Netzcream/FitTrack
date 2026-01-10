@@ -77,7 +77,7 @@ class Index extends Component
     /* -------------------- Duplicación -------------------- */
     public function clone(string $uuid): void
     {
-        $original = TrainingPlan::with(['exercises', 'media'])
+        $original = TrainingPlan::with('media')
             ->where('uuid', $uuid)
             ->firstOrFail();
 
@@ -130,7 +130,7 @@ class Index extends Component
     {
         if (!$this->assignUuid || !$this->selectedStudentUuid) return;
 
-        $plan = TrainingPlan::with(['exercises', 'media'])
+        $plan = TrainingPlan::with('media')
             ->where('uuid', $this->assignUuid)
             ->firstOrFail();
 

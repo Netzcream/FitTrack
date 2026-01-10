@@ -39,9 +39,4 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\Api\ApiTenancy::class])-
     Route::get('/plans/current', [\App\Http\Controllers\Api\TrainingPlanApiController::class, 'current']);
     Route::get('/plans/{id}', [\App\Http\Controllers\Api\TrainingPlanApiController::class, 'show']);
 
-    // Workouts (sesiones de entrenamiento)
-    Route::post('/workouts', [\App\Http\Controllers\Api\WorkoutApiController::class, 'store']);
-    Route::get('/workouts', [\App\Http\Controllers\Api\WorkoutApiController::class, 'index']);
-    Route::get('/workouts/{id}', [\App\Http\Controllers\Api\WorkoutApiController::class, 'show']);
-
 });

@@ -6,6 +6,8 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Exercise;
 use App\Models\Tenant\TrainingPlan;
+use App\Models\Tenant\Workout;
+use App\Models\Tenant\Student;
 
 class ExerciseAndPlanSeeder extends Seeder
 {
@@ -146,6 +148,191 @@ class ExerciseAndPlanSeeder extends Seeder
                         ]);
                     }
                 }
+            }
+        }
+
+        // -------------------------------
+        // 💪 3️⃣ Workouts de ejemplo (usando nueva estructura JSON)
+        // -------------------------------
+        $students = Student::limit(3)->get();
+
+        if ($students->isNotEmpty()) {
+            // Obtener algunos planes y ejercicios
+            $fullBodyPlan = TrainingPlan::where('name', 'Full Body Inicial')->first();
+            $hipertrofiaPlan = TrainingPlan::where('name', 'Hipertrofia intermedia')->first();
+
+            // Ejercicios de ejemplo
+            $sentadilla = $exerciseModels->firstWhere('name', 'Sentadilla con barra');
+            $pressBanca = $exerciseModels->firstWhere('name', 'Press de banca');
+            $pesoMuerto = $exerciseModels->firstWhere('name', 'Peso muerto');
+            $remoBarra = $exerciseModels->firstWhere('name', 'Remo con barra');
+            $plancha = $exerciseModels->firstWhere('name', 'Plancha abdominal');
+
+            // Workout 1: Sesión completa de un estudiante
+            if ($students->count() >= 1 && $sentadilla && $pressBanca && $plancha) {
+                Workout::create([
+                    'student_id' => $students[0]->id,
+                    'training_plan_id' => $fullBodyPlan?->id,
+                    'date' => now()->subDays(7),
+                    'duration_minutes' => 65,
+                    'status' => 'completed',
+                    'notes' => 'Excelente sesión, buena técnica',
+                    'rating' => 5,
+                    'exercises_data' => [
+                        [
+                            'exercise_id' => $sentadilla->id,
+                            'exercise_name' => $sentadilla->name,
+                            'sets_completed' => 4,
+                            'reps_per_set' => [10, 10, 10, 8],
+                            'weight_used_kg' => 60.0,
+                            'duration_seconds' => null,
+                            'rest_time_seconds' => 90,
+                            'notes' => 'Buena profundidad',
+                            'completed_at' => now()->subDays(7)->format('Y-m-d H:i:s'),
+                            'order' => 1,
+                        ],
+                        [
+                            'exercise_id' => $pressBanca->id,
+                            'exercise_name' => $pressBanca->name,
+                            'sets_completed' => 4,
+                            'reps_per_set' => [8, 8, 7, 6],
+                            'weight_used_kg' => 70.0,
+                            'duration_seconds' => null,
+                            'rest_time_seconds' => 120,
+                            'notes' => 'Últimas series pesadas',
+                            'completed_at' => now()->subDays(7)->format('Y-m-d H:i:s'),
+                            'order' => 2,
+                        ],
+                        [
+                            'exercise_id' => $plancha->id,
+                            'exercise_name' => $plancha->name,
+                            'sets_completed' => 3,
+                            'reps_per_set' => [],
+                            'weight_used_kg' => null,
+                            'duration_seconds' => 180, // 3x60s = 180s total
+                            'rest_time_seconds' => 45,
+                            'notes' => 'Core estable',
+                            'completed_at' => now()->subDays(7)->format('Y-m-d H:i:s'),
+                            'order' => 3,
+                        ],
+                    ],
+                ]);
+            }
+
+            // Workout 2: Sesión de otro estudiante
+            if ($students->count() >= 2 && $pesoMuerto && $remoBarra) {
+                Workout::create([
+                    'student_id' => $students[1]->id,
+                    'training_plan_id' => $hipertrofiaPlan?->id,
+                    'date' => now()->subDays(5),
+                    'duration_minutes' => 55,
+                    'status' => 'completed',
+                    'notes' => 'Día de espalda intenso',
+                    'rating' => 4,
+                    'exercises_data' => [
+                        [
+                            'exercise_id' => $pesoMuerto->id,
+                            'exercise_name' => $pesoMuerto->name,
+                            'sets_completed' => 5,
+                            'reps_per_set' => [5, 5, 5, 5, 5],
+                            'weight_used_kg' => 100.0,
+                            'duration_seconds' => null,
+                            'rest_time_seconds' => 180,
+                            'notes' => 'Peso récord personal',
+                            'completed_at' => now()->subDays(5)->format('Y-m-d H:i:s'),
+                            'order' => 1,
+                        ],
+                        [
+                            'exercise_id' => $remoBarra->id,
+                            'exercise_name' => $remoBarra->name,
+                            'sets_completed' => 4,
+                            'reps_per_set' => [10, 10, 10, 9],
+                            'weight_used_kg' => 50.0,
+                            'duration_seconds' => null,
+                            'rest_time_seconds' => 90,
+                            'notes' => 'Buena contracción',
+                            'completed_at' => now()->subDays(5)->format('Y-m-d H:i:s'),
+                            'order' => 2,
+                        ],
+                    ],
+                ]);
+            }
+
+            // Workout 3: Sesión reciente sin plan asignado
+            if ($students->count() >= 3 && $sentadilla && $plancha) {
+                Workout::create([
+                    'student_id' => $students[2]->id,
+                    'training_plan_id' => null, // Sin plan específico
+                    'date' => now()->subDays(1),
+                    'duration_minutes' => 40,
+                    'status' => 'completed',
+                    'notes' => 'Sesión express',
+                    'rating' => 3,
+                    'exercises_data' => [
+                        [
+                            'exercise_id' => $sentadilla->id,
+                            'exercise_name' => $sentadilla->name,
+                            'sets_completed' => 3,
+                            'reps_per_set' => [12, 12, 10],
+                            'weight_used_kg' => 50.0,
+                            'duration_seconds' => null,
+                            'rest_time_seconds' => 60,
+                            'notes' => 'Sesión rápida',
+                            'completed_at' => now()->subDays(1)->format('Y-m-d H:i:s'),
+                            'order' => 1,
+                        ],
+                        [
+                            'exercise_id' => $plancha->id,
+                            'exercise_name' => $plancha->name,
+                            'sets_completed' => 3,
+                            'reps_per_set' => [],
+                            'weight_used_kg' => null,
+                            'duration_seconds' => 120, // 3x40s
+                            'rest_time_seconds' => 30,
+                            'notes' => null,
+                            'completed_at' => now()->subDays(1)->format('Y-m-d H:i:s'),
+                            'order' => 2,
+                        ],
+                    ],
+                ]);
+            }
+
+            // Workout 4: Ejemplo de clonación - mismo workout en diferentes fechas
+            if ($students->count() >= 1 && $sentadilla && $pressBanca) {
+                $originalWorkout = Workout::create([
+                    'student_id' => $students[0]->id,
+                    'training_plan_id' => $fullBodyPlan?->id,
+                    'date' => now()->subDays(14),
+                    'duration_minutes' => 60,
+                    'status' => 'completed',
+                    'rating' => 4,
+                    'exercises_data' => [
+                        [
+                            'exercise_id' => $sentadilla->id,
+                            'exercise_name' => $sentadilla->name,
+                            'sets_completed' => 3,
+                            'reps_per_set' => [10, 10, 10],
+                            'weight_used_kg' => 55.0,
+                            'rest_time_seconds' => 90,
+                            'order' => 1,
+                        ],
+                        [
+                            'exercise_id' => $pressBanca->id,
+                            'exercise_name' => $pressBanca->name,
+                            'sets_completed' => 3,
+                            'reps_per_set' => [8, 8, 8],
+                            'weight_used_kg' => 65.0,
+                            'rest_time_seconds' => 120,
+                            'order' => 2,
+                        ],
+                    ],
+                ]);
+
+                // 🔥 Ejemplo de clonación (nueva funcionalidad simplificada)
+                $clonedWorkout = $originalWorkout->clone([
+                    'date' => now()->subDays(10),
+                    'notes' => 'Clonado de semana anterior',
+                ]);
             }
         }
     }

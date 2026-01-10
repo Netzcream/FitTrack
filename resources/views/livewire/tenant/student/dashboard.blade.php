@@ -3,8 +3,9 @@
     {{-- ENCABEZADO --}}
     <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-                🏋️ Panel de entrenamiento
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <x-icons.lucide.dumbbell class="w-8 h-8" />
+                Panel de entrenamiento
             </h1>
             <p class="text-gray-500">
                 Resumen de tu actividad y tus próximos pasos
@@ -20,28 +21,33 @@
 
     {{-- ALERTAS (ahora arriba del contenido principal) --}}
     @if ($goalThisMonth && $trainingsThisMonth >= $goalThisMonth)
-        <div class="rounded p-4 border-l-4"
+        <div class="rounded p-4 border-l-4 flex items-start gap-3"
             style="border-color: var(--ftt-color-base);
                     background-color: var(--ftt-color-base-transparent);">
+            <x-icons.lucide.star class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: var(--ftt-color-base)" />
             <p class="text-sm font-medium text-gray-800">
-                🎉 ¡Excelente! Completaste tu meta mensual 🎯
+                ¡Excelente! Completaste tu meta mensual
             </p>
         </div>
     @endif
 
     @if ($hasPendingPayment)
-        <div class="border-l-4 p-4 rounded bg-red-50 border-red-500">
-            <p class="text-sm text-red-700">
-                ⚠️ Tenés un pago pendiente.
-                <a href="{{ route('tenant.student.payments') }}" class="underline">Ver pagos</a>
-            </p>
+        <div class="border-l-4 p-4 rounded bg-red-50 border-red-500 flex items-start gap-3">
+            <x-icons.lucide.alert-circle class="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
+            <div>
+                <p class="text-sm text-red-700">
+                    Tenés un pago pendiente.
+                </p>
+                <a href="{{ route('tenant.student.payments') }}" class="text-sm text-red-600 underline hover:text-red-700">Ver pagos</a>
+            </div>
         </div>
     @endif
 
     @if (!$assignment)
-        <div class="border-l-4 p-4 rounded bg-gray-50 border-gray-400">
+        <div class="border-l-4 p-4 rounded bg-gray-50 border-gray-400 flex items-start gap-3">
+            <x-icons.lucide.alert-circle class="w-5 h-5 flex-shrink-0 text-gray-500 mt-0.5" />
             <p class="text-sm text-gray-700">
-                ⚠️ No tenés un plan activo. Contactá a tu entrenador.
+                No tenés un plan activo. Contactá a tu entrenador.
             </p>
         </div>
     @endif
@@ -64,11 +70,13 @@
             </div>
         </div>
 
-        <button wire:click="startOrContinueWorkout" class="start-button">
+        <button wire:click="startOrContinueWorkout" class="start-button flex items-center gap-2 justify-center">
             @if ($todaySession)
-                🔁 Continuar entrenamiento
+                <x-icons.lucide.rotate-cw class="w-4 h-4" />
+                Continuar entrenamiento
             @else
-                💪 Comenzar nuevo entrenamiento
+                <x-icons.lucide.zap class="w-4 h-4" />
+                Comenzar nuevo entrenamiento
             @endif
         </button>
     </div>
@@ -79,7 +87,8 @@
             class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h3 class="text-lg font-semibold mb-2 flex items-center gap-2" style="color: var(--ftt-color-base)">
-                    🏋️ <span>Plan actual</span>
+                    <x-icons.lucide.dumbbell class="w-5 h-5" />
+                    <span>Plan actual</span>
                 </h3>
                 <p class="font-medium text-gray-800">
                     {{ $assignment->name }}

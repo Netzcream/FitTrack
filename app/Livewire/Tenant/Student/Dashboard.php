@@ -14,8 +14,8 @@ use Illuminate\Support\Carbon;
 class Dashboard extends Component
 {
     public ?Student $student = null;
-    public ?TrainingPlan $assignment = null;
-    public ?TrainingPlan $todaySession = null;
+    public ?\App\Models\Tenant\StudentPlanAssignment $assignment = null;
+    public ?\App\Models\Tenant\StudentPlanAssignment $todaySession = null;
 
     public int $trainingsThisMonth = 0;
     public int $goalThisMonth = 12;
@@ -31,16 +31,15 @@ class Dashboard extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
-        // Plan activo (último asignado)
-        $this->assignment = TrainingPlan::query()
-            ->where('student_id', $this->student->id)
+        // Plan activo (nuevo modelo)
+        $this->assignment = $this->student->planAssignments()
             ->where('is_active', true)
-            ->latest('assigned_from')
+            ->orderByDesc('starts_at')
             ->first();
 
         // Simulación de sesiones (ajustar cuando se implemente el tracking real)
         $this->trainingsThisMonth = rand(0, 15);
-        $this->goalThisMonth = $this->student->training_data['monthly_goal'] ?? 12;
+        $this->goalThisMonth = data_get($this->student->data, 'training.monthly_goal', 12);
 
         // Placeholder: simulamos sesión activa
         $this->todaySession = null;

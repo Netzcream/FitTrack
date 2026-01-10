@@ -36,7 +36,6 @@
             <nav class="flex items-center gap-4 text-xs md:text-sm">
                 <a href="{{ route('tenant.student.dashboard') }}">Inicio</a>
                 <a href="{{ route('tenant.student.progress') }}">Progreso</a>
-                <a href="{{ route('tenant.student.workout-today') }}">Rutina</a>
                 <a href="{{ route('tenant.student.messages') }}">Mensajes</a>
                 <a href="{{ route('tenant.student.payments') }}">Pagos</a>
 

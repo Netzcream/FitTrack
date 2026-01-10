@@ -4,6 +4,7 @@ namespace App\Livewire\Tenant\TrainingPlan;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\Exercise;
 use App\Models\Tenant\Student;
@@ -50,22 +51,31 @@ class Form extends Component
             $this->assigned_from = optional($trainingPlan->assigned_from)?->format('Y-m-d');
             $this->assigned_until = optional($trainingPlan->assigned_until)?->format('Y-m-d');
 
-            $this->selectedExercises = $trainingPlan->exercises()
-                ->orderBy('plan_exercise.day')
-                ->orderBy('plan_exercise.order')
-                ->get()
-                ->map(fn($e) => [
-                    'id' => $e->id,
-                    'uuid' => $e->uuid,
-                    'name' => $e->name,
-                    'category' => $e->category,
-                    'image' => $e->getFirstMediaUrl('images', 'thumb'),
-                    'day' => $e->pivot->day,
-                    'order' => $e->pivot->order,
-                    'detail' => $e->pivot->detail,
-                    'notes' => $e->pivot->notes,
-                ])
-                ->toArray();
+            // Cargar exercises_data
+            $exercisesData = $trainingPlan->exercises_data ?? [];
+            $this->selectedExercises = [];
+
+            if (!empty($exercisesData)) {
+                $exerciseIds = collect($exercisesData)->pluck('exercise_id')->toArray();
+                $exercises = Exercise::whereIn('id', $exerciseIds)->get()->keyBy('id');
+
+                foreach ($exercisesData as $item) {
+                    $exercise = $exercises->get($item['exercise_id']);
+                    if ($exercise) {
+                        $this->selectedExercises[] = [
+                            'id' => $exercise->id,
+                            'uuid' => $exercise->uuid,
+                            'name' => $exercise->name,
+                            'category' => $exercise->category,
+                            'image' => $exercise->getFirstMediaUrl('images', 'thumb'),
+                            'day' => $item['day'] ?? 1,
+                            'order' => $item['order'] ?? 1,
+                            'detail' => $item['detail'] ?? '',
+                            'notes' => $item['notes'] ?? '',
+                        ];
+                    }
+                }
+            }
         } else {
             // Si viene ?student=<uuid> desde la vista del alumno, convertir a ID
             if ($uuid = request()->query('student')) {
@@ -122,6 +132,17 @@ class Form extends Component
     }
 
     /* -------------------- Agregar/Quitar ejercicios -------------------- */
+    #[On('exercise-created')]
+    public function onExerciseCreated($exerciseId)
+    {
+        // Agregar automáticamente el ejercicio recién creado
+        $this->addExercise($exerciseId);
+
+        // Limpiar búsqueda
+        $this->exerciseSearch = '';
+        $this->availableExercises = [];
+    }
+
     public function addExercise(int $id): void
     {
         $exercise = Exercise::find($id);
@@ -220,29 +241,23 @@ class Form extends Component
         $plan->save();
         $plan->refresh();
 
-        // Sincronizar ejercicios (evitar duplicados mismo día)
-        $plan->exercises()->detach();
+        // Guardar exercises_data como JSON
+        $exercisesData = [];
 
-        $uniqueByDay = collect($this->selectedExercises)
-            ->unique(fn($ex) => $ex['id'] . '-' . ($ex['day'] ?? 0))
-            ->values();
-
-        foreach ($uniqueByDay as $ex) {
-            $plan->exercises()->attach($ex['id'], [
-                'day'    => $ex['day'] ?? null,
-                'order'  => $ex['order'] ?? null,
+        foreach ($this->selectedExercises as $ex) {
+            $exercisesData[] = [
+                'exercise_id' => $ex['id'],
+                'day'    => $ex['day'] ?? 1,
+                'order'  => $ex['order'] ?? 1,
                 'detail' => $ex['detail'] ?? '',
                 'notes'  => $ex['notes'] ?? '',
-                'meta'   => json_encode([]),
-            ]);
+            ];
         }
 
-        if (count($this->selectedExercises) !== $uniqueByDay->count()) {
-            session()->flash('warning', __('training_plans.duplicate_exercises_removed'));
-        }
+        $plan->exercises_data = $exercisesData;
+        $plan->save();
 
         // Refrescar para UI
-        $plan->load('exercises');
         $this->plan = $plan;
 
         // Feedback

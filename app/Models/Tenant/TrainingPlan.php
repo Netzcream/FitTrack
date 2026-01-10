@@ -20,6 +20,7 @@ class TrainingPlan extends Model implements HasMedia
         'description',
         'goal',
         'duration',
+        'exercises_data',
         'is_active',
         'student_id',
         'assigned_from',
@@ -28,6 +29,7 @@ class TrainingPlan extends Model implements HasMedia
     ];
 
     protected $casts = [
+        'exercises_data' => 'array',
         'is_active' => 'boolean',
         'meta'      => 'array',
         'assigned_from' => 'date',
@@ -35,16 +37,44 @@ class TrainingPlan extends Model implements HasMedia
     ];
 
     /* ---------------- Relationships ---------------- */
-    public function exercises()
-    {
-        return $this->belongsToMany(Exercise::class, 'plan_exercise')
-            ->withPivot(['day', 'detail', 'notes', 'meta'])
-            ->withTimestamps();
-    }
-
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /* ---------------- Helpers para exercises_data ---------------- */
+    public function addExercise(int $exerciseId, array $data = []): void
+    {
+        $exercises = $this->exercises_data ?? [];
+
+        $exercises[] = array_merge([
+            'exercise_id' => $exerciseId,
+            'day' => 1,
+            'order' => count($exercises) + 1,
+            'detail' => null,
+            'notes' => null,
+        ], $data);
+
+        $this->exercises_data = $exercises;
+    }
+
+    public function getExercisesAttribute()
+    {
+        if (empty($this->exercises_data)) {
+            return collect([]);
+        }
+
+        $exerciseIds = collect($this->exercises_data)->pluck('exercise_id')->toArray();
+        $exercises = Exercise::whereIn('id', $exerciseIds)->get()->keyBy('id');
+
+        return collect($this->exercises_data)->map(function ($item) use ($exercises) {
+            $exercise = $exercises->get($item['exercise_id']);
+            return $exercise ? array_merge($item, [
+                'name' => $exercise->name,
+                'category' => $exercise->category,
+                'equipment' => $exercise->equipment,
+            ]) : $item;
+        });
     }
 
     /* ---------------- Scopes ---------------- */
@@ -137,19 +167,9 @@ class TrainingPlan extends Model implements HasMedia
     /** Copiar ejercicios del plan actual a otro plan destino */
     protected function copyExercisesTo(self $target): void
     {
-        // Asegurarse de cargar ejercicios del origen fresco
-        $this->loadMissing('exercises');
-
-        foreach ($this->exercises as $exercise) {
-            $pivot = collect($exercise->pivot->toArray())
-                ->except(['id', 'created_at', 'updated_at', 'training_plan_id'])
-                ->toArray();
-
-            $target->exercises()->attach($exercise->id, $pivot);
-        }
-
-        // Evitar que Eloquent confunda relaciones en memoria
-        $target->unsetRelation('exercises');
+        // Copiar exercises_data directamente como JSON
+        $target->exercises_data = $this->exercises_data;
+        $target->save();
     }
 
 
@@ -264,7 +284,8 @@ class TrainingPlan extends Model implements HasMedia
 
     public function getExercisesByDayAttribute()
     {
-        return $this->exercises->groupBy(fn($ex) => $ex->pivot->day ?? 0)->sortKeys();
+        // Agrupar exercises_data por día
+        return $this->exercises->groupBy(fn($ex) => $ex['day'] ?? 0)->sortKeys();
     }
     public function getIsCurrentAttribute(): bool
     {

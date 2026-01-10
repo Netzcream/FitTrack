@@ -10,9 +10,9 @@ Route::middleware(['tenant.auth', 'role:Alumno', EnsureStudentAccessEnabled::cla
     ->group(function () {
         Route::get('/', \App\Livewire\Tenant\Student\Dashboard::class)->name('dashboard');
         Route::get('/progress', \App\Livewire\Tenant\Student\Progress::class)->name('progress');
-        Route::get('/workout-today', \App\Livewire\Tenant\Student\WorkoutToday::class)->name('workout-today');
         Route::get('/messages', \App\Livewire\Tenant\Student\Messages::class)->name('messages');
         Route::get('/payments', \App\Livewire\Tenant\Student\Payments::class)->name('payments');
-        Route::get('/plan/{plan}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'download'])
+        // Updated to use assignment UUID (new model)
+        Route::get('/plan/{assignment}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'downloadAssignment'])
             ->name('download-plan');
     });

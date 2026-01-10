@@ -55,6 +55,23 @@ class Form extends Component
         ],
     ];
 
+    public function getCurrentPlanProperty()
+    {
+        if (!$this->student) {
+            return null;
+        }
+
+        return $this->student->currentPlanAssignment()->with('plan')->first();
+    }
+
+    #[\Livewire\Attributes\On('plan-assigned')]
+    public function refreshPlan(): void
+    {
+        if ($this->student) {
+            $this->student->refresh();
+        }
+    }
+
     public function mount(?Student $student): void
     {
         $this->plans = CommercialPlan::orderBy('name')->pluck('name', 'id')->toArray();

@@ -73,9 +73,12 @@
                 {{-- Filas --}}
                 @forelse ($plans as $plan)
                     @php
-                        $images = $plan
-                            ->exercises()
-                            ->get()
+                        // Obtener imágenes desde exercises usando el accessor
+                        $planExercises = $plan->exercises; // Collection de exercises_data con nombres
+                        $exerciseIds = collect($plan->exercises_data ?? [])->pluck('exercise_id')->toArray();
+                        $exerciseModels = !empty($exerciseIds) ? \App\Models\Tenant\Exercise::whereIn('id', $exerciseIds)->get() : collect([]);
+
+                        $images = $exerciseModels
                             ->map(fn($e) => $e->getFirstMediaUrl('images', 'thumb'))
                             ->filter(fn($url) => !empty($url))
                             ->unique()
@@ -84,7 +87,7 @@
 
                         $hasImages = $images->isNotEmpty();
                         $initial = strtoupper(substr($plan->name, 0, 1));
-                        $countExercises = $plan->exercises()->count();
+                        $countExercises = count($plan->exercises_data ?? []);
                     @endphp
 
                     <tr wire:key="plan-{{ $plan->uuid }}" class="divide-y divide-gray-200 dark:divide-neutral-700">
