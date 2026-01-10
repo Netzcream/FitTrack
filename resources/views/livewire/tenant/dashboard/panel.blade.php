@@ -4,8 +4,7 @@
         {{-- KPIs (estilo ejemplo) --}}
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <div
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+            <a wire:navigate href="{{ route('tenant.dashboard.students.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="text-xs text-neutral-500">{{ __('site.active_students') }}</p>
@@ -18,30 +17,16 @@
 
                 <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.updated') }}: <span
                         class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
-            </div>
+            </a>
 
-            <div
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+            {{-- Rutinas en curso: removido según requerimiento --}}
+
+            {{-- Mensajes de Alumnos (no leídos) --}}
+            <a wire:navigate href="{{ route('tenant.dashboard.messages.conversations.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs text-neutral-500">{{ __('site.running_routines') }}</p>
-                        <p class="mt-1 text-2xl font-semibold">{{ number_format($draftCount) }}</p>
-                    </div>
-                    <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
-                        <flux:icon.dumbbell class="size-5" />
-                    </div>
-                </div>
-                <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.ready_to_publish') }}:
-                    <span class="font-medium text-neutral-700 dark:text-neutral-300">{{ $readyToPublish }}</span>
-                </p>
-            </div>
-
-            <div
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-xs text-neutral-500">{{ __('site.unread_messages') }}</p>
-                        <p class="mt-1 text-2xl font-semibold">{{ number_format($unreadContacts) }}</p>
+                        <p class="text-xs text-neutral-500">Mensajes de alumnos (no leídos)</p>
+                        <p class="mt-1 text-2xl font-semibold">{{ number_format($unreadStudentMessages) }}</p>
                     </div>
                     <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
                         <flux:icon.inbox class="size-5" />
@@ -50,22 +35,37 @@
                 <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.contacts_today') }}:
                     <span class="font-medium text-neutral-700 dark:text-neutral-300">{{ $contactsToday }}</span>
                 </p>
-            </div>
+            </a>
 
-            <div
-                class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+            {{-- Mensajes de Soporte (no leídos) --}}
+            <a wire:navigate href="{{ route('tenant.dashboard.support.show') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs text-neutral-500">{{ __('site.other_metric') }}</p>
-                        <p class="mt-1 text-2xl font-semibold">{{ number_format($blogCount) }}</p>
+                        <p class="text-xs text-neutral-500">Mensajes de soporte (no leídos)</p>
+                        <p class="mt-1 text-2xl font-semibold">{{ number_format($unreadSupport) }}</p>
                     </div>
                     <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
-                        <flux:icon.activity class="size-5" />
+                        <flux:icon.life-buoy class="size-5" />
                     </div>
                 </div>
                 <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.updated') }}: <span
                         class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
-            </div>
+            </a>
+
+            {{-- Contactos desde la web (pendientes) --}}
+            <a wire:navigate href="{{ route('tenant.dashboard.contacts.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs text-neutral-500">Contactos desde la web (pendientes)</p>
+                        <p class="mt-1 text-2xl font-semibold">{{ number_format($webContactsPending) }}</p>
+                    </div>
+                    <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
+                        <flux:icon.globe class="size-5" />
+                    </div>
+                </div>
+                <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.updated') }}: <span
+                        class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
+            </a>
         </div>
 
         {{-- Gráfico + Acciones rápidas (estilo ejemplo) --}}
@@ -74,7 +74,7 @@
             <div
                 class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 lg:col-span-2">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold">{{ __('site.students_in_out_weekly') }}</h3>
+                    <h3 class="text-sm font-semibold">{{ __('site.new_students_weekly') }}</h3>
                     <a wire:navigate href="{{ route('tenant.dashboard.students.index') }}"
                         class="text-xs text-[var(--brand-700)] hover:underline">
                         {{ __('site.view_all') }}
@@ -87,10 +87,6 @@
                         <span class="size-2.5 inline-block bg-blue-600 rounded-sm me-2"></span>
                         <span
                             class="text-[13px] text-gray-600 dark:text-neutral-400">{{ __('site.new_students') }}</span>
-                    </div>
-                    <div class="inline-flex items-center">
-                        <span class="size-2.5 inline-block bg-purple-600 rounded-sm me-2"></span>
-                        <span class="text-[13px] text-gray-600 dark:text-neutral-400">{{ __('site.churn') }}</span>
                     </div>
                 </div>
 
@@ -108,7 +104,7 @@
 
                     {{-- Nuevo alumno (abre modal Flux) --}}
                     <flux:modal.trigger name="create-student">
-                        <flux:button class="!h-auto w-full flex flex-col items-center justify-center py-6 text-center"
+                        <flux:button class="!h-auto w-full flex flex-col items-center justify-center py-6 text-center cursor-pointer"
                             type="button">
                             <flux:icon.user-plus class="size-6 mb-2" />
                             <span class="text-sm font-medium">{{ __('site.new_student') }}</span>
@@ -122,15 +118,15 @@
                         <span class="text-sm font-medium">{{ __('site.view_students') }}</span>
                     </flux:button>
 
-                    {{-- Rutinas --}}
-                    <flux:button as="a" wire:navigate href="{# route('tenant.dashboard.routines.index') #}"
+                    {{-- Planes de entrenamiento --}}
+                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.training-plans.index') }}"
                         class="!h-auto flex flex-col items-center justify-center py-6 text-center">
                         <flux:icon.dumbbell class="size-6 mb-2" />
-                        <span class="text-sm font-medium">{{ __('site.manage_routines') }}</span>
+                        <span class="text-sm font-medium">{{ __('site.manage_training_plans') }}</span>
                     </flux:button>
 
                     {{-- Mensajes --}}
-                    <flux:button as="a" wire:navigate href="{# route('tenant.dashboard.messages.index') #}"
+                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.support.show') }}"
                         class="!h-auto flex flex-col items-center justify-center py-6 text-center">
                         <flux:icon.mail class="size-6 mb-2" />
                         <span class="text-sm font-medium">{{ __('site.review_unread') }}</span>
@@ -153,9 +149,9 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-semibold">{{ __('site.recent_contacts') }}</h3>
                     <div class="flex items-center gap-2">
-                        <flux:button size="sm">{{ __('site.mark_all_as_read') }}</flux:button>
-                        <a wire:navigate href="{# route('tenant.dashboard.messages.index') #}"
-                            class="text-xs text-[var(--brand-700)] hover:underline">{{ __('site.view_all') }}</a>
+                        <flux:button size="sm" wire:click="markAllSupportAsRead">{{ __('site.mark_all_as_read') }}</flux:button>
+                        <a wire:navigate href="{{ route('tenant.dashboard.contacts.index') }}"
+                            class="text-xs text-[var(--brand-700)] hover:underline">Ver todos</a>
                     </div>
                 </div>
 
@@ -179,12 +175,7 @@
                 </div>
             </div>
 
-            <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
-                <h3 class="text-sm font-semibold">{{ __('site.top_packages') }}</h3>
-                <ul class="mt-3 space-y-3">
-                    <li class="text-neutral-500">{{ __('site.no_packages_yet') }}</li>
-                </ul>
-            </div>
+            {{-- Top Paquetes: removido según requerimiento --}}
         </div>
 
         {{-- MODAL: Nuevo alumno (Flux) --}}

@@ -29,6 +29,7 @@ return [
     'phone' => 'Telefono',
     'status' => 'Estado',
     'plan' => 'Plan comercial',
+    'training_plan' => 'Plan de entrenamiento',
     'level' => 'Nivel',
     'timezone' => 'Zona horaria',
     'billing_frequency' => 'Frecuencia de facturacion',

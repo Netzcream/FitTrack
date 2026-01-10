@@ -39,4 +39,13 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\Api\ApiTenancy::class])-
     Route::get('/plans/current', [\App\Http\Controllers\Api\TrainingPlanApiController::class, 'current']);
     Route::get('/plans/{id}', [\App\Http\Controllers\Api\TrainingPlanApiController::class, 'show']);
 
+    // Messaging (Student <-> Tenant)
+    Route::prefix('messages')->group(function () {
+        Route::get('/conversation', [\App\Http\Controllers\Api\MessagingController::class, 'show']);
+        Route::post('/send', [\App\Http\Controllers\Api\MessagingController::class, 'sendMessage']);
+        Route::post('/read', [\App\Http\Controllers\Api\MessagingController::class, 'markAsRead']);
+        Route::post('/mute', [\App\Http\Controllers\Api\MessagingController::class, 'toggleMute']);
+        Route::get('/unread-count', [\App\Http\Controllers\Api\MessagingController::class, 'unreadCount']);
+    });
+
 });

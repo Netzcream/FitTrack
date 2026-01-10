@@ -65,14 +65,8 @@
                         {{ __('students.plan') }}
                     </th>
 
-                    <th wire:click="sort('last_login_at')"
-                        class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 cursor-pointer text-left">
-                        <span class="inline-flex items-center gap-1">
-                            {{ __('students.last_login_at') }}
-                            @if ($sortBy === 'last_login_at')
-                                {!! $sortDirection === 'asc' ? '&#9650;' : '&#9660;' !!}
-                            @endif
-                        </span>
+                    <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-left">
+                        {{ __('students.training_plan') }}
                     </th>
 
                     <th class="px-6 py-3 text-xs font-medium uppercase text-gray-500 dark:text-neutral-500 text-end">
@@ -126,6 +120,10 @@
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
+                            {{ $student->commercialPlan?->name ?? '—' }}
+                        </td>
+
+                        <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                             @php
                                 $assignment = $student->currentPlanAssignment;
                             @endphp
@@ -158,10 +156,6 @@
                             @endif
                         </td>
 
-                        <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ $student->last_login_at?->format('d/m/Y H:i') ?? '—' }}
-                        </td>
-
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span class="inline-flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500 whitespace-nowrap">
                                 <flux:modal.trigger name="assign-plan-drawer">
@@ -176,6 +170,12 @@
                                     href="{{ route('tenant.dashboard.students.plans-history', $student->uuid) }}"
                                     icon="list">
                                     {{ __('students.view_plans') }}
+                                </flux:button>
+
+                                <flux:button size="sm" variant="ghost"
+                                    wire:click="startConversation({{ $student->id }})"
+                                    icon="chat-bubble-left-right">
+                                    {{ __('Mensaje') }}
                                 </flux:button>
 
                                 <flux:button size="sm" as="a" wire:navigate

@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Tenant\Student;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
 
@@ -59,12 +60,45 @@ class Panel extends Component
         return redirect()->route('tenant.dashboard.students.edit', $student);
     }
 
+    public function markAllSupportAsRead(): void
+    {
+        $tenantId = tenant('id');
+        if (! $tenantId) {
+            return;
+        }
+
+        $conversationIds = \App\Models\Central\ConversationParticipant::where('participant_type', \App\Enums\ParticipantType::TENANT)
+            ->where('participant_id', $tenantId)
+            ->pluck('conversation_id');
+
+        foreach ($conversationIds as $cid) {
+            app(\App\Services\Central\MessagingService::class)->markAsRead(
+                (int)$cid,
+                \App\Enums\ParticipantType::TENANT,
+                $tenantId
+            );
+        }
+    }
+
     public function render()
     {
-        // PLACEHOLDERS: luego engancho a queries reales
-        $publishedCount     = 23;   // alumnos activos
-        $draftCount         = 12;   // rutinas en curso
-        $unreadContacts     = 2;    // mensajes sin responder
+        // Datos reales para mensajes pendientes
+        $tenantId = tenant('id');
+        $centralMessaging = app(\App\Services\Central\MessagingService::class);
+        $tenantMessaging  = app(\App\Services\Tenant\MessagingService::class);
+
+        // Soporte (Central <-> Entrenador)
+        $unreadSupport = $tenantId ? $centralMessaging->getUnreadCount(\App\Enums\ParticipantType::TENANT, $tenantId) : 0;
+
+        // Mensajes de Alumnos (Entrenador <-> Alumnos) para el usuario autenticado
+        $userId = Auth::id();
+        $unreadStudentMessages = $userId ? $tenantMessaging->getUnreadCount(\App\Enums\ParticipantType::TENANT, (int)$userId) : 0;
+
+        // Contactos desde la web (reales): entradas creadas hoy
+        $webContactsPending = \App\Models\Contact::whereDate('created_at', Carbon::today())->count();
+
+        // Métricas reales
+        $publishedCount     = Student::where('status', 'active')->count(); // alumnos activos
         $blogCount          = 7;    // widgets varios / métricas extra
         $recentPublishedCovers = []; // collage opcional
 
@@ -82,30 +116,46 @@ class Panel extends Component
 
         $currencySymbol = '$';
         $readyToPublish = 0;
+        // Mensajes recibidos hoy para este Entrenador
         $contactsToday  = 0;
+        if ($tenantId) {
+            $conversationIds = \App\Models\Central\ConversationParticipant::where('participant_type', \App\Enums\ParticipantType::TENANT)
+                ->where('participant_id', $tenantId)
+                ->pluck('conversation_id');
+
+            $contactsToday = \App\Models\Central\Message::whereIn('conversation_id', $conversationIds)
+                ->whereDate('created_at', Carbon::today())
+                ->count();
+        }
         $recentPublishedCount = 0;
         $recentBlogCount      = 0;
 
-        $weeks = collect(range(11, 0))->map(function ($i) {
+        // Últimas 8 semanas (de lunes a domingo)
+        $weeks = collect(range(7, 0))->map(function ($i) {
             return Carbon::now()->startOfWeek(Carbon::MONDAY)->subWeeks($i);
         });
 
-        $chartLabels = $weeks->map(function (Carbon $w) {
-            return 'S' . $w->isoWeek();
+        $chartLabels = $weeks->map(function (Carbon $weekStart) {
+            $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+            return $weekStart->format('d M') . ' - ' . $weekEnd->format('d M');
         });
 
-        $chartNew = $weeks->map(fn() => random_int(3, 18)); // Altas
-        $chartChurn = $chartNew->map(fn($n) => max(0, $n - random_int(2, 15))); // Bajas <= Altas aprox.
+        // Contar alumnos nuevos por semana
+        $chartNew = $weeks->map(function (Carbon $weekStart) {
+            $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY);
+            return Student::whereBetween('created_at', [$weekStart, $weekEnd])->count();
+        });
 
         $chartSeries = [
             ['name' => __('site.new_students'), 'data' => $chartNew->values()],
-            ['name' => __('site.churn'),        'data' => $chartChurn->values()],
         ];
 
         return view('livewire.tenant.dashboard.panel', compact(
             'publishedCount',
-            'draftCount',
-            'unreadContacts',
+            // 'draftCount' removed
+            'unreadStudentMessages',
+            'unreadSupport',
+            'webContactsPending',
             'blogCount',
             'publishedLast8Weeks',
             'publishedPeak',

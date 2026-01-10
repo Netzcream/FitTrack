@@ -121,14 +121,6 @@ Route::middleware([
                     Route::get('/{commercialPlan}/edit', App\Livewire\Tenant\CommercialPlans\Form::class)->name('edit');
                 });
 
-
-
-                Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
-                    Route::get('/', App\Livewire\Tenant\PaymentMethods\Index::class)->name('index');
-                    Route::get('/create', App\Livewire\Tenant\PaymentMethods\Form::class)->name('create');
-                    Route::get('/{paymentMethod}/edit', App\Livewire\Tenant\PaymentMethods\Form::class)->name('edit');
-                });
-
                 Route::prefix('students')->name('students.')->group(function () {
                     Route::get('/', App\Livewire\Tenant\Students\Index::class)->name('index');
                     Route::get('/create', App\Livewire\Tenant\Students\Form::class)->name('create');
@@ -166,6 +158,17 @@ Route::middleware([
                     Route::get('general', ConfigGeneral::class)->name('general')->middleware('permission:gestionar recursos');
                     Route::get('notifications', ConfigNotification::class)->name('notifications')->middleware('permission:gestionar recursos');
                     Route::get('appearance', ConfigAppearance::class)->name('appearance')->middleware('permission:gestionar recursos');
+                });
+
+                // Messaging Routes (Tenant <-> Students)
+                Route::prefix('messages')->name('messages.')->group(function () {
+                    Route::get('/conversations', App\Livewire\Tenant\Messages\Index::class)->name('conversations.index');
+                    Route::get('/conversations/{conversation}', App\Livewire\Tenant\Messages\Show::class)->name('conversations.show');
+                });
+
+                // Support Routes (Tenant <-> Central)
+                Route::prefix('support')->name('support.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Support\Show::class)->name('show');
                 });
             });
         });

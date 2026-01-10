@@ -12,6 +12,9 @@ Route::middleware(['tenant.auth', 'role:Alumno', EnsureStudentAccessEnabled::cla
         Route::get('/progress', \App\Livewire\Tenant\Student\Progress::class)->name('progress');
         Route::get('/messages', \App\Livewire\Tenant\Student\Messages::class)->name('messages');
         Route::get('/payments', \App\Livewire\Tenant\Student\Payments::class)->name('payments');
+        // Plan detail view for current/previous assignments
+        Route::get('/plan/{assignment}', \App\Livewire\Tenant\Student\PlanDetail::class)
+            ->name('plan-detail');
         // Updated to use assignment UUID (new model)
         Route::get('/plan/{assignment}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'downloadAssignment'])
             ->name('download-plan');

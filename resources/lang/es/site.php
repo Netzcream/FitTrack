@@ -381,6 +381,7 @@ return [
     'new_payment'           => 'Nuevo pago',
     'view_students'         => 'Ver alumnos',
     'manage_routines'       => 'Gestionar rutinas',
+    'manage_training_plans' => 'Gestionar planes',
     'review_unread'         => 'Revisar no leídos',
 
     'recent_contacts'       => 'Contactos recientes',
@@ -418,6 +419,8 @@ return [
     'new_students' => 'Altas',
     'churn' => 'Bajas',
     'students_in_out_weekly' => 'Altas vs Bajas por semana',
+    'new_students_weekly' => 'Nuevos alumnos por semana',
+    'no_contacts_yet' => 'No hay contactos aún',
     'contacts_search_placeholder' => 'Nombre, email, asunto...',
     'unred' => 'No leído',
     'read' => 'Leído',

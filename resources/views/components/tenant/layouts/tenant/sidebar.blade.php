@@ -17,7 +17,15 @@
                 <flux:navlist.group :heading="__('site.platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('tenant.dashboard')" :current="request()->routeIs('tenant.dashboard')" wire:navigate>{{ __('site.dashboard') }}</flux:navlist.item>
 
+                    <flux:navlist.item icon="users" :href="route('tenant.dashboard.students.index')" :current="request()->routeIs('tenant.dashboard.students.*')" wire:navigate>{{ __('Alumnos') }}</flux:navlist.item>
 
+                    <flux:navlist.item icon="dumbbell" :href="route('tenant.dashboard.exercises.index')" :current="request()->routeIs('tenant.dashboard.exercises.*')" wire:navigate>{{ __('Ejercicios') }}</flux:navlist.item>
+
+                    <flux:navlist.item icon="calendar-days" :href="route('tenant.dashboard.training-plans.index')" :current="request()->routeIs('tenant.dashboard.training-plans.*')" wire:navigate>{{ __('Planes de entrenamiento') }}</flux:navlist.item>
+
+                    <flux:navlist.item icon="chat-bubble-left-right" :href="route('tenant.dashboard.messages.conversations.index')" :current="request()->routeIs('tenant.dashboard.messages.*')" wire:navigate>
+                        {{ __('Mensajes') }}
+                    </flux:navlist.item>
 
                 </flux:navlist.group>
 

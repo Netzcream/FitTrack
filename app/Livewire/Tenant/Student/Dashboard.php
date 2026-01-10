@@ -9,6 +9,8 @@ use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\Payment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 #[Layout('layouts.student')]
 class Dashboard extends Component
@@ -16,6 +18,7 @@ class Dashboard extends Component
     public ?Student $student = null;
     public ?\App\Models\Tenant\StudentPlanAssignment $assignment = null;
     public ?\App\Models\Tenant\StudentPlanAssignment $todaySession = null;
+    public $assignmentsHistory = [];
 
     public int $trainingsThisMonth = 0;
     public int $goalThisMonth = 12;
@@ -31,14 +34,18 @@ class Dashboard extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
-        // Plan activo (nuevo modelo)
-        $this->assignment = $this->student->planAssignments()
-            ->where('is_active', true)
+        // Planes asignados (incluye histórico)
+        $this->assignmentsHistory = $this->student->planAssignments()
             ->orderByDesc('starts_at')
-            ->first();
+            ->get();
 
-        // Simulación de sesiones (ajustar cuando se implemente el tracking real)
-        $this->trainingsThisMonth = rand(0, 15);
+        // Plan actual preferido: el que esté vigente; si no, el más reciente
+        $this->assignment = $this->assignmentsHistory
+            ->first(fn ($a) => $a->is_current)
+            ?? $this->assignmentsHistory->first();
+
+        // Métricas de entrenamiento (usa datos reales si existe la tabla workouts)
+        $this->trainingsThisMonth = $this->resolveTrainingsThisMonth();
         $this->goalThisMonth = data_get($this->student->data, 'training.monthly_goal', 12);
 
         // Placeholder: simulamos sesión activa
@@ -50,6 +57,21 @@ class Dashboard extends Component
                 ->whereNull('paid_at')
                 ->exists();
         }
+    }
+
+    private function resolveTrainingsThisMonth(): int
+    {
+        // Si aún no existe la tabla (p. ej. ambiente de desarrollo), devolvemos 0 estable
+        if (!Schema::hasTable('workouts')) {
+            return 0;
+        }
+
+        // Contar workouts del estudiante en el mes y año actuales
+        return (int) DB::table('workouts')
+            ->where('student_id', $this->student->id)
+            ->whereYear('date', now()->year)
+            ->whereMonth('date', now()->month)
+            ->count();
     }
 
     /* ------------------ Acciones ------------------ */
@@ -69,6 +91,7 @@ class Dashboard extends Component
         return view('livewire.tenant.student.dashboard', [
             'student' => $this->student,
             'assignment' => $this->assignment,
+            'assignmentsHistory' => $this->assignmentsHistory,
             'trainingsThisMonth' => $this->trainingsThisMonth,
             'goalThisMonth' => $this->goalThisMonth,
             'hasPendingPayment' => $this->hasPendingPayment,

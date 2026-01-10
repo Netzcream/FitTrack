@@ -76,45 +76,96 @@
                 Continuar entrenamiento
             @else
                 <x-icons.lucide.zap class="w-4 h-4" />
-                Comenzar nuevo entrenamiento
+                Comenzar entrenamiento
             @endif
         </button>
     </div>
 
-    {{-- PLAN ACTUAL --}}
+    {{-- RUTINA Y PLANES --}}
     @if ($assignment)
-        <div
-            class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h3 class="text-lg font-semibold mb-2 flex items-center gap-2" style="color: var(--ftt-color-base)">
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2 text-sm text-gray-500">
                     <x-icons.lucide.dumbbell class="w-5 h-5" />
-                    <span>Plan actual</span>
-                </h3>
-                <p class="font-medium text-gray-800">
-                    {{ $assignment->name }}
-                    <span class="text-sm text-gray-500 ml-1">
-                        ({{ $assignment->version_label }})
-                    </span>
-                </p>
+                    <span>Rutina de entrenamiento</span>
+                    @if ($assignment->version_label)
+                        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">{{ $assignment->version_label }}</span>
+                    @endif
+                </div>
+                <p class="text-xl font-semibold text-gray-900">{{ $assignment->name }}</p>
                 <p class="text-sm text-gray-500">
-                    Desde {{ $assignment->assigned_from?->format('d/m/Y') ?? '—' }}
+                    Vigente desde {{ $assignment->starts_at?->format('d/m/Y') ?? '—' }}
+                    @if ($assignment->ends_at)
+                        · hasta {{ $assignment->ends_at->format('d/m/Y') }}
+                    @endif
                 </p>
+                <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+                    <span>{{ $assignment->exercises_by_day->count() }} días</span>
+                    <span>{{ $assignment->exercises_by_day->flatten(1)->count() }} ejercicios</span>
+                    <span>Objetivo: {{ $assignment->plan?->goal ?? '—' }}</span>
+                </div>
             </div>
 
-            {{-- BOTÓN DESCARGAR --}}
-            <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm transition"
-                style="background-color: var(--ftt-color-base);">
-                <x-icons.lucide.file-down class="w-4 h-4" />
-                Descargar PDF
-            </a>
+            <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm transition"
+                    style="background-color: var(--ftt-color-base);">
+                    <x-icons.lucide.file-down class="w-4 h-4" />
+                    Descargar PDF
+                </a>
+                <a href="{{ route('tenant.student.plan-detail', $assignment->uuid) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 shadow-sm transition">
+                    <x-icons.lucide.list class="w-4 h-4" />
+                    Ver detalle
+                </a>
+            </div>
+        </div>
+
+        {{-- Lista de días eliminada del dashboard; ver detalle en pantalla dedicada --}}
+    @endif
+
+    {{-- PLANES ANTERIORES --}}
+    @if (!empty($assignmentsHistory) && $assignmentsHistory->count() > 1)
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 space-y-4">
+            <div class="flex items-center gap-2 text-gray-700 font-semibold">
+                <x-icons.lucide.history class="w-5 h-5" />
+                <span>Planes anteriores</span>
+            </div>
+            <div class="divide-y divide-gray-100">
+                @foreach ($assignmentsHistory->skip(1) as $past)
+                    <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <p class="font-medium text-gray-900 flex items-center gap-2">
+                                <span>{{ $past->name }}</span>
+                                @if ($past->version_label)
+                                    <span class="text-xs text-gray-500">{{ $past->version_label }}</span>
+                                @endif
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ $past->starts_at?->format('d/m/Y') ?? '—' }}
+                                @if ($past->ends_at)
+                                    – {{ $past->ends_at->format('d/m/Y') }}
+                                @endif
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('tenant.student.download-plan', $past->uuid) }}"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold text-white shadow-sm transition"
+                                style="background-color: var(--ftt-color-base);">
+                                <x-icons.lucide.file-down class="w-4 h-4" />
+                                Descargar
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 
 
     {{-- ACCESOS RÁPIDOS --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-        <a href="{{ route('tenant.student.workout-today') }}" class="student-card">
+        <a href="{{ $assignment ? route('tenant.student.plan-detail', $assignment->uuid) : '#' }}" class="student-card">
             <x-icons.lucide.dumbbell class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
             <h3>Mi rutina</h3>
             <p>Ver ejercicios</p>

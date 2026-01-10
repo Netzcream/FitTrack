@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>{{ config('app.name') }} — Panel del alumno</title>
+    <title>{{ config('app.name') }} - Panel del alumno</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <x-tenant.favicon />
 
@@ -36,7 +36,10 @@
             <nav class="flex items-center gap-4 text-xs md:text-sm">
                 <a href="{{ route('tenant.student.dashboard') }}">Inicio</a>
                 <a href="{{ route('tenant.student.progress') }}">Progreso</a>
-                <a href="{{ route('tenant.student.messages') }}">Mensajes</a>
+                <a href="{{ route('tenant.student.messages') }}" class="relative">
+                    Mensajes
+                    @livewire(\App\Livewire\Tenant\Student\MessageBadge::class)
+                </a>
                 <a href="{{ route('tenant.student.payments') }}">Pagos</a>
 
                <form method="POST" action="{{ route('tenant.logout') }}">

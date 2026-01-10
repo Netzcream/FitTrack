@@ -30,8 +30,14 @@
                     </flux:navlist.item>
                 @endcan
 
+                @livewire(\App\Livewire\Tenant\ConversationBadgeNavItem::class)
+
+
             </flux:navlist.group>
 
+            <flux:navlist variant="outline">
+                @livewire(\App\Livewire\Tenant\SupportBadgeNavItem::class)
+            </flux:navlist>
 
             @php
                 $configPatterns = ['tenant.dashboard.configuration.*'];
@@ -65,6 +71,7 @@
                     'tenant.dashboard.students.*',
                     'tenant.dashboard.exercises.*',
                     'tenant.dashboard.training-plans.*',
+                    'tenant.dashboard.messages.*',
                 ];
             @endphp
             <flux:navlist.group :heading="__('site.training')" expandable
@@ -84,11 +91,12 @@
 
 
 
+
             </flux:navlist.group>
 
 
             @php
-                $businessPatterns = ['tenant.dashboard.commercial-plans.*', 'tenant.dashboard.payment-methods.*'];
+                $businessPatterns = ['tenant.dashboard.commercial-plans.*'];
             @endphp
             <flux:navlist.group :heading="__('site.business_setup')" expandable
                 :expanded="request()->routeIs(...$businessPatterns)">
@@ -96,12 +104,6 @@
                     :current="request()->routeIs('tenant.dashboard.commercial-plans.*')" wire:navigate>
                     {{ __('site.commercial_plans') }}
                 </flux:navlist.item>
-
-                <flux:navlist.item href="{{ route('tenant.dashboard.payment-methods.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.payment-methods.*')" wire:navigate>
-                    {{ __('site.payment_methods') }}
-                </flux:navlist.item>
-
             </flux:navlist.group>
 
 

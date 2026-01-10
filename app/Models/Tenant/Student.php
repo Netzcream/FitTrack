@@ -77,6 +77,11 @@ class Student extends Model implements HasMedia
             ->orderByDesc('starts_at');
     }
 
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class, 'student_id');
+    }
+
     /* ------------------------------ UUID boot ----------------------------- */
 
     protected static function booted(): void

@@ -206,13 +206,17 @@ const initApexPlaceholders = () => {
 
 document.addEventListener("DOMContentLoaded", scheduleApexInit);
 document.addEventListener("livewire:load", scheduleApexInit);
-document.addEventListener("livewire:init", () => {
-    scheduleApexInit();
-    if (window.Livewire?.hook) {
-        Livewire.hook("message.processed", () => scheduleApexInit());
-        Livewire.hook("commit", ({ succeed }) => {
-            succeed(() => scheduleApexInit());
-        });
-    }
+document.addEventListener("livewire:init", scheduleApexInit);
+
+// Limpiar gráficos antes de navegar para evitar duplicados
+window.addEventListener("livewire:navigating", () => {
+    document.querySelectorAll("[data-apex-placeholder]").forEach((el) => {
+        if (el._apexChart) {
+            el._apexChart.destroy();
+            el._apexChart = null;
+        }
+        el._apexInited = false;
+    });
 });
+
 window.addEventListener("livewire:navigated", scheduleApexInit);

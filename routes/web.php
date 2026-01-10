@@ -70,6 +70,12 @@ foreach (config('tenancy.central_domains') as $domain) {
                     abort_unless(\Illuminate\Support\Facades\File::exists($path), 404);
                     return response()->file($path);
                 })->name('log-viewer.show');
+
+                // Support Messages Routes
+                Route::prefix('support')->name('support.')->group(function () {
+                    Route::get('/', App\Livewire\Central\Support\Index::class)->name('index');
+                    Route::get('/{conversation}', App\Livewire\Central\Support\Show::class)->name('show');
+                });
             });
         });
 

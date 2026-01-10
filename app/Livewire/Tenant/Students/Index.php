@@ -77,6 +77,15 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function startConversation(int $studentId): void
+    {
+        $messagingService = app(\App\Services\Tenant\MessagingService::class);
+
+        $conversation = $messagingService->findOrCreateConversation($studentId);
+
+        $this->redirect(route('tenant.dashboard.messages.conversations.show', $conversation));
+    }
+
     public function render()
     {
         $students = Student::query()

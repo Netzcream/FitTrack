@@ -21,7 +21,7 @@
 
                     <flux:navlist.item icon="message-square-more" :href="route('central.dashboard.contacts.index')" :current="request()->routeIs('central.dashboard.contacts.*')" wire:navigate>{{ __('site.contacts') }}</flux:navlist.item>
 
-
+                    @livewire(\App\Livewire\Central\SupportBadgeNavItem::class)
 
                     <flux:navlist.item icon="scroll-text" :href="route('central.dashboard.log-viewer')" :current="request()->routeIs('central.dashboard.log-viewer')" wire:navigate>{{ __('Logs') }}</flux:navlist.item>
 

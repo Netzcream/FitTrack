@@ -4,11 +4,32 @@ return [
     'configuration' => [
         'general' => [
             'title' => 'General',
-            'subtitle' => 'Gestiona la configuración de tu sitio',
+            'subtitle' => 'Gestiona la configuración general y métodos de pago',
             'site_name' => 'Nombre del sitio',
             'color' => 'Color',
             'whatsapp' => 'Whatsapp',
             'social_title' => 'Redes sociales',
+
+            // Métodos de pago
+            'payment_methods_title' => 'Métodos de Pago Aceptados',
+            'payment_methods_description' => 'Configurá los métodos de pago que aceptás de tus alumnos.',
+
+            'accepts_transfer' => 'Acepto Transferencia/Depósito bancario',
+            'bank_name' => 'Nombre del Banco',
+            'bank_account_holder' => 'Titular de la Cuenta (opcional)',
+            'bank_cuit_cuil' => 'CUIT/CUIL (opcional)',
+            'bank_cbu' => 'CBU',
+            'bank_alias' => 'Alias',
+
+            'accepts_mercadopago' => 'Acepto Mercadopago (QR o API)',
+            'mp_access_token' => 'Access Token',
+            'mp_access_token_help' => 'Token de tu aplicación de Mercadopago.',
+            'mp_public_key' => 'Public Key (opcional)',
+            'mp_public_key_help' => 'Clave pública para integraciones web.',
+
+            'accepts_cash' => 'Acepto Efectivo',
+            'cash_instructions' => 'Instrucciones (opcional)',
+            'cash_instructions_placeholder' => 'Ej: 5% de descuento pagando antes del vencimiento',
         ],
         'notification' => [
             'title' => 'Notificaciones',

@@ -28,29 +28,43 @@
             </div>
 
             {{-- Contenido del formulario --}}
-            <div class="max-w-md space-y-4 pt-2">
+            <div class="max-w-2xl space-y-6 pt-2">
 
-                {{-- Nombre del sitio --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.general.site_name') }}</flux:label>
-                    <flux:input wire:model.defer="name" type="text" required autofocus autocomplete="name" />
-                    <flux:error name="name" />
-                </flux:field>
+                {{-- Sección: Información Básica --}}
+                <div class="space-y-4">
+                    <div>
+                        <flux:heading size="lg" class="!mb-1">Información Básica</flux:heading>
+                        <p class="text-sm text-gray-600">Configurá el nombre de tu gimnasio y datos de contacto principal.</p>
+                    </div>
+                    <flux:separator variant="subtle" />
 
-                {{-- WhatsApp --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_whatsapp') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>wa.me/</flux:input.group.prefix>
-                        <flux:input wire:model.defer="whatsapp" placeholder="5491123456789" autocomplete="tel" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá solo el número, sin + ni espacios.</small>
-                    <flux:error name="whatsapp" />
-                </flux:field>
+                    {{-- Nombre del sitio --}}
+                    <flux:field>
+                        <flux:label>Nombre del Gimnasio/Centro</flux:label>
+                        <flux:input wire:model.defer="name" type="text" required autofocus autocomplete="name" 
+                            placeholder="Ej: Fitness Center" />
+                        <flux:error name="name" />
+                    </flux:field>
 
-                {{-- Sección de redes --}}
-                <flux:heading size="md" class="mt-8">{{ __('tenant.configuration.general.social_title') ?? 'Redes' }}</flux:heading>
-                <flux:separator variant="subtle" class="my-2" />
+                    {{-- WhatsApp --}}
+                    <flux:field>
+                        <flux:label>WhatsApp de Contacto</flux:label>
+                        <flux:input.group>
+                            <flux:input.group.prefix>+</flux:input.group.prefix>
+                            <flux:input wire:model.defer="whatsapp" placeholder="5491123456789" autocomplete="tel" />
+                        </flux:input.group>
+                        <flux:description>Para que tus alumnos puedan contactarte. Ej: 5491123456789 (código país + área + número)</flux:description>
+                        <flux:error name="whatsapp" />
+                    </flux:field>
+                </div>
+
+                {{-- Sección de métodos de pago --}}
+                <div class="space-y-4 pt-4">
+                    <div>
+                        <flux:heading size="lg" class="!mb-1">Métodos de Pago</flux:heading>
+                        <p class="text-sm text-gray-600">Configurá cómo tus alumnos pueden pagarte. Habilitá los métodos que aceptás.</p>
+                    </div>
+                    <flux:separator variant="subtle" />
 
                 {{-- Instagram --}}
                 <flux:field>
@@ -106,6 +120,83 @@
                     <small class="text-xs text-gray-500 mt-1 block">Ingresá solo tu usuario.</small>
                     <flux:error name="tiktok" />
                 </flux:field>
+
+                {{-- Sección de métodos de pago --}}
+                <flux:heading size="md" class="mt-8">{{ __('tenant.configuration.general.payment_methods_title') }}</flux:heading>
+                <flux:separator variant="subtle" class="my-2" />
+                <p class="text-sm text-gray-600 mb-4">{{ __('tenant.configuration.general.payment_methods_description') }}</p>
+
+                {{-- Transferencia/Depósito --}}
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
+                    <flux:checkbox wire:model.defer="accepts_transfer" :label="__('tenant.configuration.general.accepts_transfer')" />
+
+                    <div x-show="$wire.accepts_transfer" class="space-y-3 mt-3">
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.bank_name') }}</flux:label>
+                            <flux:input wire:model.defer="bank_name" placeholder="Ej: Banco Galicia" />
+                            <flux:error name="bank_name" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.bank_account_holder') }}</flux:label>
+                            <flux:input wire:model.defer="bank_account_holder" placeholder="Ej: Juan Pérez" />
+                            <flux:error name="bank_account_holder" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.bank_cuit_cuil') }}</flux:label>
+                            <flux:input wire:model.defer="bank_cuit_cuil" placeholder="20-12345678-9" />
+                            <flux:error name="bank_cuit_cuil" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.bank_cbu') }}</flux:label>
+                            <flux:input wire:model.defer="bank_cbu" placeholder="0000000000000000000000" />
+                            <flux:error name="bank_cbu" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.bank_alias') }}</flux:label>
+                            <flux:input wire:model.defer="bank_alias" placeholder="MI.ALIAS.BANCO" />
+                            <flux:error name="bank_alias" />
+                        </flux:field>
+                    </div>
+                </div>
+
+                {{-- Mercadopago --}}
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3 mt-3">
+                    <flux:checkbox wire:model.defer="accepts_mercadopago" :label="__('tenant.configuration.general.accepts_mercadopago')" />
+
+                    <div x-show="$wire.accepts_mercadopago" class="space-y-3 mt-3">
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.mp_access_token') }}</flux:label>
+                            <flux:input wire:model.defer="mp_access_token" type="password" placeholder="APP_USR-..." />
+                            <small class="text-xs text-gray-500 mt-1 block">{{ __('tenant.configuration.general.mp_access_token_help') }}</small>
+                            <flux:error name="mp_access_token" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.mp_public_key') }}</flux:label>
+                            <flux:input wire:model.defer="mp_public_key" placeholder="APP_USR-..." />
+                            <small class="text-xs text-gray-500 mt-1 block">{{ __('tenant.configuration.general.mp_public_key_help') }}</small>
+                            <flux:error name="mp_public_key" />
+                        </flux:field>
+                    </div>
+                </div>
+
+                {{-- Efectivo --}}
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3 mt-3">
+                    <flux:checkbox wire:model.defer="accepts_cash" :label="__('tenant.configuration.general.accepts_cash')" />
+
+                    <div x-show="$wire.accepts_cash" class="space-y-3 mt-3">
+                        <flux:field>
+                            <flux:label>{{ __('tenant.configuration.general.cash_instructions') }}</flux:label>
+                            <flux:textarea wire:model.defer="cash_instructions" rows="2"
+                                :placeholder="__('tenant.configuration.general.cash_instructions_placeholder')" />
+                        </flux:field>
+                    </div>
+                </div>
+
             </div>
 
             {{-- Footer compacto --}}
