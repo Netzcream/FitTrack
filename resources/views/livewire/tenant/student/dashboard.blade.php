@@ -1,23 +1,11 @@
 <div class="space-y-6 md:space-y-8">
 
     {{-- ENCABEZADO --}}
-    <div class="flex items-center justify-between flex-wrap gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <x-icons.lucide.dumbbell class="w-8 h-8" />
-                Panel de entrenamiento
-            </h1>
-            <p class="text-gray-500">
-                Resumen de tu actividad y tus próximos pasos
-            </p>
-        </div>
-
-
-        @if ($student->hasMedia('avatar'))
-            <img src="{{ $student->getFirstMediaUrl('avatar', 'thumb') }}" alt="{{ $student->full_name }}"
-                class="w-12 h-12 rounded-full border border-gray-200 object-cover shadow-sm">
-        @endif
-    </div>
+    <x-student-header
+        title="Panel de entrenamiento"
+        subtitle="Resumen de tu actividad y tus próximos pasos"
+        icon="dumbbell"
+        :student="$student" />
 
     {{-- ALERTAS (ahora arriba del contenido principal) --}}
     @if ($goalThisMonth && $trainingsThisMonth >= $goalThisMonth)
@@ -54,7 +42,7 @@
 
     {{-- PROGRESO MENSUAL --}}
     <div
-        class="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+        class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
         <div>
             <p class="text-sm text-gray-500">Entrenamientos este mes</p>
             <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base)">
@@ -83,14 +71,11 @@
 
     {{-- RUTINA Y PLANES --}}
     @if ($assignment)
-        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-2 text-sm text-gray-500">
                     <x-icons.lucide.dumbbell class="w-5 h-5" />
                     <span>Rutina de entrenamiento</span>
-                    @if ($assignment->version_label)
-                        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">{{ $assignment->version_label }}</span>
-                    @endif
                 </div>
                 <p class="text-xl font-semibold text-gray-900">{{ $assignment->name }}</p>
                 <p class="text-sm text-gray-500">
@@ -126,7 +111,7 @@
 
     {{-- PLANES ANTERIORES --}}
     @if (!empty($assignmentsHistory) && $assignmentsHistory->count() > 1)
-        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 space-y-4">
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 space-y-4">
             <div class="flex items-center gap-2 text-gray-700 font-semibold">
                 <x-icons.lucide.history class="w-5 h-5" />
                 <span>Planes anteriores</span>
@@ -135,12 +120,7 @@
                 @foreach ($assignmentsHistory->skip(1) as $past)
                     <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                            <p class="font-medium text-gray-900 flex items-center gap-2">
-                                <span>{{ $past->name }}</span>
-                                @if ($past->version_label)
-                                    <span class="text-xs text-gray-500">{{ $past->version_label }}</span>
-                                @endif
-                            </p>
+                            <p class="font-medium text-gray-900">{{ $past->name }}</p>
                             <p class="text-xs text-gray-500">
                                 {{ $past->starts_at?->format('d/m/Y') ?? '—' }}
                                 @if ($past->ends_at)

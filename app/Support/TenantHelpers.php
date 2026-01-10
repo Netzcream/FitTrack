@@ -56,11 +56,13 @@ if (!function_exists('payment_method_config')) {
                 'cuit_cuil' => tenant_config('payment_bank_cuit_cuil', ''),
                 'cbu' => tenant_config('payment_bank_cbu', ''),
                 'alias' => tenant_config('payment_bank_alias', ''),
+                'instructions' => tenant_config('payment_transfer_instructions', ''),
             ],
             'mercadopago' => [
                 'enabled' => (bool) tenant_config('payment_accepts_mercadopago', false),
                 'access_token' => tenant_config('payment_mp_access_token', ''),
                 'public_key' => tenant_config('payment_mp_public_key', ''),
+                'instructions' => tenant_config('payment_mp_instructions', ''),
             ],
             'cash' => [
                 'enabled' => (bool) tenant_config('payment_accepts_cash', false),

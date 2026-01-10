@@ -91,6 +91,7 @@ class Messages extends Component
 
         return view('livewire.tenant.student.messages', [
             'messages' => $messages,
+            'student' => $student,
         ]);
     }
 }

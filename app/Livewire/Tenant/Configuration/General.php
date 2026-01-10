@@ -24,10 +24,12 @@ class General extends Component
     public string $bank_cuit_cuil = '';
     public string $bank_cbu = '';
     public string $bank_alias = '';
+    public string $transfer_instructions = '';
 
     public bool $accepts_mercadopago = false;
     public string $mp_access_token = '';
     public string $mp_public_key = '';
+    public string $mp_instructions = '';
 
     public bool $accepts_cash = false;
     public string $cash_instructions = '';
@@ -49,10 +51,12 @@ class General extends Component
         $this->bank_cuit_cuil = Configuration::conf('payment_bank_cuit_cuil', '');
         $this->bank_cbu = Configuration::conf('payment_bank_cbu', '');
         $this->bank_alias = Configuration::conf('payment_bank_alias', '');
+        $this->transfer_instructions = Configuration::conf('payment_transfer_instructions', '');
 
         $this->accepts_mercadopago = (bool) Configuration::conf('payment_accepts_mercadopago', false);
         $this->mp_access_token = Configuration::conf('payment_mp_access_token', '');
         $this->mp_public_key = Configuration::conf('payment_mp_public_key', '');
+        $this->mp_instructions = Configuration::conf('payment_mp_instructions', '');
 
         $this->accepts_cash = (bool) Configuration::conf('payment_accepts_cash', false);
         $this->cash_instructions = Configuration::conf('payment_cash_instructions', '');
@@ -76,10 +80,12 @@ class General extends Component
             'bank_cuit_cuil' => ['nullable', 'string', 'max:20'],
             'bank_cbu' => ['nullable', 'string', 'max:50'],
             'bank_alias' => ['nullable', 'string', 'max:100'],
+            'transfer_instructions' => ['nullable', 'string', 'max:500'],
 
             'accepts_mercadopago' => ['boolean'],
             'mp_access_token' => ['nullable', 'string', 'max:512'],
             'mp_public_key' => ['nullable', 'string', 'max:512'],
+            'mp_instructions' => ['nullable', 'string', 'max:500'],
 
             'accepts_cash' => ['boolean'],
             'cash_instructions' => ['nullable', 'string', 'max:500'],
@@ -102,10 +108,12 @@ class General extends Component
         Configuration::setConf('payment_bank_cuit_cuil', $this->bank_cuit_cuil);
         Configuration::setConf('payment_bank_cbu', $this->bank_cbu);
         Configuration::setConf('payment_bank_alias', $this->bank_alias);
+        Configuration::setConf('payment_transfer_instructions', $this->transfer_instructions);
 
         Configuration::setConf('payment_accepts_mercadopago', $this->accepts_mercadopago);
         Configuration::setConf('payment_mp_access_token', $this->mp_access_token);
         Configuration::setConf('payment_mp_public_key', $this->mp_public_key);
+        Configuration::setConf('payment_mp_instructions', $this->mp_instructions);
 
         Configuration::setConf('payment_accepts_cash', $this->accepts_cash);
         Configuration::setConf('payment_cash_instructions', $this->cash_instructions);

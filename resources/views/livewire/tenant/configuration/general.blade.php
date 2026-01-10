@@ -5,7 +5,7 @@
 
             {{-- Header sticky --}}
             <div class="sticky top-0 z-30 bg-inherit backdrop-blur supports-[backdrop-filter]:bg-inherit/95">
-                <div class="flex items-center justify-between gap-4 max-w-md">
+                <div class="flex items-center justify-between gap-4 max-w-2xl">
                     <div>
                         <flux:heading size="xl" level="1">
                             {{ __('tenant.configuration.general.title') }}
@@ -18,7 +18,6 @@
                         <x-tenant.action-message class="me-3" on="updated">
                             {{ __('site.saved') }}
                         </x-tenant.action-message>
-
                         <flux:button type="submit" size="sm">
                             {{ __('site.save') }}
                         </flux:button>
@@ -34,14 +33,14 @@
                 <div class="space-y-4">
                     <div>
                         <flux:heading size="lg" class="!mb-1">Información Básica</flux:heading>
-                        <p class="text-sm text-gray-600">Configurá el nombre de tu gimnasio y datos de contacto principal.</p>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Configurá el nombre de tu gimnasio y datos de contacto principal.</p>
                     </div>
                     <flux:separator variant="subtle" />
 
                     {{-- Nombre del sitio --}}
                     <flux:field>
                         <flux:label>Nombre del Gimnasio/Centro</flux:label>
-                        <flux:input wire:model.defer="name" type="text" required autofocus autocomplete="name" 
+                        <flux:input wire:model.defer="name" type="text" required autofocus autocomplete="name"
                             placeholder="Ej: Fitness Center" />
                         <flux:error name="name" />
                     </flux:field>
@@ -62,137 +61,179 @@
                 <div class="space-y-4 pt-4">
                     <div>
                         <flux:heading size="lg" class="!mb-1">Métodos de Pago</flux:heading>
-                        <p class="text-sm text-gray-600">Configurá cómo tus alumnos pueden pagarte. Habilitá los métodos que aceptás.</p>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Configurá cómo tus alumnos pueden pagarte. Habilitá los métodos que aceptás.</p>
                     </div>
                     <flux:separator variant="subtle" />
 
-                {{-- Instagram --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_instagram') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>instagram.com/</flux:input.group.prefix>
-                        <flux:input wire:model.defer="instagram" placeholder="usuario" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá solo tu usuario, sin @.</small>
-                    <flux:error name="instagram" />
-                </flux:field>
+                    {{-- Transferencia/Depósito --}}
+                    <div class="p-5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-xl">
+                        <div class="flex items-start gap-3">
+                            <flux:checkbox wire:model.defer="accepts_transfer" />
+                            <div class="flex-1">
+                                <div class="font-medium">Transferencia/Depósito Bancario</div>
+                                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">Aceptá pagos por transferencia o depósito directo a tu cuenta.</p>
+                            </div>
+                        </div>
 
-                {{-- Facebook --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_facebook') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>facebook.com/</flux:input.group.prefix>
-                        <flux:input wire:model.defer="facebook" placeholder="nombre_pagina" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá solo el nombre de tu página o perfil.</small>
-                    <flux:error name="facebook" />
-                </flux:field>
+                        <div x-show="$wire.accepts_transfer" x-transition class="space-y-3 pt-2">
+                            <div class="grid grid-cols-2 gap-3">
+                                <flux:field>
+                                    <flux:label>Banco</flux:label>
+                                    <flux:input wire:model.defer="bank_name" placeholder="Ej: Banco Galicia" />
+                                    <flux:error name="bank_name" />
+                                </flux:field>
 
-                {{-- YouTube --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_youtube') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>youtube.com/@</flux:input.group.prefix>
-                        <flux:input wire:model.defer="youtube" placeholder="canal" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá el nombre de tu canal.</small>
-                    <flux:error name="youtube" />
-                </flux:field>
+                                <flux:field>
+                                    <flux:label>Titular (opcional)</flux:label>
+                                    <flux:input wire:model.defer="bank_account_holder" placeholder="Ej: Juan Pérez" />
+                                    <flux:error name="bank_account_holder" />
+                                </flux:field>
+                            </div>
 
-                {{-- Twitter/X --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_twitter') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>x.com/</flux:input.group.prefix>
-                        <flux:input wire:model.defer="twitter" placeholder="usuario" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá solo tu usuario, sin @.</small>
-                    <flux:error name="twitter" />
-                </flux:field>
+                            <flux:field>
+                                <flux:label>CBU</flux:label>
+                                <flux:input wire:model.defer="bank_cbu" placeholder="0000000000000000000000" />
+                                <flux:error name="bank_cbu" />
+                            </flux:field>
 
-                {{-- TikTok --}}
-                <flux:field>
-                    <flux:label>{{ __('tenant.configuration.landing.landing_tiktok') }}</flux:label>
-                    <flux:input.group>
-                        <flux:input.group.prefix>tiktok.com/@</flux:input.group.prefix>
-                        <flux:input wire:model.defer="tiktok" placeholder="usuario" />
-                    </flux:input.group>
-                    <small class="text-xs text-gray-500 mt-1 block">Ingresá solo tu usuario.</small>
-                    <flux:error name="tiktok" />
-                </flux:field>
+                            <div class="grid grid-cols-2 gap-3">
+                                <flux:field>
+                                    <flux:label>Alias</flux:label>
+                                    <flux:input wire:model.defer="bank_alias" placeholder="MI.ALIAS.BANCO" />
+                                    <flux:error name="bank_alias" />
+                                </flux:field>
 
-                {{-- Sección de métodos de pago --}}
-                <flux:heading size="md" class="mt-8">{{ __('tenant.configuration.general.payment_methods_title') }}</flux:heading>
-                <flux:separator variant="subtle" class="my-2" />
-                <p class="text-sm text-gray-600 mb-4">{{ __('tenant.configuration.general.payment_methods_description') }}</p>
+                                <flux:field>
+                                    <flux:label>CUIT/CUIL (opcional)</flux:label>
+                                    <flux:input wire:model.defer="bank_cuit_cuil" placeholder="20-12345678-9" />
+                                    <flux:error name="bank_cuit_cuil" />
+                                </flux:field>
+                            </div>
 
-                {{-- Transferencia/Depósito --}}
-                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
-                    <flux:checkbox wire:model.defer="accepts_transfer" :label="__('tenant.configuration.general.accepts_transfer')" />
+                            <flux:field>
+                                <flux:label>Instrucciones o promociones (opcional)</flux:label>
+                                <flux:textarea wire:model.defer="transfer_instructions" rows="2"
+                                    placeholder="Ej: 10% de descuento pagando antes del día 5 de cada mes" />
+                                <flux:description>Podés agregar descuentos, horarios o instrucciones adicionales.</flux:description>
+                                <flux:error name="transfer_instructions" />
+                            </flux:field>
+                        </div>
+                    </div>
 
-                    <div x-show="$wire.accepts_transfer" class="space-y-3 mt-3">
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.bank_name') }}</flux:label>
-                            <flux:input wire:model.defer="bank_name" placeholder="Ej: Banco Galicia" />
-                            <flux:error name="bank_name" />
-                        </flux:field>
+                    {{-- Mercadopago --}}
+                    <div class="p-5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-xl">
+                        <div class="flex items-start gap-3">
+                            <flux:checkbox wire:model.defer="accepts_mercadopago" />
+                            <div class="flex-1">
+                                <div class="font-medium">Mercadopago</div>
+                                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">Aceptá pagos con tarjeta, QR o link de pago a través de Mercadopago.</p>
+                            </div>
+                        </div>
 
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.bank_account_holder') }}</flux:label>
-                            <flux:input wire:model.defer="bank_account_holder" placeholder="Ej: Juan Pérez" />
-                            <flux:error name="bank_account_holder" />
-                        </flux:field>
+                        <div x-show="$wire.accepts_mercadopago" x-transition class="space-y-3 pt-2">
+                            <flux:field>
+                                <flux:label>Access Token</flux:label>
+                                <flux:input wire:model.defer="mp_access_token" type="password" placeholder="APP_USR-..." />
+                                <flux:description>Token de tu aplicación de Mercadopago para procesar pagos.</flux:description>
+                                <flux:error name="mp_access_token" />
+                            </flux:field>
 
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.bank_cuit_cuil') }}</flux:label>
-                            <flux:input wire:model.defer="bank_cuit_cuil" placeholder="20-12345678-9" />
-                            <flux:error name="bank_cuit_cuil" />
-                        </flux:field>
+                            <flux:field>
+                                <flux:label>Public Key (opcional)</flux:label>
+                                <flux:input wire:model.defer="mp_public_key" placeholder="APP_USR-..." />
+                                <flux:description>Clave pública para integraciones web y checkout.</flux:description>
+                                <flux:error name="mp_public_key" />
+                            </flux:field>
 
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.bank_cbu') }}</flux:label>
-                            <flux:input wire:model.defer="bank_cbu" placeholder="0000000000000000000000" />
-                            <flux:error name="bank_cbu" />
-                        </flux:field>
+                            <flux:field>
+                                <flux:label>Instrucciones o promociones (opcional)</flux:label>
+                                <flux:textarea wire:model.defer="mp_instructions" rows="2"
+                                    placeholder="Ej: Pagá en cuotas sin interés con todas las tarjetas" />
+                                <flux:description>Información adicional o promociones para pagos con Mercadopago.</flux:description>
+                                <flux:error name="mp_instructions" />
+                            </flux:field>
+                        </div>
+                    </div>
 
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.bank_alias') }}</flux:label>
-                            <flux:input wire:model.defer="bank_alias" placeholder="MI.ALIAS.BANCO" />
-                            <flux:error name="bank_alias" />
-                        </flux:field>
+                    {{-- Efectivo --}}
+                    <div class="p-5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-xl">
+                        <div class="flex items-start gap-3">
+                            <flux:checkbox wire:model.defer="accepts_cash" />
+                            <div class="flex-1">
+                                <div class="font-medium">Efectivo</div>
+                                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">Recibí pagos en efectivo directamente en tu gimnasio.</p>
+                            </div>
+                        </div>
+
+                        <div x-show="$wire.accepts_cash" x-transition class="space-y-3 pt-2">
+                            <flux:field>
+                                <flux:label>Instrucciones o promociones (opcional)</flux:label>
+                                <flux:textarea wire:model.defer="cash_instructions" rows="2"
+                                    placeholder="Ej: 10% de descuento pagando antes del día 5 de cada mes" />
+                                <flux:description>Podés agregar descuentos u horarios de pago.</flux:description>
+                                <flux:error name="cash_instructions" />
+                            </flux:field>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Mercadopago --}}
-                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3 mt-3">
-                    <flux:checkbox wire:model.defer="accepts_mercadopago" :label="__('tenant.configuration.general.accepts_mercadopago')" />
-
-                    <div x-show="$wire.accepts_mercadopago" class="space-y-3 mt-3">
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.mp_access_token') }}</flux:label>
-                            <flux:input wire:model.defer="mp_access_token" type="password" placeholder="APP_USR-..." />
-                            <small class="text-xs text-gray-500 mt-1 block">{{ __('tenant.configuration.general.mp_access_token_help') }}</small>
-                            <flux:error name="mp_access_token" />
-                        </flux:field>
-
-                        <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.mp_public_key') }}</flux:label>
-                            <flux:input wire:model.defer="mp_public_key" placeholder="APP_USR-..." />
-                            <small class="text-xs text-gray-500 mt-1 block">{{ __('tenant.configuration.general.mp_public_key_help') }}</small>
-                            <flux:error name="mp_public_key" />
-                        </flux:field>
+                {{-- Sección de redes sociales --}}
+                <div class="space-y-4 pt-4">
+                    <div>
+                        <flux:heading size="lg" class="!mb-1">Redes Sociales</flux:heading>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Conectá tus perfiles sociales para que aparezcan en tu sitio web.</p>
                     </div>
-                </div>
+                    <flux:separator variant="subtle" />
 
-                {{-- Efectivo --}}
-                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3 mt-3">
-                    <flux:checkbox wire:model.defer="accepts_cash" :label="__('tenant.configuration.general.accepts_cash')" />
-
-                    <div x-show="$wire.accepts_cash" class="space-y-3 mt-3">
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- Instagram --}}
                         <flux:field>
-                            <flux:label>{{ __('tenant.configuration.general.cash_instructions') }}</flux:label>
-                            <flux:textarea wire:model.defer="cash_instructions" rows="2"
-                                :placeholder="__('tenant.configuration.general.cash_instructions_placeholder')" />
+                            <flux:label>Instagram</flux:label>
+                            <flux:input.group>
+                                <flux:input.group.prefix>@</flux:input.group.prefix>
+                                <flux:input wire:model.defer="instagram" placeholder="usuario" />
+                            </flux:input.group>
+                            <flux:error name="instagram" />
+                        </flux:field>
+
+                        {{-- Facebook --}}
+                        <flux:field>
+                            <flux:label>Facebook</flux:label>
+                            <flux:input.group>
+                                <flux:input.group.prefix>fb.com/</flux:input.group.prefix>
+                                <flux:input wire:model.defer="facebook" placeholder="pagina" />
+                            </flux:input.group>
+                            <flux:error name="facebook" />
+                        </flux:field>
+
+                        {{-- YouTube --}}
+                        <flux:field>
+                            <flux:label>YouTube</flux:label>
+                            <flux:input.group>
+                                <flux:input.group.prefix>@</flux:input.group.prefix>
+                                <flux:input wire:model.defer="youtube" placeholder="canal" />
+                            </flux:input.group>
+                            <flux:error name="youtube" />
+                        </flux:field>
+
+                        {{-- TikTok --}}
+                        <flux:field>
+                            <flux:label>TikTok</flux:label>
+                            <flux:input.group>
+                                <flux:input.group.prefix>@</flux:input.group.prefix>
+                                <flux:input wire:model.defer="tiktok" placeholder="usuario" />
+                            </flux:input.group>
+                            <flux:error name="tiktok" />
+                        </flux:field>
+
+                        {{-- Twitter/X --}}
+                        <flux:field>
+                            <flux:label>X (Twitter)</flux:label>
+                            <flux:input.group>
+                                <flux:input.group.prefix>@</flux:input.group.prefix>
+                                <flux:input wire:model.defer="twitter" placeholder="usuario" />
+                            </flux:input.group>
+                            <flux:error name="twitter" />
                         </flux:field>
                     </div>
                 </div>
@@ -200,8 +241,9 @@
             </div>
 
             {{-- Footer compacto --}}
-            <div class="pt-6 max-w-md">
-                <div class="flex justify-end gap-3 items-center text-sm opacity-80">
+            <div class="pt-8 max-w-2xl">
+                <flux:separator variant="subtle" class="mb-6" />
+                <div class="flex justify-end items-center gap-3 opacity-80">
                     <x-tenant.action-message class="me-3" on="updated">
                         {{ __('site.saved') }}
                     </x-tenant.action-message>
@@ -210,8 +252,6 @@
                     </flux:button>
                 </div>
             </div>
-
-            <flux:separator variant="subtle" class="mt-2" />
         </form>
     </div>
 </div>

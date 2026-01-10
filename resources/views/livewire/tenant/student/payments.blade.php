@@ -1,76 +1,235 @@
 <div class="space-y-8">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">💳 Pagos</h1>
-        <p class="text-gray-500">Gestioná tus abonos y comprobantes</p>
-    </div>
+    <x-student-header
+        title="Métodos de Pago"
+        subtitle="Información para realizar tus pagos"
+        icon="credit-card"
+        :student="$student" />
 
-    {{-- Estado actual --}}
-    @if ($pendingPayment)
-        <div class="bg-white shadow rounded-xl p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-gray-700">Próximo vencimiento</h2>
-
-            <p class="text-gray-600">
-                Monto a pagar: <span
-                    class="font-semibold text-gray-900">${{ number_format($pendingPayment->amount, 2) }}</span>
+    @if (empty($acceptedMethods))
+        <div class="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6">
+            <p class="text-zinc-600 dark:text-zinc-400">
+                No hay métodos de pago configurados. Contactate con el gimnasio para más información.
             </p>
-            <p class="text-sm text-gray-500">Método: {{ ucfirst($pendingPayment->method) }}</p>
+        </div>
+    @else
+        @php
+            $hasTransfer = in_array('transfer', $acceptedMethods) && $transferConfig;
+            $hasCash = in_array('cash', $acceptedMethods) && $cashConfig;
+            $hasMercadopago = in_array('mercadopago', $acceptedMethods) && $mercadopagoConfig;
+            $rightColumnCount = ($hasCash ? 1 : 0) + ($hasMercadopago ? 1 : 0);
+        @endphp
 
-            <div class="flex flex-col md:flex-row gap-4 mt-4">
-                {{-- Pago por MercadoPago --}}
-                <a href="{{ $pendingPayment->transaction_id ? $pendingPayment->transaction_id : '#' }}" target="_blank"
-                    class="flex-1 bg-[#00AEEF] hover:bg-[#009ed9] text-white font-medium text-center py-3 rounded-xl transition disabled:opacity-50 {{ $pendingPayment->transaction_id ? '' : 'pointer-events-none opacity-60' }}">
-                    Pagar con MercadoPago
-                </a>
+        <div class="grid gap-6 {{ $hasTransfer && $rightColumnCount > 0 ? 'lg:grid-cols-2' : 'lg:grid-cols-1' }}">
+            {{-- Transferencia bancaria (columna izquierda) --}}
+            @if ($hasTransfer)
+                <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-12 h-12 rounded-xl flex items-center justify-center"
+                                style="background: linear-gradient(to bottom right, var(--ftt-color-base), var(--ftt-color-base-dark, var(--ftt-color-base)));">
+                                <x-icons.lucide.landmark class="w-6 h-6 text-white" />
+                            </div>
+                        </div>
 
-                {{-- Subida de comprobante --}}
-                <div class="flex-1 bg-gray-50 border rounded-xl p-4">
-                    <p class="text-sm text-gray-600 mb-2">Pago por transferencia</p>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-4">Transferencia
+                                Bancaria</h3>
 
-                    <ul class="text-sm text-gray-700 mb-3">
-                        <li><strong>Banco:</strong> Banco Nación</li>
-                        <li><strong>Alias:</strong> fittrack.empresa</li>
-                        <li><strong>CBU:</strong> 1234567890123456789012</li>
-                    </ul>
+                            <div class="space-y-3">
+                                @if ($transferConfig['bank_name'])
+                                    <div>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-400">Banco</p>
+                                        <p class="text-zinc-800 dark:text-zinc-200 font-medium">
+                                            {{ $transferConfig['bank_name'] }}</p>
+                                    </div>
+                                @endif
 
-                    @if (!$uploadSuccess && !$pendingPayment->proof_url)
-                        <form wire:submit.prevent="uploadProof" class="space-y-3">
-                            <input type="file" wire:model="proof" accept=".jpg,.jpeg,.png,.pdf"
-                                class="block w-full text-sm text-gray-700">
-                            <button type="submit"
-                                class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg">
-                                📤 Enviar comprobante
-                            </button>
-                        </form>
-                        @error('proof')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    @else
-                        <div class="text-sm text-gray-700">
-                            <p class="text-green-600 font-medium mb-1">✅ Comprobante subido</p>
-                            @if ($pendingPayment->proof_url)
-                                <a href="{{ $pendingPayment->proof_url }}" target="_blank"
-                                    class="underline text-blue-600">
-                                    Ver archivo
-                                </a>
-                            @endif
+                                @if ($transferConfig['account_holder'])
+                                    <div>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-400">Titular</p>
+                                        <p class="text-zinc-800 dark:text-zinc-200 font-medium">
+                                            {{ $transferConfig['account_holder'] }}</p>
+                                    </div>
+                                @endif
+
+                                @if ($transferConfig['cuit_cuil'])
+                                    <div>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-400">CUIT/CUIL</p>
+                                        <p class="text-zinc-800 dark:text-zinc-200 font-medium">
+                                            {{ $transferConfig['cuit_cuil'] }}</p>
+                                    </div>
+                                @endif
+
+                                @if ($transferConfig['cbu'])
+                                    <div>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-400">CBU</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-zinc-800 dark:text-zinc-200 font-mono">
+                                                {{ $transferConfig['cbu'] }}</p>
+                                            <button type="button"
+                                                onclick="copyToClipboard('{{ $transferConfig['cbu'] }}', event)"
+                                                class="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if ($transferConfig['alias'])
+                                    <div>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-400">Alias</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-zinc-800 dark:text-zinc-200 font-medium">
+                                                {{ $transferConfig['alias'] }}</p>
+                                            <button type="button"
+                                                onclick="copyToClipboard('{{ $transferConfig['alias'] }}', event)"
+                                                class="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if ($transferConfig['instructions'])
+                                    <div
+                                        class="mt-4 p-3 rounded-lg border inline-block max-w-full"
+                                        style="background-color: var(--ftt-color-base-transparent); border-color: var(--ftt-color-base);">
+                                        <p class="text-sm flex items-start gap-2"
+                                           style="color: var(--ftt-color-base);">
+                                            <x-icons.lucide.badge-percent class="size-4 mt-0.5 flex-shrink-0" />
+                                            <span><span class="font-medium">Promoción:</span>
+                                                {{ $transferConfig['instructions'] }}</span>
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Columna derecha (Efectivo y Mercado Pago) --}}
+            @if ($hasCash || $hasMercadopago)
+                <div class="space-y-6">
+                    {{-- Efectivo --}}
+                    @if ($hasCash)
+                        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="w-12 h-12 rounded-xl flex items-center justify-center"
+                                        style="background: linear-gradient(to bottom right, var(--ftt-color-base), var(--ftt-color-base-dark, var(--ftt-color-base)));">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-4">Efectivo</h3>
+                                    @if ($cashConfig['instructions'])
+                                        <div
+                                            class="p-3 rounded-lg border inline-block max-w-full"
+                                            style="background-color: var(--ftt-color-base-transparent); border-color: var(--ftt-color-base);">
+                                            <p class="text-sm flex items-start gap-2"
+                                               style="color: var(--ftt-color-base);">
+                                                <x-icons.lucide.info class="size-4 mt-0.5 flex-shrink-0" />
+                                                <span>{!! nl2br(e($cashConfig['instructions'])) !!}</span>
+                                            </p>
+                                        </div>
+                                    @else
+                                        <p class="text-zinc-600 dark:text-zinc-400">Pagá en efectivo directamente en el
+                                            gimnasio.
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Mercado Pago --}}
+                    @if ($hasMercadopago)
+                        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <img src="{{ url('images/MP_RGB_HANDSHAKE_color_vertical.svg') }}" alt="Mercado Pago"
+                                        class="w-12 h-12 object-contain">
+                                </div>
+
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-4">Mercado Pago</h3>
+                                    <p class="text-zinc-600 dark:text-zinc-400 mb-4">Pagá de forma rápida y segura con Mercado
+                                        Pago.</p>
+
+                                    <button type="button"
+                                        class="inline-flex items-center gap-2 px-6 py-3 bg-[#009ee3] hover:bg-[#0088cc] text-white font-medium rounded-xl transition">
+                                        Pagar con Mercado Pago
+                                    </button>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Próximamente disponible</p>
+
+                                    @if ($mercadopagoConfig['instructions'])
+                                        <div
+                                            class="mt-4 p-3 rounded-lg border inline-block max-w-full"
+                                            style="background-color: var(--ftt-color-base-transparent); border-color: var(--ftt-color-base);">
+                                            <p class="text-sm flex items-start gap-2"
+                                               style="color: var(--ftt-color-base);">
+                                                <x-icons.lucide.badge-percent class="size-4 mt-0.5 flex-shrink-0" />
+                                                <span><span class="font-medium">Promoción:</span>
+                                                    {{ $mercadopagoConfig['instructions'] }}</span>
+                                            </p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
-
-            </div>
-        </div>
-    @else
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-            <p class="text-green-800">
-                🎉 No tenés pagos pendientes en este momento.
-            </p>
+            @endif
         </div>
     @endif
-
-    {{-- Historial --}}
-    <div class="bg-white shadow rounded-xl p-6">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Historial de pagos</h2>
-
-        <livewire:tenant.student.payments-history />
-    </div>
 </div>
+
+<script>
+    function copyToClipboard(text, event) {
+        const button = event.currentTarget;
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                // Cambiar ícono temporalmente
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                button.classList.add('text-green-600', 'dark:text-green-400');
+
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('text-green-600', 'dark:text-green-400');
+                }, 1500);
+            }
+        } catch (err) {
+            console.error('Error al copiar:', err);
+            alert('No se pudo copiar. Texto: ' + text);
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+</script>
