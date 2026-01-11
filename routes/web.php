@@ -5,6 +5,8 @@ use App\Livewire\Central\Dashboard\Clients\ClientsForm;
 use App\Livewire\Central\Dashboard\Clients\ClientsIndex;
 use App\Livewire\Central\Dashboard\DeployPanel;
 use App\Livewire\Central\Dashboard\LogViewer;
+use App\Livewire\Central\Dashboard\Manuals\ManualsForm;
+use App\Livewire\Central\Dashboard\Manuals\ManualsIndex;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -56,6 +58,12 @@ foreach (config('tenancy.central_domains') as $domain) {
 
                 Route::prefix('contacts')->name('contacts.')->group(function () {
                     Route::get('/', ContactIndex::class)->name('index');
+                });
+
+                Route::prefix('manuals')->name('manuals.')->group(function () {
+                    Route::get('/', ManualsIndex::class)->name('index');
+                    Route::get('/create', ManualsForm::class)->name('create');
+                    Route::get('/{manual}/edit', ManualsForm::class)->name('edit');
                 });
 
                 //Route::resource('clients', ClientController::class);

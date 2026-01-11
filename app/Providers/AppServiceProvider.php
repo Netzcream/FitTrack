@@ -49,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Central policies
         Gate::policy(\App\Models\Central\Conversation::class, \App\Policies\Central\ConversationPolicy::class);
+        Gate::policy(\App\Models\Central\Manual::class, \App\Policies\ManualPolicy::class);
 
         // Tenant policies (will be available in tenant context)
         if (class_exists(\App\Models\Tenant\Conversation::class)) {

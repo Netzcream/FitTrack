@@ -19,6 +19,8 @@
 
                     <flux:navlist.item icon="users" :href="route('central.dashboard.clients.index')" :current="request()->routeIs('central.dashboard.clients.*')" wire:navigate>{{ __('central.clients') }}</flux:navlist.item>
 
+                    <flux:navlist.item icon="book-open" :href="route('central.dashboard.manuals.index')" :current="request()->routeIs('central.dashboard.manuals.*')" wire:navigate>{{ __('manuals.index_title') }}</flux:navlist.item>
+
                     <flux:navlist.item icon="message-square-more" :href="route('central.dashboard.contacts.index')" :current="request()->routeIs('central.dashboard.contacts.*')" wire:navigate>{{ __('site.contacts') }}</flux:navlist.item>
 
                     @livewire(\App\Livewire\Central\SupportBadgeNavItem::class)

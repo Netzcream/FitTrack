@@ -20,7 +20,7 @@ class General extends Component
     public string $subtitle = '';
     public string $description = '';
     public string $footer = '';
-    public string $show_form = '';
+    public bool $show_form = false;
     public string $footerText = '';
     public string $footerBackground = '';
 
@@ -75,7 +75,17 @@ class General extends Component
             $this->cover = null;
             $this->coverUrl = null;
         }
-         $show_form =  $this->show_form ? true : false;
+
+        // Log para depuración
+        Log::info('Guardando configuración general:', [
+            'landing_title' => $this->title,
+            'landing_subtitle' => $this->subtitle,
+            'landing_description' => $this->description,
+            'landing_footer' => $this->footer,
+            'landing_general_show_form' => $this->show_form,
+            'landing_footer_text_color' => $this->footerText,
+            'landing_footer_background_color' => $this->footerBackground,
+        ]);
 
         Configuration::setConf('landing_title', $this->title);
         Configuration::setConf('landing_subtitle', $this->subtitle);
@@ -85,7 +95,11 @@ class General extends Component
         Configuration::setConf('landing_footer_text_color', $this->footerText);
         Configuration::setConf('landing_footer_background_color', $this->footerBackground);
 
-
+        // Verificar que se guardó
+        Log::info('Verificación después de guardar:', [
+            'landing_title_db' => Configuration::conf('landing_title'),
+            'landing_subtitle_db' => Configuration::conf('landing_subtitle'),
+        ]);
 
         $this->dispatch('updated');
         $this->mount();

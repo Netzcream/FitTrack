@@ -48,8 +48,12 @@ const initApexPlaceholders = () => {
             document.documentElement.classList.contains("dark") ||
             window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-        const lightPalette = ["#2563eb", "#9333ea", "#10b981", "#f59e0b"];
-        const darkPalette = ["#3b82f6", "#a855f7", "#34d399", "#fbbf24"];
+        // Obtener colores de la marca desde variables CSS
+        const brandBase = getComputedStyle(document.documentElement).getPropertyValue('--ftt-color-base').trim() || '#263d83';
+        const brandDark = getComputedStyle(document.documentElement).getPropertyValue('--ftt-color-dark').trim() || '#263d83';
+
+        const lightPalette = [brandBase, "#9333ea", "#10b981", "#f59e0b"];
+        const darkPalette = [brandDark, "#a855f7", "#34d399", "#fbbf24"];
         let colors = (isDark ? darkPalette : lightPalette).slice(
             0,
             Math.max(1, series.length)
@@ -203,6 +207,9 @@ const initApexPlaceholders = () => {
         chart.render();
     });
 };
+
+// Exportar para uso global
+window.initApexPlaceholders = initApexPlaceholders;
 
 document.addEventListener("DOMContentLoaded", scheduleApexInit);
 document.addEventListener("livewire:load", scheduleApexInit);

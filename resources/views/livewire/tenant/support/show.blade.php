@@ -31,9 +31,9 @@
             <div wire:poll.3s class="space-y-4" id="messages-container-support">
                 @forelse ($messages as $message)
                     <div class="flex {{ $message->sender_type->value === 'tenant' ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[70%] {{ $message->sender_type->value === 'tenant' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100' }} rounded-lg px-4 py-2 shadow-sm">
+                        <div class="max-w-[70%] rounded-lg px-4 py-2 shadow-sm {{ $message->sender_type->value === 'tenant' ? 'text-white' : 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100' }}" @if($message->sender_type->value === 'tenant') style="background-color: var(--ftt-color-base);" @endif>
                             <div class="text-sm break-words whitespace-pre-wrap">{{ $message->body }}</div>
-                            <div class="text-xs {{ $message->sender_type->value === 'tenant' ? 'text-blue-100' : 'text-gray-500 dark:text-neutral-400' }} mt-1">
+                            <div class="text-xs {{ $message->sender_type->value === 'tenant' ? 'opacity-80' : 'text-gray-500 dark:text-neutral-400' }} mt-1">
                                 {{ $message->created_at->format('d/m/Y H:i') }}
                             </div>
                         </div>
@@ -63,7 +63,10 @@
                             @keydown.enter="handleKeyDown($event)" />
                     </div>
                     <button type="submit"
-                            class="p-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                            class="p-3 rounded-full text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                            style="background-color: var(--ftt-color-base);"
+                            onmouseover="this.style.backgroundColor='var(--ftt-color-base-bright)'"
+                            onmouseout="this.style.backgroundColor='var(--ftt-color-base)'"
                             x-bind:disabled="$wire.newMessage.trim() === ''">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
@@ -72,6 +75,17 @@
                 </div>
                 <p class="text-xs text-gray-500 dark:text-neutral-400 mt-2">{{ __('Enter para enviar, Shift+Enter para nueva línea') }}</p>
             </form>
+        </div>
+
+        {{-- Link to Manuals --}}
+        <div class="border-t border-gray-200 dark:border-neutral-700 px-4 py-3 bg-gray-50 dark:bg-neutral-900">
+            <a href="{{ route('tenant.dashboard.manuals.index') }}" wire:navigate
+               class="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <span>{{ __('Consultá nuestras guías y manuales') }}</span>
+            </a>
         </div>
 
     </div>

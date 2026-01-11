@@ -123,8 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
     'aliases' => [
-        'Route'     => "Illuminate\Support\Facades\Route",
-
+        'Route' => "Illuminate\Support\Facades\Route",
+        'Str'   => "Illuminate\Support\Str",
     ],
 
 ];

@@ -44,25 +44,46 @@
 
     <div class="space-y-4">
         @forelse ($assignments as $assignment)
-            <div class="border rounded-lg overflow-hidden dark:border-neutral-700 {{ $assignment->is_active ? 'border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800' : 'border-gray-200 bg-white dark:bg-neutral-800' }}">
+            <div class="border rounded-lg
+                        @if($assignment->status->value === 'active')
+                            border-2 bg-white dark:bg-neutral-800/50
+                        @else
+                            border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800
+                        @endif"
+                 @if($assignment->status->value === 'active') style="border-color: var(--ftt-color-base);" @endif>
                 <div class="p-6 space-y-4">
                     <div class="flex items-start justify-between gap-4">
-                        <div class="flex-1 space-y-1">
-                            <div class="flex items-center gap-3">
+                        <div class="flex-1 min-w-0 space-y-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                                     {{ $assignment->name }}
                                 </h3>
-                                @if ($assignment->is_active)
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100">
-                                        {{ __('students.active') }}
+
+                                {{-- Badge de status --}}
+                                @if ($assignment->status->value === 'active')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style="background-color: var(--ftt-color-base);">
+                                        <x-icons.lucide.play-circle class="w-3 h-3 mr-1.5 flex-shrink-0" />
+                                        {{ $assignment->status->label() }}
                                     </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-200 dark:bg-neutral-700 text-gray-900 dark:text-neutral-100">
-                                        {{ __('students.inactive') }}
+                                @elseif($assignment->status->value === 'pending')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style="background-color: rgb(245 158 11);">
+                                        <x-icons.lucide.clock class="w-3 h-3 mr-1.5 flex-shrink-0" />
+                                        {{ $assignment->status->label() }}
+                                    </span>
+                                @elseif($assignment->status->value === 'completed')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style="background-color: rgb(59 130 246);">
+                                        <x-icons.lucide.check-circle class="w-3 h-3 mr-1.5 flex-shrink-0" />
+                                        {{ $assignment->status->label() }}
+                                    </span>
+                                @elseif($assignment->status->value === 'cancelled')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white whitespace-nowrap" style="background-color: rgb(107 114 128);">
+                                        <x-icons.lucide.x-circle class="w-3 h-3 mr-1.5 flex-shrink-0" />
+                                        {{ $assignment->status->label() }}
                                     </span>
                                 @endif
+
                                 @if ($assignment->overrides['hidden'] ?? false)
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 whitespace-nowrap">
                                         {{ __('students.hidden') }}
                                     </span>
                                 @endif
@@ -72,6 +93,19 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-2">
+                            @if ($assignment->status->value === 'pending')
+                                <flux:modal.trigger name="confirm-activate-assignment">
+                                    <flux:button
+                                        size="sm"
+                                        variant="primary"
+                                        wire:click="$set('deleteAssignmentUuid', '{{ $assignment->uuid }}')"
+                                        icon="play"
+                                    >
+                                        Activar ahora
+                                    </flux:button>
+                                </flux:modal.trigger>
+                            @endif
+                            
                             @if ($assignment->plan)
                                 <flux:button
                                     size="sm"
@@ -98,11 +132,11 @@
                                 <flux:button
                                     size="sm"
                                     variant="ghost"
-                                    disabled
+                                    as="a"
+                                    href="{{ route('tenant.dashboard.students.plan-download', $assignment->uuid) }}"
                                     icon="download"
-                                    title="Descarga disponible pronto"
                                 >
-                                    {{ __('common.download') }}
+                                    {{ __('common.download') }} PDF
                                 </flux:button>
                             @endif
                             @if (!$assignment->is_active)
@@ -121,7 +155,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-neutral-500 uppercase tracking-wide">
+                            <p class="text-xs uppercase tracking-wide {{ $assignment->is_active ? 'text-gray-200 dark:text-neutral-300' : 'text-gray-500 dark:text-neutral-500' }}">
                                 {{ __('students.starts_at') }}
                             </p>
                             <p class="mt-1 text-sm font-medium text-gray-900 dark:text-white">
@@ -129,7 +163,7 @@
                             </p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500 dark:text-neutral-500 uppercase tracking-wide">
+                            <p class="text-xs uppercase tracking-wide {{ $assignment->is_active ? 'text-gray-200 dark:text-neutral-300' : 'text-gray-500 dark:text-neutral-500' }}">
                                 {{ __('students.ends_at') }}
                             </p>
                             <p class="mt-1 text-sm font-medium text-gray-900 dark:text-white">
@@ -197,7 +231,7 @@
             </div>
         @endforelse
         <div>
-            {{ $assignments->links() }}
+            {{ $assignments->links('components.preline.pagination') }}
         </div>
             </div>
         </div>
@@ -222,6 +256,31 @@
             </flux:modal.close>
             <flux:button wire:click="deleteAssignment" variant="danger">
                 {{ __('common.confirm_delete') }}
+            </flux:button>
+        </div>
+    </div>
+</flux:modal>
+
+<flux:modal name="confirm-activate-assignment" class="min-w-[22rem]">
+    <div class="space-y-6">
+        <div>
+            <flux:heading size="lg">Activar plan ahora</flux:heading>
+            <flux:text class="mt-2">
+                ¿Estás seguro de que deseas activar este plan ahora?
+                @if ($this->student->currentPlanAssignment)
+                    <strong class="block mt-2 text-red-600 dark:text-red-400">
+                        El plan activo actual será cancelado automáticamente.
+                    </strong>
+                @endif
+            </flux:text>
+        </div>
+        <div class="flex gap-2">
+            <flux:spacer />
+            <flux:modal.close>
+                <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+            </flux:modal.close>
+            <flux:button wire:click="activateNow('{{ $deleteAssignmentUuid }}')" variant="primary">
+                Activar ahora
             </flux:button>
         </div>
     </div>

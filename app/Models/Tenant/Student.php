@@ -4,6 +4,7 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -12,7 +13,7 @@ use Spatie\Image\Enums\Fit;
 
 class Student extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia;
+    use SoftDeletes, InteractsWithMedia, Notifiable;
 
     protected $table = 'students';
 
@@ -46,6 +47,66 @@ class Student extends Model implements HasMedia
         return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
     }
 
+    public function getBirthDateAttribute()
+    {
+        return $this->data['birth_date'] ?? null;
+    }
+
+    public function getGenderAttribute()
+    {
+        return $this->data['gender'] ?? null;
+    }
+
+    public function getHeightCmAttribute()
+    {
+        $height = $this->data['height_cm'] ?? null;
+        return $height !== null && $height !== '' ? (float) $height : null;
+    }
+
+    public function getWeightKgAttribute()
+    {
+        $weight = $this->data['weight_kg'] ?? null;
+        return $weight !== null && $weight !== '' ? (float) $weight : null;
+    }
+
+    public function getImcAttribute()
+    {
+        $height = $this->height_cm;
+        $weight = $this->weight_kg;
+
+        if ($height === null || $weight === null || $height <= 0) {
+            return null;
+        }
+
+        $heightM = $height / 100;
+        return round($weight / ($heightM ** 2), 1);
+    }
+
+    public function getTimezoneAttribute()
+    {
+        return $this->data['timezone'] ?? null;
+    }
+
+    public function getCurrentLevelAttribute()
+    {
+        return $this->data['current_level'] ?? null;
+    }
+
+    public function getLanguageAttribute()
+    {
+        return $this->data['communication_data']['language'] ?? null;
+    }
+
+    public function getNotificationsAttribute()
+    {
+        return $this->data['notifications'] ?? [];
+    }
+
+    public function getTrainingDataAttribute()
+    {
+        return $this->data['training_data'] ?? [];
+    }
+
     /* -------------------------- Mutators --------------------------- */
 
     public function setDataAttribute($value): void
@@ -73,8 +134,15 @@ class Student extends Model implements HasMedia
     public function currentPlanAssignment()
     {
         return $this->hasOne(StudentPlanAssignment::class)
-            ->where('is_active', true)
+            ->where('status', \App\Enums\PlanAssignmentStatus::ACTIVE)
             ->orderByDesc('starts_at');
+    }
+
+    public function pendingPlanAssignment()
+    {
+        return $this->hasOne(StudentPlanAssignment::class)
+            ->where('status', \App\Enums\PlanAssignmentStatus::PENDING)
+            ->orderBy('starts_at');
     }
 
     public function conversations()

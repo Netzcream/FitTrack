@@ -151,7 +151,19 @@ class Form extends Component
             'goal' => $this->goal,
         ]);
 
-        $student->data = $this->data;
+        // Limpiar datos: convertir cadenas vacías en null para campos numéricos
+        $cleanedData = $this->data;
+        if (isset($cleanedData['height_cm']) && $cleanedData['height_cm'] === '') {
+            $cleanedData['height_cm'] = null;
+        }
+        if (isset($cleanedData['weight_kg']) && $cleanedData['weight_kg'] === '') {
+            $cleanedData['weight_kg'] = null;
+        }
+        if (isset($cleanedData['birth_date']) && $cleanedData['birth_date'] === '') {
+            $cleanedData['birth_date'] = null;
+        }
+
+        $student->data = $cleanedData;
         $student->save();
 
         if ($this->avatar instanceof TemporaryUploadedFile) {

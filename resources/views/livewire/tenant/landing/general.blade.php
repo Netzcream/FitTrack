@@ -45,7 +45,7 @@
                 height="96" radius="rounded-md" />
 
             <div class="flex items-center space-x-2">
-                <input id="show_form" type="checkbox" wire:model.defer="show_form" @checked($show_form)
+                <input id="show_form" type="checkbox" wire:model="show_form" @checked($show_form)
                     class="rounded border-gray-300 text-sky-600 shadow-sm focus:ring-sky-500" />
                 <label for="show_form" class="text-sm text-zinc-800 dark:text-white">¿Mostrar formulario de contacto al
                     pié?</label>

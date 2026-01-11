@@ -4,6 +4,6 @@
         :current="request()->routeIs('tenant.dashboard.messages.*')"
         :badge="$unreadCount > 0 ? ($unreadCount > 99 ? '99+' : (string)$unreadCount) : null"
         wire:navigate>
-        {{ __('Mensajes') }}
+        {{ __('Chats con alumnos') }}
     </flux:navlist.item>
 </div>

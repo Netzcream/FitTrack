@@ -18,106 +18,77 @@
 
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('site.platform')" class="grid">
-                <flux:navlist.item icon="home" :href="route('tenant.dashboard')"
+                <flux:navlist.item icon="squares-2x2" :href="route('tenant.dashboard')"
                     :current="request()->routeIs('tenant.dashboard')" wire:navigate>
                     {{ __('site.dashboard') }}
                 </flux:navlist.item>
 
-                @can('gestionar recursos')
-                    <flux:navlist.item icon="cog" href="{{ route('tenant.dashboard.landing') }}"
-                        :current="request()->routeIs('tenant.dashboard.landing.*')" wire:navigate>
-                        {{ __('site.landing') }}
-                    </flux:navlist.item>
-                @endcan
-
                 @livewire(\App\Livewire\Tenant\ConversationBadgeNavItem::class)
 
-
-            </flux:navlist.group>
-
-            <flux:navlist variant="outline">
-                @livewire(\App\Livewire\Tenant\SupportBadgeNavItem::class)
-            </flux:navlist>
-
-            @php
-                $configPatterns = ['tenant.dashboard.configuration.*'];
-            @endphp
-
-            <flux:navlist.group :heading="__('site.configuration')" expandable
-                :expanded="request()->routeIs(...$configPatterns)">
-
-                @can('gestionar recursos')
-                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.general') }}"
-                        :current="request()->routeIs('tenant.dashboard.configuration.general')" wire:navigate>
-                        {{ __('tenant.configuration.general.title') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.notifications') }}"
-                        :current="request()->routeIs('tenant.dashboard.configuration.notifications')" wire:navigate>
-                        {{ __('tenant.configuration.notification.title') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('tenant.dashboard.configuration.appearance') }}"
-                        :current="request()->routeIs('tenant.dashboard.configuration.appearance')" wire:navigate>
-                        {{ __('tenant.configuration.appearance.title') }}
+                @can('gestionar contactos')
+                    <flux:navlist.item icon="envelope" :href="route('tenant.dashboard.contacts.index')"
+                        :current="request()->routeIs('tenant.dashboard.contacts.*')" wire:navigate>
+                        {{ __('Contactos Web') }}
                     </flux:navlist.item>
                 @endcan
 
 
             </flux:navlist.group>
 
+        </flux:navlist>
 
-
-            @php
-                $businessPatterns = [
-                    'tenant.dashboard.students.*',
-                    'tenant.dashboard.exercises.*',
-                    'tenant.dashboard.training-plans.*',
-                    'tenant.dashboard.messages.*',
-                ];
-            @endphp
-            <flux:navlist.group :heading="__('site.training')" expandable
-                :expanded="request()->routeIs(...$businessPatterns)">
-                <flux:navlist.item href="{{ route('tenant.dashboard.students.index') }}"
+        <flux:navlist variant="outline">
+            <flux:navlist.group :heading="__('site.training')">
+                <flux:navlist.item icon="users" href="{{ route('tenant.dashboard.students.index') }}"
                     :current="request()->routeIs('tenant.dashboard.students.*')" wire:navigate>
                     {{ __('site.students') }}
                 </flux:navlist.item>
-                <flux:navlist.item href="{{ route('tenant.dashboard.exercises.index') }}"
+                <flux:navlist.item icon="dumbbell" href="{{ route('tenant.dashboard.exercises.index') }}"
                     :current="request()->routeIs('tenant.dashboard.exercises.*')" wire:navigate>
                     {{ __('site.exercises') }}
                 </flux:navlist.item>
-                <flux:navlist.item href="{{ route('tenant.dashboard.training-plans.index') }}"
+                <flux:navlist.item icon="clipboard-list" href="{{ route('tenant.dashboard.training-plans.index') }}"
                     :current="request()->routeIs('tenant.dashboard.training-plans.*')" wire:navigate>
                     {{ __('site.training_plans') }}
                 </flux:navlist.item>
-
-
-
-
             </flux:navlist.group>
-
-
-            @php
-                $businessPatterns = ['tenant.dashboard.commercial-plans.*'];
-            @endphp
-            <flux:navlist.group :heading="__('site.business_setup')" expandable
-                :expanded="request()->routeIs(...$businessPatterns)">
-                <flux:navlist.item href="{{ route('tenant.dashboard.commercial-plans.index') }}"
-                    :current="request()->routeIs('tenant.dashboard.commercial-plans.*')" wire:navigate>
-                    {{ __('site.commercial_plans') }}
-                </flux:navlist.item>
-            </flux:navlist.group>
-
-
         </flux:navlist>
 
         <flux:navlist variant="outline">
             @canany(['gestionar contactos', 'gestionar usuarios', 'gestionar roles'])
                 <flux:navlist.group :heading="__('site.management')">
-                    @can('gestionar contactos')
-                        <flux:navlist.item icon="envelope" :href="route('tenant.dashboard.contacts.index')"
-                            :current="request()->routeIs('tenant.dashboard.contacts.*')" wire:navigate>
-                            {{ __('Contactos') }}
-                        </flux:navlist.item>
+
+                    @can('gestionar recursos')
+                        @php
+                            $configPatterns = ['tenant.dashboard.configuration.*', 'tenant.dashboard.commercial-plans.*', 'tenant.dashboard.landing.*'];
+                        @endphp
+                        <flux:navlist.group heading="Configuración" expandable
+                            :expanded="request()->routeIs(...$configPatterns)">
+                            <flux:navlist.item href="{{ route('tenant.dashboard.configuration.general') }}"
+                                :current="request()->routeIs('tenant.dashboard.configuration.general')" wire:navigate>
+                                {{ __('tenant.configuration.general.title') }}
+                            </flux:navlist.item>
+                            <flux:navlist.item href="{{ route('tenant.dashboard.configuration.notifications') }}"
+                                :current="request()->routeIs('tenant.dashboard.configuration.notifications')" wire:navigate>
+                                {{ __('tenant.configuration.notification.title') }}
+                            </flux:navlist.item>
+                            <flux:navlist.item href="{{ route('tenant.dashboard.configuration.appearance') }}"
+                                :current="request()->routeIs('tenant.dashboard.configuration.appearance')" wire:navigate>
+                                {{ __('tenant.configuration.appearance.title') }}
+                            </flux:navlist.item>
+                            <flux:navlist.item href="{{ route('tenant.dashboard.commercial-plans.index') }}"
+                                :current="request()->routeIs('tenant.dashboard.commercial-plans.*')" wire:navigate>
+                                {{ __('site.commercial_plans') }}
+                            </flux:navlist.item>
+                            <flux:navlist.item href="{{ route('tenant.dashboard.landing') }}"
+                                :current="request()->routeIs('tenant.dashboard.landing.*')" wire:navigate>
+                                {{ __('site.landing') }}
+                            </flux:navlist.item>
+                        </flux:navlist.group>
                     @endcan
+{{--
+                    <flux:separator class="my-2" />
+                    --}}
 
                     @can('gestionar roles')
                         <flux:navlist.item icon="user" :href="route('tenant.dashboard.roles.index')"
@@ -137,6 +108,15 @@
         </flux:navlist>
 
 
+        <flux:navlist variant="outline">
+            <flux:navlist.group :heading="__('Soporte y Manuales')">
+                @livewire(\App\Livewire\Tenant\SupportBadgeNavItem::class)
+                <flux:navlist.item icon="book-open" :href="route('tenant.dashboard.manuals.index')"
+                    :current="request()->routeIs('tenant.dashboard.manuals.*')" wire:navigate>
+                    {{ __('Manuales y Guías') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        </flux:navlist>
 
         <flux:spacer />
 

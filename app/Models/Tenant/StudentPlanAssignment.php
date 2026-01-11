@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Exercise;
+use App\Enums\PlanAssignmentStatus;
 
 class StudentPlanAssignment extends Model
 {
@@ -19,6 +20,7 @@ class StudentPlanAssignment extends Model
         'name',
         'meta',
         'exercises_snapshot',
+        'status',
         'is_active',
         'starts_at',
         'ends_at',
@@ -29,6 +31,7 @@ class StudentPlanAssignment extends Model
         'meta' => 'array',
         'exercises_snapshot' => 'array',
         'overrides' => 'array',
+        'status' => PlanAssignmentStatus::class,
         'is_active' => 'boolean',
         'starts_at' => 'date',
         'ends_at' => 'date',
@@ -94,16 +97,42 @@ class StudentPlanAssignment extends Model
 
     public function getIsCurrentAttribute(): bool
     {
-        $today = now();
-        return $this->is_active
-            && (!$this->starts_at || $this->starts_at->lte($today))
-            && (!$this->ends_at || $this->ends_at->isFuture());
+        return $this->status === PlanAssignmentStatus::ACTIVE;
     }
 
     // Backward-compat: alias used in existing blades
     public function getAssignedFromAttribute()
     {
         return $this->starts_at;
+    }
+
+    /* -------------------- Scopes -------------------- */
+    public function scopeActive($query)
+    {
+        return $query->where('status', PlanAssignmentStatus::ACTIVE);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', PlanAssignmentStatus::PENDING);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', PlanAssignmentStatus::COMPLETED);
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', PlanAssignmentStatus::CANCELLED);
+    }
+
+    public function scopeActiveOrPending($query)
+    {
+        return $query->whereIn('status', [
+            PlanAssignmentStatus::ACTIVE,
+            PlanAssignmentStatus::PENDING
+        ]);
     }
 
     public function getRouteKeyName(): string

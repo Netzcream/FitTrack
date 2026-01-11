@@ -91,7 +91,8 @@
                             <div class="inline-flex items-center gap-1 flex-wrap">
                                 @foreach ($userRoles->take($visibleCount) as $role)
                                     <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900">
+                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium text-white"
+                                        style="background-color: var(--ftt-color-base);">
                                         {{ ucfirst($role->name) }}
                                     </span>
                                 @endforeach
@@ -127,7 +128,7 @@
                                             <div class="space-y-1 max-h-48 overflow-y-auto">
                                                 @foreach ($userRoles as $role)
                                                     <div class="text-xs text-gray-600 dark:text-neutral-400 flex items-center gap-1">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                        <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--ftt-color-base);"></span>
                                                         {{ ucfirst($role->name) }}
                                                     </div>
                                                 @endforeach

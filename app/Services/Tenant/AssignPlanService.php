@@ -6,32 +6,51 @@ use App\Models\Tenant\Student;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\Exercise;
+use App\Enums\PlanAssignmentStatus;
 use Illuminate\Support\Facades\DB;
 
 class AssignPlanService
 {
     /**
      * Assign a plan template to a student.
-     * If startNow is true and there's an active plan, it will be deactivated.
-     * If startNow is false, the current plan remains active and new one is queued.
+     * If startNow is true and there's an active plan, it will be cancelled.
+     * If startNow is false, the current plan remains active and new one is queued as pending.
      */
     public function assign(TrainingPlan $template, Student $student, ?\Carbon\Carbon $startsAt = null, ?\Carbon\Carbon $endsAt = null, bool $startNow = false): StudentPlanAssignment
     {
         return DB::transaction(function () use ($template, $student, $startsAt, $endsAt, $startNow) {
-            $current = $student->planAssignments()->where('is_active', true)->first();
+            $current = $student->planAssignments()->where('status', PlanAssignmentStatus::ACTIVE)->first();
 
-            // Solo desactivar el plan actual si startNow es true
-            $isActive = true;
+            // Buscar planes futuros pendientes
+            $futurePlans = $student->planAssignments()
+                ->where('status', PlanAssignmentStatus::PENDING)
+                ->where('starts_at', '>', now())
+                ->get();
+
+            // Cancelar todos los planes futuros pendientes
+            if ($futurePlans->isNotEmpty()) {
+                foreach ($futurePlans as $futurePlan) {
+                    $futurePlan->update([
+                        'status' => PlanAssignmentStatus::CANCELLED,
+                        'ends_at' => now(),
+                    ]);
+                }
+            }
+
+            // Determinar el status del nuevo plan
+            $newStatus = PlanAssignmentStatus::ACTIVE;
+
             if ($current) {
                 if ($startNow) {
-                    // Empezar ya: desactivar el plan actual
+                    // Empezar ya: cancelar el plan actual
                     $current->update([
+                        'status' => PlanAssignmentStatus::CANCELLED,
                         'is_active' => false,
                         'ends_at' => now(),
                     ]);
                 } else {
-                    // Encolar: el nuevo plan no estará activo hasta su fecha de inicio
-                    $isActive = false;
+                    // Encolar: el nuevo plan queda como pendiente
+                    $newStatus = PlanAssignmentStatus::PENDING;
                 }
             }
 
@@ -61,7 +80,8 @@ class AssignPlanService
                     'parent_uuid' => $template->uuid,
                 ],
                 'exercises_snapshot' => $snapshot,
-                'is_active' => $isActive,
+                'status' => $newStatus,
+                'is_active' => $newStatus === PlanAssignmentStatus::ACTIVE,
                 'starts_at' => $startsAt,
                 'ends_at' => $endsAt,
             ]);

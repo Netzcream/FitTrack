@@ -23,6 +23,8 @@ class AssignPlan extends Component
     public string $search = '';
     public ?array $selectedPlan = null;
     public ?object $currentPlan = null;
+    public ?string $futurePlanInfo = null;
+    public bool $hasFuturePlan = false;
 
     protected array $validationAttributes = [
         'training_plan_id' => 'Plan de entrenamiento',
@@ -33,6 +35,7 @@ class AssignPlan extends Component
         $this->student = $student;
         $this->loadPlans();
         $this->loadCurrentPlanInfo();
+        $this->loadFuturePlanInfo();
 
         // Calcular fechas por defecto según plan actual
         $this->currentPlan = $this->student->currentPlanAssignment;
@@ -82,6 +85,23 @@ class AssignPlan extends Component
                 $current->meta['version'] ?? '1.0',
                 $current->starts_at?->format('d/m/Y') ?? '—',
                 $current->ends_at?->format('d/m/Y') ?? '—'
+            );
+        }
+    }
+
+    public function loadFuturePlanInfo(): void
+    {
+        // Buscar plan futuro pendiente usando la relación
+        $futurePlan = $this->student->pendingPlanAssignment;
+
+        if ($futurePlan) {
+            $this->hasFuturePlan = true;
+            $this->futurePlanInfo = sprintf(
+                '%s (v%s) - Desde %s hasta %s',
+                $futurePlan->name,
+                $futurePlan->meta['version'] ?? '1.0',
+                $futurePlan->starts_at?->format('d/m/Y') ?? '—',
+                $futurePlan->ends_at?->format('d/m/Y') ?? '—'
             );
         }
     }
@@ -136,6 +156,12 @@ class AssignPlan extends Component
 
         $plan = TrainingPlan::findOrFail($validated['training_plan_id']);
 
+        // Contar planes futuros pendientes antes de asignar
+        $futurePlansCount = $this->student->planAssignments()
+            ->where('status', \App\Enums\PlanAssignmentStatus::PENDING)
+            ->where('starts_at', '>', now())
+            ->count();
+
         $service = new AssignPlanService();
         $service->assign(
             $plan,
@@ -145,11 +171,25 @@ class AssignPlan extends Component
             $this->startNow
         );
 
-        session()->flash('success', sprintf(
+        // Mensaje de éxito con información sobre planes futuros
+        $message = sprintf(
             'Plan "%s" asignado a %s correctamente',
             $plan->name,
             $this->student->full_name
-        ));
+        );
+
+        if ($futurePlansCount > 0) {
+            $message .= sprintf(
+                '. Se %s %d plan%s futuro%s pendiente%s.',
+                $futurePlansCount === 1 ? 'dio de baja' : 'dieron de baja',
+                $futurePlansCount,
+                $futurePlansCount === 1 ? '' : 'es',
+                $futurePlansCount === 1 ? '' : 's',
+                $futurePlansCount === 1 ? '' : 's'
+            );
+        }
+
+        session()->flash('success', $message);
 
         $this->dispatch('plan-assigned')->to(StudentsIndex::class);
         $this->dispatch('plan-assigned'); // Para que lo escuche Form también

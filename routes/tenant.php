@@ -127,6 +127,9 @@ Route::middleware([
                     Route::get('/{student}/edit', App\Livewire\Tenant\Students\Form::class)->name('edit');
                     Route::get('/{student}/plans-history', App\Livewire\Tenant\Students\PlansHistory::class)->name('plans-history');
                     Route::get('/{student}/training-plans', App\Livewire\Tenant\Students\TrainingPlans::class)->name('training-plans');
+                    // Download PDF route for trainers
+                    Route::get('/plan/{assignment}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'downloadAssignment'])
+                        ->name('plan-download');
                 });
 
                 Route::prefix('exercises')->name('exercises.')->group(function () {
@@ -169,6 +172,12 @@ Route::middleware([
                 // Support Routes (Tenant <-> Central)
                 Route::prefix('support')->name('support.')->group(function () {
                     Route::get('/', App\Livewire\Tenant\Support\Show::class)->name('show');
+                });
+
+                // Manuals Routes (Read-only from Central)
+                Route::prefix('manuals')->name('manuals.')->group(function () {
+                    Route::get('/', App\Livewire\Tenant\Manuals\ManualsIndex::class)->name('index');
+                    Route::get('/{manual:uuid}', App\Livewire\Tenant\Manuals\ManualsShow::class)->name('show');
                 });
             });
         });

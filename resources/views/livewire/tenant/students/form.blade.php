@@ -37,11 +37,11 @@
                         $isExpired = $plan->ends_at && $plan->ends_at->isPast();
                         $daysRemaining = $plan->ends_at ? (int) $now->diffInDays($plan->ends_at, false) : null;
                     @endphp
-                    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="rounded-lg p-4 border" style="background-color: var(--ftt-color-base-transparent); border-color: var(--ftt-color-base);">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-100">{{ $plan->name }}</h3>
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-neutral-100">{{ $plan->name }}</h3>
                                     @if ($plan->is_active && !$isExpired)
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
@@ -58,7 +58,7 @@
                                         </span>
                                     @endif
                                 </div>
-                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-blue-700 dark:text-blue-300">
+                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-700 dark:text-neutral-300">
                                     @if ($plan->starts_at)
                                         <span>Inicio: {{ $plan->starts_at->format('d/m/Y') }}</span>
                                     @endif
@@ -246,21 +246,24 @@
                         </flux:select>
                     </div>
                     <div>
-                        <flux:input type="number" step="1" wire:model.live.debounce.250ms="data.height_cm" :label="__('students.height_cm')" />
+                        <flux:input type="number" step="1" wire:model.live.debounce.750ms="data.height_cm" :label="__('students.height_cm')" />
                     </div>
                     <div>
-                        <flux:input type="number" step="0.1" wire:model.live.debounce.250ms="data.weight_kg" :label="__('students.weight_kg')" />
+                        <flux:input type="number" step="0.1" wire:model.live.debounce.750ms="data.weight_kg" :label="__('students.weight_kg')" />
                     </div>
                     @php
                         $height = $data['height_cm'] ?? null;
                         $weight = $data['weight_kg'] ?? null;
+
+                        // Convertir cadenas vacías en null y asegurar que sean numéricos
+                        $height = ($height !== '' && $height !== null) ? (float) $height : null;
+                        $weight = ($weight !== '' && $weight !== null) ? (float) $weight : null;
+
                         $bmi = null;
 
-                        if ($height && $weight) {
+                        if ($height > 0 && $weight > 0) {
                             $heightM = $height / 100;
-                            if ($heightM > 0) {
-                                $bmi = round($weight / ($heightM ** 2), 1);
-                            }
+                            $bmi = round($weight / ($heightM ** 2), 1);
                         }
 
                         $idealRange = null;
@@ -281,9 +284,10 @@
                         $obesityType = null;
                         $genderLabel = null;
                         $age = null;
-                        $chartKey = 'chart-' . ($height ?? 'x') . '-' . ($weight ?? 'x');
+                        // Generar un key único que cambie cuando cambien altura o peso
+                        $chartKey = md5(json_encode(['h' => $height, 'w' => $weight]));
 
-                        if ($height) {
+                        if ($height !== null && $height > 0) {
                             $heightM = $height / 100;
                             $idealMinKg = round(18.5 * ($heightM ** 2), 1);
                             $idealMaxKg = round(24.9 * ($heightM ** 2), 1);
@@ -299,7 +303,7 @@
                                 $genderLabel = $data['gender'] === 'female' ? 'mujer' : ($data['gender'] === 'male' ? 'hombre' : 'otro');
                             }
 
-                            if (!empty($data['gender'])) {
+                            if (!empty($data['gender']) && $height !== null && $height > 0) {
                                 if ($data['gender'] === 'female') {
                                     $pi = 45.5 + (0.9 * ($height - 152.4));
                                 } elseif ($data['gender'] === 'male') {
@@ -310,15 +314,15 @@
                                 $pi = round($pi, 1);
                             }
 
-                            if ($weight !== null && $pi) {
+                            if ($weight !== null && $weight > 0 && $pi) {
                                 $ppi = round(($weight / $pi) * 100, 1);
                             }
 
-                            if ($weight !== null) {
+                            if ($weight !== null && $weight > 0 && $height !== null && $height > 0) {
                                 $asc = round(sqrt(($height * $weight) / 3600), 1);
                             }
 
-                            if ($weight !== null) {
+                            if ($weight !== null && $weight > 0 && $height !== null && $height > 0) {
                                 if (!empty($data['gender']) && $data['gender'] === 'female') {
                                     $mcm = (1.07 * $weight) - (148 * (($weight / $height) ** 2));
                                 } elseif (!empty($data['gender']) && $data['gender'] === 'male') {
@@ -329,7 +333,7 @@
                                 $mcm = round($mcm, 1);
                             }
 
-                            if ($weight !== null) {
+                            if ($weight !== null && $weight > 0 && $height !== null && $height > 0) {
                                 if (!empty($data['gender']) && $data['gender'] === 'female') {
                                     $act = -2.097 + (0.1069 * $height) + (0.2466 * $weight);
                                 } elseif (!empty($data['gender']) && $data['gender'] === 'male' && $age !== null) {
@@ -359,17 +363,18 @@
                                 }
                             }
 
-                            $scaleMin = max(0, $idealCenter - 5);
-                            $scaleMax = $weight !== null ? $weight + 10 : ($idealCenter + 5);
+                            if ($idealCenter !== null) {
+                                $scaleMin = max(0, $idealCenter - 5);
+                                $scaleMax = $weight !== null && $weight > 0 ? $weight + 10 : ($idealCenter + 5);
 
-                            if ($weight !== null && $scaleMax > $scaleMin) {
-                                $currentPosition = max(0, min(100, (($weight - $scaleMin) / ($scaleMax - $scaleMin)) * 100));
-                            }
+                                if ($weight !== null && $weight > 0 && $scaleMax > $scaleMin) {
+                                    $currentPosition = max(0, min(100, (($weight - $scaleMin) / ($scaleMax - $scaleMin)) * 100));
+                                }
 
-                            if ($scaleMax > $scaleMin) {
-                                $points = 120;
-                                $step = ($scaleMax - $scaleMin) / ($points - 1);
-                                $sigma = max(0.5, 10 / 6);
+                                if ($scaleMax > $scaleMin) {
+                                    $points = 120;
+                                    $step = ($scaleMax - $scaleMin) / ($points - 1);
+                                    $sigma = max(0.5, 10 / 6);
 
                                 for ($i = 0; $i < $points; $i++) {
                                     $xWeight = round($scaleMin + ($step * $i), 1);
@@ -431,6 +436,7 @@
                                     ];
                                 }
                             }
+                            }
                         }
                     @endphp
                     <div class="md:col-span-2">
@@ -456,9 +462,9 @@
                                 </div>
                             </div>
                             @if ($idealRange && count($chartIdeal))
-                                <div class="space-y-3">
-                                    <div id="weight-ideal-chart" data-apex-placeholder
-                                        wire:key="weight-ideal-chart-{{ $chartKey }}"
+                                <div class="space-y-3" wire:key="chart-wrapper-{{ $chartKey }}">
+                                    <div id="weight-ideal-chart-{{ $chartKey }}" data-apex-placeholder
+                                        x-data x-init="$nextTick(() => { if (typeof window.initApexPlaceholders === 'function') window.initApexPlaceholders(); })"
                                         data-apex-force="true"
                                         data-chart-type="area"
                                         data-chart-height="170"

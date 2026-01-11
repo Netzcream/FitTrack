@@ -24,7 +24,11 @@ class Show extends Component
 
     public function mount(Conversation $conversation)
     {
-        $this->conversation = $conversation->load(['student', 'participants']);
+        $this->conversation = $conversation->load([
+            'student.currentPlanAssignment.plan',
+            'student.commercialPlan',
+            'participants'
+        ]);
         $this->conversationId = $conversation->id;
 
         Gate::authorize('view', $this->conversation);

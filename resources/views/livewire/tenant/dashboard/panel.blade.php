@@ -21,11 +21,11 @@
 
             {{-- Rutinas en curso: removido según requerimiento --}}
 
-            {{-- Mensajes de Alumnos (no leídos) --}}
+            {{-- Chats con Alumnos (no leídos) --}}
             <a wire:navigate href="{{ route('tenant.dashboard.messages.conversations.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-xs text-neutral-500">Mensajes de alumnos (no leídos)</p>
+                        <p class="text-xs text-neutral-500">Chats con alumnos (no leídos)</p>
                         <p class="mt-1 text-2xl font-semibold">{{ number_format($unreadStudentMessages) }}</p>
                     </div>
                     <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
@@ -84,7 +84,7 @@
                 <!-- Legend -->
                 <div class="flex justify-center sm:justify-end items-center gap-x-4 mb-3 sm:mb-6 mt-2">
                     <div class="inline-flex items-center">
-                        <span class="size-2.5 inline-block bg-blue-600 rounded-sm me-2"></span>
+                        <span class="size-2.5 inline-block rounded-sm me-2" style="background-color: var(--ftt-color-base);"></span>
                         <span
                             class="text-[13px] text-gray-600 dark:text-neutral-400">{{ __('site.new_students') }}</span>
                     </div>
@@ -118,25 +118,32 @@
                         <span class="text-sm font-medium">{{ __('site.view_students') }}</span>
                     </flux:button>
 
-                    {{-- Planes de entrenamiento --}}
-                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.training-plans.index') }}"
+                    {{-- Gestionar Ejercicios --}}
+                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.exercises.index') }}"
                         class="!h-auto flex flex-col items-center justify-center py-6 text-center">
                         <flux:icon.dumbbell class="size-6 mb-2" />
-                        <span class="text-sm font-medium">{{ __('site.manage_training_plans') }}</span>
+                        <span class="text-sm font-medium">{{ __('site.exercises') }}</span>
                     </flux:button>
 
-                    {{-- Mensajes --}}
+                    {{-- Gestionar Entrenamientos --}}
+                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.training-plans.index') }}"
+                        class="!h-auto flex flex-col items-center justify-center py-6 text-center">
+                        <flux:icon.clipboard-list class="size-6 mb-2" />
+                        <span class="text-sm font-medium">Gestionar entrenamientos</span>
+                    </flux:button>
+
+                    {{-- Soporte --}}
                     <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.support.show') }}"
                         class="!h-auto flex flex-col items-center justify-center py-6 text-center">
-                        <flux:icon.mail class="size-6 mb-2" />
-                        <span class="text-sm font-medium">{{ __('site.review_unread') }}</span>
+                        <flux:icon.life-buoy class="size-6 mb-2" />
+                        <span class="text-sm font-medium">{{ __('Soporte') }}</span>
                     </flux:button>
 
-                    {{-- Pago / ingreso rápido (reserva para futuro) --}}
-                    <flux:button as="a" href="#"
-                        class="!h-auto flex flex-col items-center justify-center py-6 text-center col-span-2">
-                        <flux:icon.wallet class="size-6 mb-2" />
-                        <span class="text-sm font-medium">{{ __('site.new_payment') }}</span>
+                    {{-- Manuales y Guías --}}
+                    <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.manuals.index') }}"
+                        class="!h-auto flex flex-col items-center justify-center py-6 text-center">
+                        <flux:icon.book-open class="size-6 mb-2" />
+                        <span class="text-sm font-medium">{{ __('Manuales y Guías') }}</span>
                     </flux:button>
                 </div>
             </div>

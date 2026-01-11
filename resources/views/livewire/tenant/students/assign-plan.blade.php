@@ -1,11 +1,11 @@
 <div class="space-y-6">
     {{-- Plan vigente actual --}}
     @if ($currentPlanInfo)
-        <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+        <div class="rounded-lg p-4 border" style="background-color: var(--ftt-color-base-transparent); border-color: var(--ftt-color-base);">
+            <h4 class="font-semibold text-gray-900 dark:text-neutral-100 mb-1">
                 Plan vigente actual
             </h4>
-            <p class="text-sm text-blue-800 dark:text-blue-200">
+            <p class="text-sm text-gray-700 dark:text-neutral-300">
                 {{ $currentPlanInfo }}
             </p>
         </div>
@@ -14,6 +14,28 @@
             <p class="text-sm text-gray-600 dark:text-neutral-400">
                 Este alumno no tiene un plan vigente
             </p>
+        </div>
+    @endif
+
+    {{-- Plan futuro pendiente --}}
+    @if ($hasFuturePlan)
+        <div class="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                        Plan futuro pendiente
+                    </h4>
+                    <p class="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                        {{ $futurePlanInfo }}
+                    </p>
+                    <p class="text-xs text-amber-700 dark:text-amber-300">
+                        ⚠️ Al asignar un nuevo plan, este plan futuro será dado de baja automáticamente.
+                    </p>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -105,7 +127,7 @@
                 <flux:checkbox
                     wire:model.live="startNow"
                     label="Empezar ya (desactivar plan actual)"
-                    description="Si marcas esta opción, el plan actual se dará de baja y el nuevo comenzará hoy. Si no, el nuevo plan quedará encolado."
+                    description="Si marcas esta opción, el plan actual se dará de baja y el nuevo comenzará hoy. Si no, el nuevo plan quedará encolado. Nota: Los planes futuros pendientes se darán de baja automáticamente en ambos casos."
                 />
             </div>
         @endif

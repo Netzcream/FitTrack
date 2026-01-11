@@ -5,7 +5,7 @@
         <div class="relative mb-6 w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <flux:heading size="xl" level="1">{{ __('Mensajes con alumnos') }}</flux:heading>
+                    <flux:heading size="xl" level="1">{{ __('Chats con alumnos') }}</flux:heading>
                     <flux:subheading size="lg" class="mb-6">{{ __('Conversaciones con tus alumnos') }}</flux:subheading>
                 </div>
 
@@ -52,6 +52,7 @@
                 {{-- Filas --}}
                 @forelse ($conversations as $conversation)
                     <tr wire:key="conversation-{{ $conversation->id }}"
+                        onclick="window.Livewire.navigate('{{ route('tenant.dashboard.messages.conversations.show', $conversation) }}')"
                         class="hover:bg-gray-50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors">
 
                         {{-- Estudiante --}}
@@ -81,15 +82,29 @@
 
                         {{-- Último mensaje --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            <div class="max-w-md truncate">
-                                {{ $conversation->lastMessage?->body ?? __('Sin mensajes') }}
-                            </div>
+                            @if ($conversation->lastMessage)
+                                <div class="flex items-start gap-2 max-w-md">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="inline-block bg-gray-100 dark:bg-neutral-700 rounded-lg px-3 py-2 max-w-full">
+                                            <p class="text-[10px] font-semibold text-gray-500 dark:text-neutral-400 mb-0.5">
+                                                {{ $conversation->lastMessage->sender_type === 'App\\Models\\Tenant\\Student' ? $conversation->student?->full_name : 'Tú' }}
+                                            </p>
+                                            <p class="text-sm text-gray-800 dark:text-neutral-200 break-words line-clamp-2">
+                                                {{ $conversation->lastMessage->body }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <span class="text-gray-400 dark:text-neutral-600">{{ __('Sin mensajes') }}</span>
+                            @endif
                         </td>
 
                         {{-- No leídos --}}
-                        <td class="align-top px-6 py-4 text-sm text-center">
+                        <td class="px-6 py-4 text-sm text-center align-middle">
                             @if ($conversation->unread_count > 0)
-                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-500 text-white text-xs font-bold">
+                                <span class="inline-flex items-center justify-center h-6 w-6 rounded-full text-white text-xs font-bold"
+                                      style="background-color: var(--ftt-color-base);">
                                     {{ $conversation->unread_count }}
                                 </span>
                             @else
@@ -103,7 +118,7 @@
                         </td>
 
                         {{-- Acciones --}}
-                        <td class="align-top px-6 py-4 text-end text-sm font-medium">
+                        <td class="align-top px-6 py-4 text-end text-sm font-medium" onclick="event.stopPropagation()">
                             <flux:button size="sm" as="a" wire:navigate
                                          href="{{ route('tenant.dashboard.messages.conversations.show', $conversation) }}">
                                 {{ __('Ver') }}
