@@ -12,5 +12,11 @@ return [
             'favicon' => 'Favicon',
         ],
     ],
+    'landing' => [
+        'banners' => [
+            'desktop_image' => 'Desktop image',
+            'mobile_image' => 'Mobile image',
+        ],
+    ],
 
 ];

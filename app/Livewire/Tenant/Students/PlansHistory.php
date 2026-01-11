@@ -47,8 +47,9 @@ class PlansHistory extends Component
             ->where('uuid', $this->deleteAssignmentUuid)
             ->firstOrFail();
 
-        if ($assignment->is_active) {
+        if ($assignment->status->value === 'active') {
             session()->flash('error', __('students.cannot_delete_active_plan'));
+            $this->dispatch('modal-close', name: 'confirm-delete-assignment');
             return;
         }
 
@@ -56,6 +57,40 @@ class PlansHistory extends Component
         $this->deleteAssignmentUuid = null;
         $this->deleteAssignmentName = null;
         session()->flash('success', __('students.plan_deleted'));
+        $this->dispatch('modal-close', name: 'confirm-delete-assignment');
+    }
+
+    public function activateNow(string $assignmentUuid): void
+    {
+        $assignment = $this->student->planAssignments()
+            ->where('uuid', $assignmentUuid)
+            ->firstOrFail();
+
+        if ($assignment->status->value !== 'pending') {
+            session()->flash('error', 'Solo se pueden activar planes próximos.');
+            return;
+        }
+
+        // Cancelar el plan activo actual si existe
+        $currentActive = $this->student->planAssignments()
+            ->where('status', 'active')
+            ->first();
+
+        if ($currentActive) {
+            $currentActive->update([
+                'status' => 'cancelled',
+                'ends_at' => now(),
+            ]);
+        }
+
+        // Activar el plan pendiente
+        $assignment->update([
+            'status' => 'active',
+            'starts_at' => now(),
+        ]);
+
+        session()->flash('success', 'Plan activado correctamente.');
+        $this->dispatch('modal-close', name: 'confirm-activate-assignment');
     }
 
     public function render()

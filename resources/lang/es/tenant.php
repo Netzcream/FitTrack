@@ -104,6 +104,8 @@ return [
             'target' => 'Destino',
             'order' => 'Orden',
             'image' => 'Imagen',
+            'desktop_image' => 'Imagen de escritorio',
+            'mobile_image' => 'Imagen de movil',
 
             '_self' => 'Misma pestaña',
             '_blank' => 'Nueva pestaña',
