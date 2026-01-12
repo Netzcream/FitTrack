@@ -42,7 +42,7 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
                                     <h3 class="text-sm font-semibold text-gray-900 dark:text-neutral-100">{{ $plan->name }}</h3>
-                                    @if ($plan->is_active && !$isExpired)
+                                    @if ($plan->status->value === 'active' && !$isExpired)
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
                                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                             Activo
@@ -249,11 +249,13 @@
                         <flux:input type="number" step="1" wire:model.live.debounce.750ms="data.height_cm" :label="__('students.height_cm')" />
                     </div>
                     <div>
-                        <flux:input type="number" step="0.1" wire:model.live.debounce.750ms="data.weight_kg" :label="__('students.weight_kg')" />
+                        <flux:input type="text" wire:model="lastWeightDisplay" :label="__('students.weight_kg')" disabled />
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">El peso se registra en la sección de Evolución de Peso</p>
                     </div>
+
                     @php
                         $height = $data['height_cm'] ?? null;
-                        $weight = $data['weight_kg'] ?? null;
+                        $weight = $lastRecordedWeight ?? $data['weight_kg'] ?? null;
 
                         // Convertir cadenas vacías en null y asegurar que sean numéricos
                         $height = ($height !== '' && $height !== null) ? (float) $height : null;
@@ -599,6 +601,68 @@
                         <flux:input wire:model.defer="data.emergency_contact.phone" :label="__('students.emergency_contact_phone')" />
                     </div>
                 </div>
+
+                {{-- Evolución de Peso --}}
+                @if($student && $student->exists)
+                    <flux:separator variant="subtle" class="mt-8" />
+                    <flux:heading size="lg">Evolución de Peso</flux:heading>
+                    <div class="space-y-4">
+                        {{-- Historial de pesos --}}
+                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 mb-4">
+                            <h4 class="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-3">Historial de pesos</h4>
+                            @if(count($weightHistory) > 0)
+                                <div class="space-y-2 max-h-48 overflow-y-auto">
+                                    @foreach($weightHistory as $entry)
+                                        <div class="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-800 rounded">
+                                            <div>
+                                                <p class="font-medium text-neutral-900 dark:text-neutral-100">{{ $entry['weight'] }} kg</p>
+                                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ $entry['date'] }}</p>
+                                                @if($entry['notes'])
+                                                    <p class="text-xs text-neutral-400 dark:text-neutral-500">{{ $entry['notes'] }}</p>
+                                                @endif
+                                            </div>
+                                            <button type="button"
+                                                    wire:click="deleteWeightEntry('{{ $entry['id'] }}')"
+                                                    class="text-xs text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">Eliminar</button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400">No hay registros de peso</p>
+                            @endif
+                        </div>
+
+                        {{-- Formulario para agregar peso --}}
+                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
+                            <h4 class="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-3">Registrar nuevo peso</h4>
+
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <flux:input type="number"
+                                                  step="0.1"
+                                                  wire:model="newWeight"
+                                                  label="Peso (kg)"
+                                                  placeholder="75.5" />
+                                    </div>
+                                    <div>
+                                        <flux:input type="date"
+                                                  wire:model="newWeightDate"
+                                                  label="Fecha" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <flux:textarea wire:model="newWeightNotes"
+                                                 label="Notas (opcional)"
+                                                 placeholder="Desayuno, tarde, etc..." />
+                                </div>
+                                <flux:button type="button" wire:click="addWeightEntry" class="w-full">
+                                    Registrar peso
+                                </flux:button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Footer --}}
                 <div class="pt-6 max-w-3xl">

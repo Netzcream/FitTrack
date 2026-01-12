@@ -17,6 +17,7 @@ class StudentWeightEntry extends Model
         'recorded_at',
         'notes',
         'meta',
+        'uuid',
     ];
 
     protected $casts = [
@@ -27,7 +28,11 @@ class StudentWeightEntry extends Model
 
     protected static function booted(): void
     {
-        // Auto-increment id is handled by database
+        static::creating(function (self $model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::orderedUuid();
+            }
+        });
     }
 
     /**

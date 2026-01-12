@@ -21,6 +21,7 @@ class WorkoutToday extends Component
     public ?string $notes = null;
     public array $survey = [];
     public bool $showCompletionForm = false;
+    public ?float $currentWeight = null;
 
     private int $lastPersistedMinute = -1;
 
@@ -131,6 +132,7 @@ class WorkoutToday extends Component
             'durationMinutes' => 'required|integer|min:1|max:500',
             'rating' => 'nullable|integer|min:1|max:5',
             'notes' => 'nullable|string|max:500',
+            'currentWeight' => 'nullable|numeric|min:20|max:300',
         ]);
 
         $this->workout->completeWorkout(
@@ -140,7 +142,33 @@ class WorkoutToday extends Component
             $this->survey
         );
 
-        session()->flash('success', '¡Entrenamiento completado! Ahora puedes actualizar tu peso.');
+        // Guardar peso si fue ingresado y la tabla existe
+        if ($this->currentWeight) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('weight_logs')) {
+                    \Illuminate\Support\Facades\DB::table('weight_logs')->insert([
+                        'student_id' => $this->student->id,
+                        'weight' => $this->currentWeight,
+                        'measured_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    // Si no existe la tabla, crear el registro en student->data
+                    $studentData = $this->student->data ?? [];
+                    $studentData['weights'] = $studentData['weights'] ?? [];
+                    $studentData['weights'][] = [
+                        'weight' => $this->currentWeight,
+                        'measured_at' => now()->toIso8601String(),
+                    ];
+                    $this->student->update(['data' => $studentData]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error guardando peso: ' . $e->getMessage());
+            }
+        }
+
+        session()->flash('success', '¡Entrenamiento completado!' . ($this->currentWeight ? ' Peso actualizado.' : ''));
         $this->redirect(route('tenant.student.dashboard'));
     }
 
@@ -190,6 +218,7 @@ class WorkoutToday extends Component
             'notes' => $this->notes,
             'survey' => $this->survey,
             'showCompletionForm' => $this->showCompletionForm,
+            'currentWeight' => $this->currentWeight,
         ]);
     }
 }

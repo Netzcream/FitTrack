@@ -8,6 +8,7 @@ use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\CommercialPlan;
+use App\Models\Tenant\StudentWeightEntry;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
@@ -55,6 +56,14 @@ class Form extends Component
         ],
     ];
 
+    // Propiedades para el histórico de pesos
+    public array $weightHistory = [];
+    public ?string $lastWeightDisplay = null;
+    public ?float $lastRecordedWeight = null;
+    public ?float $newWeight = null;
+    public ?string $newWeightDate = null;
+    public ?string $newWeightNotes = null;
+
     public function getCurrentPlanProperty()
     {
         if (!$this->student) {
@@ -95,6 +104,84 @@ class Form extends Component
 
             $this->editMode = true;
             $this->currentAvatarUrl = $student->getFirstMediaUrl('avatar', 'thumb');
+
+            // Cargar el historial de pesos
+            $this->loadWeightHistory();
+        } else {
+            // Para nuevo estudiante, inicializar lastWeightDisplay vacío
+            $this->lastWeightDisplay = '—';
+        }
+
+        // Inicializar fecha con hoy
+        $this->newWeightDate = now()->format('Y-m-d');
+    }
+
+    private function loadWeightHistory(): void
+    {
+        if (!$this->student) {
+            return;
+        }
+
+        $weightEntries = StudentWeightEntry::forStudent($this->student->id)
+            ->orderBy('recorded_at', 'desc')
+            ->get();
+
+        $this->weightHistory = $weightEntries->map(function ($entry) {
+            return [
+                'id' => $entry->id,
+                'weight' => round($entry->weight_kg, 1),
+                'date' => $entry->recorded_at->format('d/m/Y'),
+                'notes' => $entry->notes,
+            ];
+        })->toArray();
+
+        // Establecer el último peso como display
+        if (count($this->weightHistory) > 0) {
+            $this->lastWeightDisplay = $this->weightHistory[0]['weight'] . ' kg (' . $this->weightHistory[0]['date'] . ')';
+            $this->lastRecordedWeight = $this->weightHistory[0]['weight'];
+        } else {
+            $this->lastWeightDisplay = $this->data['weight_kg'] ? round($this->data['weight_kg'], 1) . ' kg (inicial)' : '—';
+            $this->lastRecordedWeight = $this->data['weight_kg'] ? (float) $this->data['weight_kg'] : null;
+        }
+    }
+
+    public function addWeightEntry(): void
+    {
+        $this->validate([
+            'newWeight' => ['required', 'numeric', 'min:20', 'max:300'],
+            'newWeightDate' => ['required', 'date'],
+        ]);
+
+        if (!$this->student) {
+            return;
+        }
+
+        StudentWeightEntry::create([
+            'student_id' => $this->student->id,
+            'weight_kg' => $this->newWeight,
+            'recorded_at' => $this->newWeightDate,
+            'source' => 'manual',
+            'notes' => $this->newWeightNotes,
+        ]);
+
+        // Recargar el historial
+        $this->loadWeightHistory();
+
+        // Limpiar el formulario
+        $this->newWeight = null;
+        $this->newWeightNotes = null;
+        $this->newWeightDate = now()->format('Y-m-d');
+
+        session()->flash('success', 'Peso registrado correctamente');
+    }
+
+    public function deleteWeightEntry(int $entryId): void
+    {
+        $entry = StudentWeightEntry::find($entryId);
+        if ($entry && $entry->student_id === $this->student->id) {
+            $entry->delete();
+            $this->loadWeightHistory();
+            session()->flash('success', 'Registro de peso eliminado');
         }
     }
 
