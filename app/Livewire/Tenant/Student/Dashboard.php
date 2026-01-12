@@ -5,8 +5,10 @@ namespace App\Livewire\Tenant\Student;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Tenant\Student;
-use App\Models\Tenant\TrainingPlan;
+use App\Models\Tenant\Workout;
+use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\Payment;
+use App\Services\WorkoutOrchestrationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,16 +18,21 @@ use Illuminate\Support\Facades\Schema;
 class Dashboard extends Component
 {
     public ?Student $student = null;
-    public ?\App\Models\Tenant\StudentPlanAssignment $assignment = null;
-    public ?\App\Models\Tenant\StudentPlanAssignment $todaySession = null;
-    public $assignmentsHistory = [];
-
+    public ?StudentPlanAssignment $assignment = null;
+    public ?Workout $todayWorkout = null;
+    public ?Workout $activeWorkout = null;
+    public array $progressData = [];
     public int $trainingsThisMonth = 0;
     public int $goalThisMonth = 12;
     public bool $hasPendingPayment = false;
+    public ?string $noActivePlanMessage = null;
+
+    private WorkoutOrchestrationService $orchestration;
 
     public function mount(): void
     {
+        $this->orchestration = new WorkoutOrchestrationService();
+
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user) {
@@ -34,24 +41,40 @@ class Dashboard extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
-        // Planes asignados (incluye histórico)
-        $this->assignmentsHistory = $this->student->planAssignments()
-            ->orderByDesc('starts_at')
-            ->get();
+        // Resolver plan activo con el servicio
+        $this->assignment = $this->orchestration->resolveActivePlan($this->student);
 
-        // Plan actual preferido: el que esté vigente; si no, el más reciente
-        $this->assignment = $this->assignmentsHistory
-            ->first(fn ($a) => $a->is_current)
-            ?? $this->assignmentsHistory->first();
+        if (!$this->assignment) {
+            $this->noActivePlanMessage = 'No tenés un plan activo. Contactá a tu entrenador.';
+            $this->trainingsThisMonth = 0;
+            $this->goalThisMonth = 12;
+            $this->progressData = [];
+            return;
+        }
 
-        // Métricas de entrenamiento (usa datos reales si existe la tabla workouts)
+        // Obtener workout activo (in_progress) o crear uno para hoy
+        $this->activeWorkout = $this->assignment->workouts()
+            ->where('student_id', $this->student->id)
+            ->where('status', 'in_progress')
+            ->first();
+
+        // Si no hay activo, obtener o crear para hoy
+        if (!$this->activeWorkout) {
+            $this->todayWorkout = $this->orchestration->getOrCreateTodayWorkout($this->student, $this->assignment);
+        } else {
+            $this->todayWorkout = $this->activeWorkout;
+        }
+
+        // Calcular progreso
+        $this->progressData = $this->orchestration->calculateProgress($this->assignment);
+
+        // Entrenamientos completados este mes
         $this->trainingsThisMonth = $this->resolveTrainingsThisMonth();
+
+        // Meta mensual
         $this->goalThisMonth = data_get($this->student->data, 'training.monthly_goal', 12);
 
-        // Placeholder: simulamos sesión activa
-        $this->todaySession = null;
-
-        // Verificar si hay pagos pendientes (cuando exista el modelo Payment)
+        // Verificar si hay pagos pendientes
         if (class_exists(Payment::class)) {
             $this->hasPendingPayment = Payment::where('student_id', $this->student->id)
                 ->whereNull('paid_at')
@@ -61,29 +84,36 @@ class Dashboard extends Component
 
     private function resolveTrainingsThisMonth(): int
     {
-        // Si aún no existe la tabla (p. ej. ambiente de desarrollo), devolvemos 0 estable
         if (!Schema::hasTable('workouts')) {
             return 0;
         }
 
-        // Contar workouts del estudiante en el mes y año actuales
         return (int) DB::table('workouts')
             ->where('student_id', $this->student->id)
-            ->whereYear('date', now()->year)
-            ->whereMonth('date', now()->month)
+            ->where('status', 'completed')
+            ->whereYear('completed_at', now()->year)
+            ->whereMonth('completed_at', now()->month)
             ->count();
     }
 
-    /* ------------------ Acciones ------------------ */
+    /* ==================== Acciones ==================== */
+
     public function startOrContinueWorkout()
     {
-        if ($this->todaySession) {
-            session()->flash('info', 'Continuando entrenamiento de hoy');
-        } else {
-            session()->flash('success', 'Nuevo entrenamiento iniciado');
+        if (!$this->todayWorkout) {
+            session()->flash('error', 'No se pudo crear el entrenamiento');
+            return;
         }
 
-        return redirect()->route('tenant.student.workout-today');
+        if ($this->todayWorkout->is_in_progress) {
+            session()->flash('info', 'Continuando entrenamiento de hoy');
+        } else {
+            // Iniciar el workout
+            $this->todayWorkout->startWorkout();
+            session()->flash('success', 'Entrenamiento iniciado');
+        }
+
+        return redirect()->route('tenant.student.workout-today', $this->todayWorkout);
     }
 
     public function render()
@@ -91,11 +121,13 @@ class Dashboard extends Component
         return view('livewire.tenant.student.dashboard', [
             'student' => $this->student,
             'assignment' => $this->assignment,
-            'assignmentsHistory' => $this->assignmentsHistory,
+            'todayWorkout' => $this->todayWorkout,
+            'activeWorkout' => $this->activeWorkout,
+            'progressData' => $this->progressData,
             'trainingsThisMonth' => $this->trainingsThisMonth,
             'goalThisMonth' => $this->goalThisMonth,
             'hasPendingPayment' => $this->hasPendingPayment,
-            'todaySession' => $this->todaySession,
+            'noActivePlanMessage' => $this->noActivePlanMessage,
         ]);
     }
 }

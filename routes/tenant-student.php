@@ -9,6 +9,8 @@ Route::middleware(['tenant.auth', 'role:Alumno', EnsureStudentAccessEnabled::cla
     ->as('student.')
     ->group(function () {
         Route::get('/', \App\Livewire\Tenant\Student\Dashboard::class)->name('dashboard');
+        Route::get('/workout-today', \App\Livewire\Tenant\Student\WorkoutToday::class)->name('workout-today');
+        Route::get('/workout/{workout}', \App\Livewire\Tenant\Student\WorkoutToday::class)->name('workout-show');
         Route::get('/progress', \App\Livewire\Tenant\Student\Progress::class)->name('progress');
         Route::get('/messages', \App\Livewire\Tenant\Student\Messages::class)->name('messages');
         Route::get('/payments', \App\Livewire\Tenant\Student\Payments::class)->name('payments');

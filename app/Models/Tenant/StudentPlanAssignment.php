@@ -4,6 +4,7 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Exercise;
@@ -54,6 +55,11 @@ class StudentPlanAssignment extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(TrainingPlan::class, 'training_plan_id');
+    }
+
+    public function workouts(): HasMany
+    {
+        return $this->hasMany(Workout::class, 'student_plan_assignment_id');
     }
 
     public function getVersionLabelAttribute(): string

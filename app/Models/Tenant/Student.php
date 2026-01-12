@@ -4,6 +4,9 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
@@ -148,6 +151,22 @@ class Student extends Model implements HasMedia
     public function conversations()
     {
         return $this->hasMany(Conversation::class, 'student_id');
+    }
+
+    public function workouts(): HasMany
+    {
+        return $this->hasMany(Workout::class);
+    }
+
+    public function weightEntries(): HasMany
+    {
+        return $this->hasMany(StudentWeightEntry::class);
+    }
+
+    public function latestWeight(): HasOne
+    {
+        return $this->hasOne(StudentWeightEntry::class)
+            ->latestOfMany('recorded_at');
     }
 
     /* ------------------------------ UUID boot ----------------------------- */

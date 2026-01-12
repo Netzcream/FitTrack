@@ -134,13 +134,17 @@
                             </div>
 
                             <!-- Per-exercise Gallery Overlay (full screen, dark background) -->
-                            <div x-show="galleryOpen && images.length" x-cloak class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6" @click.stop>
+                               <div x-show="galleryOpen && images.length" x-cloak x-trap="galleryOpen" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+                                   @click.self="galleryOpen = false"
+                                   @keydown.escape.window="galleryOpen = false"
+                                   @keydown.left.window.prevent="galleryIndex = (galleryIndex + images.length - 1) % images.length"
+                                   @keydown.right.window.prevent="galleryIndex = (galleryIndex + 1) % images.length">
                                     <button @click.stop="galleryOpen = false" type="button"
                                     class="absolute top-6 right-6 text-white/80 hover:text-white">
                                     <x-icons.lucide.x class="w-6 h-6" />
                                 </button>
 
-                                <div class="relative flex items-center justify-center w-full max-w-[90vw] max-h-[90vh]">
+                                <div class="relative flex items-center justify-center w-full max-w-[90vw] max-h-[90vh]" @click.outside="galleryOpen = false">
                                         <button type="button"
                                             @click.stop="galleryIndex = (galleryIndex + images.length - 1) % images.length"
                                             class="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/70 text-gray-800 shadow hover:bg-white">

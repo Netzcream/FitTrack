@@ -13,6 +13,10 @@
              x-data="{
                  shouldScroll: true,
                  messageCount: {{ $messages->count() }},
+                 originalTitle: document.title,
+                 titleInterval: null,
+                 titleToggle: false,
+                 justSentMessage: false,
                  scrollIfNeeded() {
                      const container = document.getElementById('messages-container-support');
                      if (container) {
@@ -20,21 +24,54 @@
                          if (newCount > this.messageCount && this.shouldScroll) {
                              this.messageCount = newCount;
                              this.$nextTick(() => { this.$el.scrollTop = this.$el.scrollHeight });
+                             // Only notify if it's a received message, not sent by user
+                             if (!this.justSentMessage) {
+                                 this.startTitleNotification();
+                             }
+                             this.justSentMessage = false;
                          }
+                     }
+                 },
+                 startTitleNotification() {
+                     if (this.titleInterval) return; // Already running
+                     this.titleInterval = setInterval(() => {
+                         this.titleToggle = !this.titleToggle;
+                         document.title = this.titleToggle ? '¡Tienes un nuevo mensaje!' : this.originalTitle;
+                     }, 1000);
+                 },
+                 stopTitleNotification() {
+                     if (this.titleInterval) {
+                         clearInterval(this.titleInterval);
+                         this.titleInterval = null;
+                         document.title = this.originalTitle;
+                         this.titleToggle = false;
                      }
                  }
              }"
-             x-init="$el.scrollTop = $el.scrollHeight; setInterval(() => scrollIfNeeded(), 3100)"
+             x-init="$el.scrollTop = $el.scrollHeight; setInterval(() => scrollIfNeeded(), 3100); window.addEventListener('focus', () => { stopTitleNotification(); $wire.markAsRead(); }); window.addEventListener('beforeunload', () => stopTitleNotification());"
              @scroll="shouldScroll = Math.abs($el.scrollHeight - $el.scrollTop - $el.clientHeight) < 50"
-             @message-sent.window="setTimeout(() => { $el.scrollTop = $el.scrollHeight }, 100)">
+             @message-sent.window="justSentMessage = true; $wire.markAsRead(); setTimeout(() => { $el.scrollTop = $el.scrollHeight; stopTitleNotification(); }, 100)">
 
             <div wire:poll.3s class="space-y-4" id="messages-container-support">
                 @forelse ($messages as $message)
+                    {{-- Unread messages divider --}}
+                    @if($firstUnreadMessageId && $message->id === $firstUnreadMessageId)
+                        <div class="flex items-center gap-3 py-3" id="unread-divider">
+                            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-red-400 dark:via-red-500 to-transparent"></div>
+                            <span class="text-xs font-medium text-red-500 dark:text-red-400 px-3 py-1 bg-red-50 dark:bg-red-950/30 rounded-full border border-red-200 dark:border-red-800">
+                                {{ __('Mensajes no leídos') }}
+                            </span>
+                            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-red-400 dark:via-red-500 to-transparent"></div>
+                        </div>
+                    @endif
+
                     <div class="flex {{ $message->sender_type->value === 'tenant' ? 'justify-end' : 'justify-start' }}">
                         <div class="max-w-[70%] rounded-lg px-4 py-2 shadow-sm {{ $message->sender_type->value === 'tenant' ? 'text-white' : 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100' }}" @if($message->sender_type->value === 'tenant') style="background-color: var(--ftt-color-base);" @endif>
                             <div class="text-sm break-words whitespace-pre-wrap">{{ $message->body }}</div>
-                            <div class="text-xs {{ $message->sender_type->value === 'tenant' ? 'opacity-80' : 'text-gray-500 dark:text-neutral-400' }} mt-1">
-                                {{ $message->created_at->format('d/m/Y H:i') }}
+                            <div class="text-xs {{ $message->sender_type->value === 'tenant' ? 'opacity-80' : 'text-gray-500 dark:text-neutral-400' }} mt-1"
+                                 x-data="{ timestamp: '{{ $message->created_at->toIso8601String() }}', formatted: '' }"
+                                 x-init="formatted = formatRelativeTime(timestamp); setInterval(() => formatted = formatRelativeTime(timestamp), 60000)"
+                                 x-text="formatted">
                             </div>
                         </div>
                     </div>
@@ -103,5 +140,32 @@
                 // Si es Shift+Enter, permite el comportamiento por defecto (nueva línea)
             }
         }
+    }
+
+    function formatRelativeTime(timestamp) {
+        const now = new Date();
+        const messageDate = new Date(timestamp);
+        const diffMs = now - messageDate;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        // Mensajes de las últimas 24 horas
+        if (diffDays < 1) {
+            if (diffMins < 1) return 'ahora';
+            if (diffMins === 1) return 'hace 1 minuto';
+            if (diffMins < 60) return `hace ${diffMins} minutos`;
+            if (diffHours === 1) return 'hace 1 hora';
+            return `hace ${diffHours} horas`;
+        }
+
+        // Más de 24 horas: mostrar fecha y hora
+        return messageDate.toLocaleString('es-AR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 </script>

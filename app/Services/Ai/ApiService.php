@@ -7,42 +7,176 @@ use OpenAI\Laravel\Facades\OpenAI;
 class ApiService
 {
     /**
-     * Llama al endpoint /v1/responses con un input de texto y devuelve un array.
+     * Llama al endpoint de Chat Completions de OpenAI y devuelve la respuesta.
      *
      * @param  string $prompt   Texto de entrada (lo que querés preguntar)
-     * @param  array  $options  Opcionales (modelo, temperature, etc.)
+     * @param  array  $options  Opcionales (model, temperature, max_tokens, etc.)
      * @return array{ text: string|null, raw: array }
      */
     public function respond(string $prompt, array $options = []): array
     {
-        // Defaults seguros y fáciles de refinar luego
-        $model = $options['model'] ?? 'gpt-5-nano';
+        // Defaults seguros - modelos válidos de OpenAI
+        $model = $options['model'] ?? 'gpt-4o-mini'; // Modelo económico y rápido
         $temperature = $options['temperature'] ?? 0.7;
+        $maxTokens = $options['max_tokens'] ?? 500;
 
         $params = [
             'model' => $model,
-            'input' => $prompt,
-            'reasoning' => ['effort' => 'minimal'],
-             'max_output_tokens' => $options['max_output_tokens'] ?? 64,
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'temperature' => $temperature,
+            'max_tokens' => $maxTokens,
         ];
 
-        if (!in_array($model, ['gpt-5-nano'])) {
-            $params['temperature'] = $temperature;
+        // Si se proporciona un system prompt
+        if (isset($options['system'])) {
+            array_unshift($params['messages'], [
+                'role' => 'system',
+                'content' => $options['system']
+            ]);
         }
 
+        $response = OpenAI::chat()->create($params);
 
-        $response = OpenAI::responses()->create($params);
-
-
-        // El SDK devuelve objetos; los convertimos y extraemos el texto principal
+        // El SDK devuelve objetos; los convertimos a array
         $raw = json_decode(json_encode($response), true);
 
-        // La estructura típica trae el texto en: output[0].content[0].text
-        $text = $raw['output'][0]['content'][0]['text'] ?? null;
+        // Extraemos el texto de la respuesta
+        $text = $raw['choices'][0]['message']['content'] ?? null;
 
         return [
             'text' => $text,
-            'raw'  => $raw, // por si querés inspeccionar tokens/usage/tool calls, etc.
+            'raw'  => $raw, // incluye usage (tokens), model, etc.
+        ];
+    }
+
+    /**
+     * Genera una respuesta con conversación multi-turno.
+     *
+     * @param  array  $messages Array de mensajes [['role' => 'user|assistant|system', 'content' => '...']]
+     * @param  array  $options  Opcionales (model, temperature, etc.)
+     * @return array{ text: string|null, raw: array }
+     */
+    public function chat(array $messages, array $options = []): array
+    {
+        $model = $options['model'] ?? 'gpt-4o-mini';
+        $temperature = $options['temperature'] ?? 0.7;
+        $maxTokens = $options['max_tokens'] ?? 500;
+
+        $params = [
+            'model' => $model,
+            'messages' => $messages,
+            'temperature' => $temperature,
+            'max_tokens' => $maxTokens,
+        ];
+
+        $response = OpenAI::chat()->create($params);
+        $raw = json_decode(json_encode($response), true);
+        $text = $raw['choices'][0]['message']['content'] ?? null;
+
+        return [
+            'text' => $text,
+            'raw'  => $raw,
+        ];
+    }
+
+    /**
+     * Genera un embedding de texto para búsqueda semántica.
+     *
+     * @param  string $text   Texto para convertir en embedding
+     * @param  string $model  Modelo de embedding (por defecto text-embedding-3-small)
+     * @return array{ embedding: array|null, raw: array }
+     */
+    public function embed(string $text, string $model = 'text-embedding-3-small'): array
+    {
+        $response = OpenAI::embeddings()->create([
+            'model' => $model,
+            'input' => $text,
+        ]);
+
+        $raw = json_decode(json_encode($response), true);
+        $embedding = $raw['data'][0]['embedding'] ?? null;
+
+        return [
+            'embedding' => $embedding,
+            'raw' => $raw,
+        ];
+    }
+
+    /**
+     * Analiza y clasifica un texto (útil para moderation, sentiment, etc.).
+     *
+     * @param  string $text   Texto a analizar
+     * @param  string $type   Tipo de análisis (sentiment, category, etc.)
+     * @param  array  $options Opcionales
+     * @return array{ result: string|null, raw: array }
+     */
+    public function analyze(string $text, string $type = 'sentiment', array $options = []): array
+    {
+        $systemPrompts = [
+            'sentiment' => 'Analiza el sentimiento del siguiente texto y responde únicamente con: positivo, negativo o neutral.',
+            'category' => 'Clasifica el siguiente texto en una categoría y responde solo con el nombre de la categoría.',
+            'summary' => 'Resume el siguiente texto en máximo 2-3 oraciones.',
+        ];
+
+        $system = $systemPrompts[$type] ?? $systemPrompts['sentiment'];
+
+        return $this->respond($text, array_merge($options, [
+            'system' => $system,
+            'max_tokens' => 100,
+        ]));
+    }
+
+    /**
+     * Genera contenido estructurado en formato JSON.
+     *
+     * @param  string $prompt   Prompt con instrucciones
+     * @param  array  $options  Opcionales
+     * @return array{ data: array|null, text: string|null, raw: array }
+     */
+    public function generateJson(string $prompt, array $options = []): array
+    {
+        $options['system'] = $options['system'] ?? 'Responde únicamente con JSON válido, sin explicaciones adicionales.';
+
+        $response = $this->respond($prompt, $options);
+
+        $jsonData = null;
+        if ($response['text']) {
+            // Intenta extraer JSON del texto (por si viene con markdown ```json)
+            $text = $response['text'];
+            if (preg_match('/```json\s*(.*?)\s*```/s', $text, $matches)) {
+                $text = $matches[1];
+            }
+            $jsonData = json_decode($text, true);
+        }
+
+        return [
+            'data' => $jsonData,
+            'text' => $response['text'],
+            'raw' => $response['raw'],
+        ];
+    }
+
+    /**
+     * Modera contenido usando la API de moderación de OpenAI.
+     *
+     * @param  string $text Texto a moderar
+     * @return array{ flagged: bool, categories: array, raw: array }
+     */
+    public function moderate(string $text): array
+    {
+        $response = OpenAI::moderations()->create([
+            'input' => $text,
+        ]);
+
+        $raw = json_decode(json_encode($response), true);
+        $result = $raw['results'][0] ?? [];
+
+        return [
+            'flagged' => $result['flagged'] ?? false,
+            'categories' => $result['categories'] ?? [],
+            'raw' => $raw,
         ];
     }
 }

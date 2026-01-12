@@ -61,19 +61,44 @@ class Show extends Component
     {
         $messagingService = app(MessagingService::class);
 
-        // Mark as read while viewing
         /** @var User $user */
         $user = Auth::user();
+
+        $messages = $messagingService->getMessages($this->conversationId, 50);
+
+        // Find first unread message ID BEFORE marking as read
+        $firstUnreadMessageId = $this->getFirstUnreadMessageId($user->id, ParticipantType::TENANT);
+
+        // Mark as read while viewing
         $messagingService->markAsRead(
             $this->conversationId,
             ParticipantType::TENANT,
             $user->id
         );
 
-        $messages = $messagingService->getMessages($this->conversationId, 50);
-
         return view('livewire.tenant.messages.show', [
             'messages' => $messages,
+            'firstUnreadMessageId' => $firstUnreadMessageId,
         ]);
+    }
+
+    private function getFirstUnreadMessageId(int $participantId, ParticipantType $participantType): ?int
+    {
+        $participant = \App\Models\Tenant\ConversationParticipant::where('conversation_id', $this->conversationId)
+            ->where('participant_type', $participantType)
+            ->where('participant_id', $participantId)
+            ->first();
+
+        if (!$participant || !$participant->last_read_at) {
+            // If never read, first message is the first unread
+            return \App\Models\Tenant\Message::where('conversation_id', $this->conversationId)
+                ->orderBy('created_at', 'asc')
+                ->value('id');
+        }
+
+        return \App\Models\Tenant\Message::where('conversation_id', $this->conversationId)
+            ->where('created_at', '>', $participant->last_read_at)
+            ->orderBy('created_at', 'asc')
+            ->value('id');
     }
 }
