@@ -62,7 +62,7 @@
         {{ $slot }}
     </main>
 
-    <footer class="text-center text-xs text-gray-400 py-3">
+    <footer class="text-center text-xs py-4" style="background-color: #333; color: #ffffff;">
         FitTrack © {{ date('Y') }}
     </footer>
 

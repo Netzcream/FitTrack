@@ -1,4 +1,4 @@
-<div class="space-y-6 md:space-y-8">
+<div class="space-y-6">
 
     {{-- ENCABEZADO --}}
     <x-student-header
@@ -8,8 +8,8 @@
         :student="$student" />
 
     {{-- Bloque de resumen --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl shadow p-5">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl p-5" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center justify-between mb-2">
                 <x-icons.lucide.dumbbell class="w-8 h-8" style="color: var(--ftt-color-base);" />
                 <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base);">{{ $sessionsThisMonth }}</h2>
@@ -17,7 +17,7 @@
             <p class="text-sm text-gray-500">Entrenamientos este mes</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-xl p-5" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center justify-between mb-2">
                 <x-icons.lucide.check-circle class="w-8 h-8" style="color: var(--ftt-color-base);" />
                 <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base);">{{ $totalSessions }}</h2>
@@ -25,7 +25,7 @@
             <p class="text-sm text-gray-500">Total completados</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-xl p-5" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center justify-between mb-2">
                 <x-icons.lucide.target class="w-8 h-8" style="color: var(--ftt-color-base);" />
                 <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base);">{{ $adherence }}%</h2>
@@ -33,7 +33,7 @@
             <p class="text-sm text-gray-500">Adherencia promedio</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-xl p-5" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center justify-between mb-2">
                 <x-icons.lucide.weight class="w-8 h-8" style="color: var(--ftt-color-base);" />
                 <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base);">
@@ -55,7 +55,7 @@
 
     {{-- Métricas corporales --}}
     @if($initialWeight || $heightCm)
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center gap-2 mb-4">
                 <x-icons.lucide.activity class="w-5 h-5 text-gray-700" />
                 <h3 class="text-lg font-semibold text-gray-700">Métricas corporales</h3>
@@ -106,7 +106,7 @@
 
     {{-- Evolución de peso --}}
     @if(count($weightHistory) > 0)
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center gap-2 mb-6">
                 <x-icons.lucide.trending-down class="w-5 h-5 text-gray-700" />
                 <h3 class="text-lg font-semibold text-gray-700">Evolución de peso</h3>
@@ -275,7 +275,7 @@
 
     {{-- Estadísticas adicionales --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center gap-2 mb-4">
                 <x-icons.lucide.bar-chart-3 class="w-5 h-5 text-gray-700" />
                 <h3 class="text-lg font-semibold text-gray-700">Promedios</h3>
@@ -298,7 +298,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center gap-2 mb-4">
                 <x-icons.lucide.bar-chart-2 class="w-5 h-5 text-gray-700" />
                 <h3 class="text-lg font-semibold text-gray-700">Últimos 6 meses</h3>
@@ -347,7 +347,7 @@
 
     {{-- Entrenamientos recientes --}}
     @if(count($recentWorkouts) > 0)
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div class="flex items-center gap-2 mb-4">
                 <x-icons.lucide.history class="w-5 h-5 text-gray-700" />
                 <h3 class="text-lg font-semibold text-gray-700">Entrenamientos recientes</h3>
@@ -384,54 +384,6 @@
                                 @if($workout['notes'])
                                     <p class="text-sm text-gray-500 mt-2 italic">"{{ Str::limit($workout['notes'], 100) }}"</p>
                                 @endif
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
-
-    {{-- Historial de Planes de Entrenamiento --}}
-    @if(count($planHistory) > 0)
-        <div class="bg-white rounded-xl shadow p-6">
-            <div class="flex items-center gap-2 mb-4">
-                <x-icons.lucide.calendar class="w-5 h-5 text-gray-700" />
-                <h3 class="text-lg font-semibold text-gray-700">Historial de planes</h3>
-            </div>
-            <div class="space-y-3">
-                @foreach($planHistory as $assignment)
-                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <h4 class="font-semibold text-gray-900">{{ $assignment['plan_name'] }}</h4>
-                                    @if($assignment['is_current'])
-                                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold text-white" style="background-color: var(--ftt-color-base);">
-                                            Activo
-                                        </span>
-                                    @elseif($assignment['status'] === 'completed')
-                                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">
-                                            Completado
-                                        </span>
-                                    @elseif($assignment['status'] === 'expired')
-                                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-600">
-                                            Expirado
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-4 text-sm text-gray-600">
-                                    <span class="flex items-center gap-1">
-                                        <x-icons.lucide.calendar-days class="w-4 h-4" />
-                                        Desde {{ \Carbon\Carbon::parse($assignment['starts_at'])->format('d/m/Y') }}
-                                    </span>
-                                    @if($assignment['ends_at'])
-                                        <span class="flex items-center gap-1">
-                                            <x-icons.lucide.calendar-x class="w-4 h-4" />
-                                            Hasta {{ \Carbon\Carbon::parse($assignment['ends_at'])->format('d/m/Y') }}
-                                        </span>
-                                    @endif
-                                </div>
                             </div>
                         </div>
                     </div>

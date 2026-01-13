@@ -11,13 +11,17 @@
 
 /* === CTA / Dashboard Cards — estilo FitTrack refinado === */
 .student-card {
-    @apply bg-white rounded-xl border border-gray-200/80 p-5 flex flex-col
-           items-center text-center cursor-pointer transition-colors duration-200;
+    @apply rounded-xl p-5 flex flex-col
+           items-center text-center cursor-pointer transition-all duration-200;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .student-card:hover {
     border-color: var(--ftt-color-base);
-    background-color: #f9f8ff;
+    background-color: #f9fafb;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .student-card h3 {

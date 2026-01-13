@@ -1,4 +1,4 @@
-<div class="space-y-6 md:space-y-8">
+<div class="space-y-6">
 
     {{-- ENCABEZADO --}}
     <x-student-header
@@ -40,12 +40,33 @@
         </div>
     @endif
 
+    {{-- ACCESOS RÁPIDOS --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <a href="{{ route('tenant.student.progress') }}" class="student-card">
+            <x-icons.lucide.line-chart class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Mi Progreso</h3>
+            <p>Métricas y evolución</p>
+        </a>
+
+        <a href="{{ route('tenant.student.messages') }}" class="student-card">
+            <x-icons.lucide.message-circle class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Mensajes</h3>
+            <p>Contactar entrenador</p>
+        </a>
+
+        <a href="{{ route('tenant.student.payments') }}" class="student-card">
+            <x-icons.lucide.credit-card class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
+            <h3>Pagos</h3>
+            <p>Historial y facturas</p>
+        </a>
+    </div>
+
     {{-- WORKOUT DE HOY + PROGRESO --}}
     @if ($assignment && $todayWorkout)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- Columna izquierda: Workout de hoy --}}
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold"
@@ -135,7 +156,7 @@
             {{-- Columna derecha: Progreso --}}
             <div class="space-y-4">
                 {{-- Card de Progreso --}}
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+                <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Progreso del Plan</h3>
 
                     @if (!empty($progressData))
@@ -159,7 +180,7 @@
                             </div>
 
                             <div class="pt-3 border-t border-gray-200">
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-2 gap-3 mb-4">
                                     <div>
                                         <p class="text-xs text-gray-500">Ciclo actual</p>
                                         <p class="text-xl font-bold text-gray-900">1</p>
@@ -171,25 +192,35 @@
                                         </p>
                                     </div>
                                 </div>
+
+                                {{-- Info de rutina sutil --}}
+                                <div class="space-y-2 pt-3 border-t border-gray-100">
+                                    <p class="text-xs text-gray-500">Tu rutina</p>
+                                    <p class="text-sm font-semibold text-gray-900">{{ $assignment->name }}</p>
+                                    <div class="flex gap-2 text-xs text-gray-600">
+                                        <span>{{ $assignment->exercises_by_day->count() }} días</span>
+                                        <span class="text-gray-400">·</span>
+                                        <span>{{ $assignment->exercises_by_day->flatten(1)->count() }} ejercicios</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 pt-2">
+                                        <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white transition hover:opacity-90"
+                                            style="background-color: var(--ftt-color-base);">
+                                            <x-icons.lucide.file-down class="w-3 h-3" />
+                                            Descargar
+                                        </a>
+                                        <a href="{{ route('tenant.student.plan-detail', $assignment->uuid) }}"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50">
+                                            <x-icons.lucide.eye class="w-3 h-3" />
+                                            Ver
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @else
                         <p class="text-center text-gray-500 py-4">Sin datos de progreso</p>
                     @endif
-                </div>
-
-                {{-- Card de Plan Actual --}}
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Plan Activo</h3>
-                    <p class="font-semibold text-gray-900 truncate">{{ $assignment->name }}</p>
-                    <p class="text-xs text-gray-500 mt-2">
-                        Hasta {{ $assignment->ends_at?->format('d/m/Y') ?? '—' }}
-                    </p>
-                    <a href="{{ route('tenant.student.plan-detail', $assignment->uuid) }}"
-                        class="inline-block mt-3 text-sm font-medium underline"
-                        style="color: var(--ftt-color-base);">
-                        Ver detalles →
-                    </a>
                 </div>
             </div>
         </div>
@@ -197,8 +228,7 @@
 
     {{-- PROGRESO MENSUAL (Fallback si no hay workout) --}}
     @if ($assignment && !$todayWorkout)
-        <div
-            class="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-200">
+        <div class="bg-white rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
             <div>
                 <p class="text-sm text-gray-500">Entrenamientos este mes</p>
                 <h2 class="text-3xl font-bold" style="color: var(--ftt-color-base)">
@@ -221,142 +251,70 @@
         </div>
     @endif
 
-    {{-- RUTINA Y PLANES (mostrar plan si existe) --}}
+    {{-- RUTINA DE ENTRENAMIENTO + HISTORIAL DE PLANES --}}
     @if ($assignment)
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2 text-sm text-gray-500">
-                    <x-icons.lucide.dumbbell class="w-5 h-5" />
-                    <span>Rutina de entrenamiento</span>
-                </div>
-                <p class="text-xl font-semibold text-gray-900">{{ $assignment->name }}</p>
-                <p class="text-sm text-gray-500">
-                    Vigente desde {{ $assignment->starts_at?->format('d/m/Y') ?? '—' }}
-                    @if ($assignment->ends_at)
-                        · hasta {{ $assignment->ends_at->format('d/m/Y') }}
-                    @endif
-                </p>
-                <div class="flex flex-wrap gap-3 text-sm text-gray-600">
-                    <span>{{ $assignment->exercises_by_day->count() }} días</span>
-                    <span>{{ $assignment->exercises_by_day->flatten(1)->count() }} ejercicios</span>
-                    <span>Objetivo: {{ $assignment->plan?->goal ?? '—' }}</span>
-                </div>
-            </div>
+        {{-- Historial compacto --}}
+        @if (count($planHistory) > 0)
+                <div class="bg-white rounded-xl overflow-hidden" x-data="{ expanded: false }" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                    <button type="button" @click="expanded = !expanded"
+                        class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <x-icons.lucide.calendar class="w-5 h-5" style="color: var(--ftt-color-base);" />
+                            <div class="text-left">
+                                <h3 class="text-base font-semibold text-gray-900">Historial de planes</h3>
+                                <p class="text-xs text-gray-500">{{ count($planHistory) }} {{ count($planHistory) === 1 ? 'plan' : 'planes' }} anteriores</p>
+                            </div>
+                        </div>
+                        <x-icons.lucide.chevron-down class="w-5 h-5 text-gray-400 transition-transform"
+                            x-bind:class="expanded ? 'rotate-180' : ''" />
+                    </button>
 
-            <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-                <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm transition"
-                    style="background-color: var(--ftt-color-base);">
-                    <x-icons.lucide.file-down class="w-4 h-4" />
-                    Descargar PDF
-                </a>
-                <a href="{{ route('tenant.student.plan-detail', $assignment->uuid) }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 shadow-sm transition">
-                    <x-icons.lucide.list class="w-4 h-4" />
-                    Ver detalle
-                </a>
-            </div>
-        </div>
-    @endif
-
-    {{-- HISTORIAL DE PLANES --}}
-    @if (count($planHistory) > 0)
-        <div class="bg-white rounded-xl shadow-md border border-gray-200">
-            <div x-data="{ expanded: false }" class="divide-y divide-gray-200">
-                {{-- Header expandible --}}
-                <button @click="expanded = !expanded"
-                    class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <x-icons.lucide.calendar class="w-5 h-5" style="color: var(--ftt-color-base);" />
-                        <div class="text-left">
-                            <h3 class="text-lg font-semibold text-gray-900">Historial de planes</h3>
-                            <p class="text-sm text-gray-500">{{ count($planHistory) }} {{ count($planHistory) === 1 ? 'plan asignado' : 'planes asignados' }}</p>
+                    <div x-show="expanded" class="border-t border-gray-200">
+                        <div class="px-6 py-4 space-y-2 max-h-96 overflow-y-auto">
+                            @foreach ($planHistory as $plan)
+                                @if (!$plan['is_current'])
+                                    <div class="p-3 rounded-lg border border-gray-100">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="flex-1">
+                                                <p class="font-medium text-sm text-gray-900">{{ $plan['plan_name'] }}</p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    {{ $plan['starts_at']?->format('d/m/Y') ?? '—' }} → {{ $plan['ends_at']?->format('d/m/Y') ?? '—' }}
+                                                </p>
+                                                <div class="flex gap-1.5 items-center text-xs text-gray-600 mt-2">
+                                                    <span>{{ $plan['days_count'] }} días</span>
+                                                    <span class="text-gray-400">·</span>
+                                                    <span>{{ $plan['exercises_count'] }} ejercicios</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start gap-1.5">
+                                                @if ($plan['status'] === 'completed')
+                                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+                                                        Completado
+                                                    </span>
+                                                @elseif ($plan['status'] === 'expired')
+                                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
+                                                        Expirado
+                                                    </span>
+                                                @endif
+                                                <a href="{{ route('tenant.student.download-plan', $plan['uuid']) }}"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-white transition-colors hover:opacity-90"
+                                                    style="background-color: var(--ftt-color-base);">
+                                                    <x-icons.lucide.file-down class="w-3 h-3" />
+                                                    Descargar
+                                                </a>
+                                                <a href="{{ route('tenant.student.plan-detail', $plan['uuid']) }}"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50">
+                                                    <x-icons.lucide.eye class="w-3 h-3" />
+                                                    Ver
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
-                    <x-icons.lucide.chevron-down class="w-5 h-5 text-gray-400 transition-transform"
-                        x-bind:class="expanded ? 'rotate-180' : ''" />
-                </button>
-
-                {{-- Contenido expandible --}}
-                <div x-show="expanded"
-                    x-collapse
-                    class="px-6 py-4">
-                    <div class="space-y-3">
-                        @foreach ($planHistory as $plan)
-                            <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                                    <div class="flex-1 space-y-2">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-semibold text-gray-900">{{ $plan['plan_name'] }}</h4>
-                                            @if ($plan['is_current'])
-                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full text-white"
-                                                    style="background-color: var(--ftt-color-base);">
-                                                    Activo
-                                                </span>
-                                            @elseif ($plan['status'] === 'completed')
-                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
-                                                    Completado
-                                                </span>
-                                            @elseif ($plan['status'] === 'expired')
-                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
-                                                    Expirado
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                                            <div class="flex items-center gap-1">
-                                                <x-icons.lucide.calendar class="w-3.5 h-3.5" />
-                                                <span>{{ $plan['starts_at']?->format('d/m/Y') ?? '—' }}</span>
-                                                @if ($plan['ends_at'])
-                                                    <span>→ {{ $plan['ends_at']->format('d/m/Y') }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="flex items-center gap-1">
-                                                <x-icons.lucide.dumbbell class="w-3.5 h-3.5" />
-                                                <span>{{ $plan['days_count'] }} días · {{ $plan['exercises_count'] }} ejercicios</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <a href="{{ route('tenant.student.download-plan', $plan['uuid']) }}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90"
-                                            style="background-color: var(--ftt-color-base);">
-                                            <x-icons.lucide.file-down class="w-3.5 h-3.5" />
-                                            Descargar
-                                        </a>
-                                        <a href="{{ route('tenant.student.plan-detail', $plan['uuid']) }}"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
-                                            <x-icons.lucide.eye class="w-3.5 h-3.5" />
-                                            Ver
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
                 </div>
-            </div>
-        </div>
+            @endif
     @endif
-
-    {{-- ACCESOS RÁPIDOS --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-        <a href="{{ $assignment ? route('tenant.student.plan-detail', $assignment->uuid) : '#' }}" class="student-card">
-            <x-icons.lucide.dumbbell class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
-            <h3>Mi rutina</h3>
-            <p>Ver ejercicios</p>
-        </a>
-
-        <a href="{{ route('tenant.student.progress') }}" class="student-card">
-            <x-icons.lucide.line-chart class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
-            <h3>Progreso</h3>
-            <p>Ver métricas</p>
-        </a>
-
-        <a href="{{ route('tenant.student.messages') }}" class="student-card">
-            <x-icons.lucide.message-circle class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
-            <h3>Mensajes</h3>
-            <p>Hablar con tu entrenador</p>
-        </a>
-    </div>
 </div>
