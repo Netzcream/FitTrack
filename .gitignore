@@ -27,3 +27,4 @@ Homestead.json
 .phpunit.result.cache
 /storage/tenant*
 /storage
+.github/copilot-instructions.md
