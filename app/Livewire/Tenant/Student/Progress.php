@@ -33,6 +33,7 @@ class Progress extends Component
     public ?string $gender = null;
     public ?float $heightCm = null;
     public array $weightHistory = [];
+    public array $planHistory = [];
 
     public function mount(): void
     {
@@ -237,6 +238,23 @@ class Progress extends Component
                 ];
             })
             ->toArray();
+
+        // Historial de planes de entrenamiento
+        $this->planHistory = $this->student->planAssignments()
+            ->with('plan')
+            ->orderBy('starts_at', 'desc')
+            ->get()
+            ->map(function ($assignment) {
+                return [
+                    'id' => $assignment->id,
+                    'plan_name' => $assignment->plan->name ?? 'Plan sin nombre',
+                    'starts_at' => $assignment->starts_at,
+                    'ends_at' => $assignment->ends_at,
+                    'status' => $assignment->status,
+                    'is_current' => $assignment->is_current,
+                ];
+            })
+            ->toArray();
     }
 
     public function render()
@@ -261,6 +279,7 @@ class Progress extends Component
             'gender' => $this->gender,
             'heightCm' => $this->heightCm,
             'weightHistory' => $this->weightHistory,
+            'planHistory' => $this->planHistory,
         ]);
     }
 }

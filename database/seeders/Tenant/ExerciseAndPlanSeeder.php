@@ -8,6 +8,7 @@ use App\Models\Tenant\Exercise;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\Workout;
 use App\Models\Tenant\Student;
+use App\Services\Tenant\AssignPlanService;
 
 class ExerciseAndPlanSeeder extends Seeder
 {
@@ -161,6 +162,49 @@ class ExerciseAndPlanSeeder extends Seeder
             $fullBodyPlan = TrainingPlan::where('name', 'Full Body Inicial')->first();
             $hipertrofiaPlan = TrainingPlan::where('name', 'Hipertrofia intermedia')->first();
 
+            $assigner = new AssignPlanService();
+            $assignmentByStudent = [];
+            $startsAt = now()->subDays(21);
+            $endsAt = now()->addDays(7);
+
+            $studentOne = $students->get(0);
+            $studentTwo = $students->get(1);
+            $studentThree = $students->get(2);
+
+            if ($studentOne && $fullBodyPlan) {
+                $assignmentByStudent[$studentOne->id] = $assigner->assign(
+                    $fullBodyPlan,
+                    $studentOne,
+                    $startsAt,
+                    $endsAt,
+                    true
+                );
+            }
+
+            if ($studentTwo && $hipertrofiaPlan) {
+                $assignmentByStudent[$studentTwo->id] = $assigner->assign(
+                    $hipertrofiaPlan,
+                    $studentTwo,
+                    $startsAt,
+                    $endsAt,
+                    true
+                );
+            }
+
+            if ($studentThree && $fullBodyPlan) {
+                $assignmentByStudent[$studentThree->id] = $assigner->assign(
+                    $fullBodyPlan,
+                    $studentThree,
+                    $startsAt,
+                    $endsAt,
+                    true
+                );
+            }
+
+            $assignmentOne = $studentOne ? ($assignmentByStudent[$studentOne->id] ?? null) : null;
+            $assignmentTwo = $studentTwo ? ($assignmentByStudent[$studentTwo->id] ?? null) : null;
+            $assignmentThree = $studentThree ? ($assignmentByStudent[$studentThree->id] ?? null) : null;
+
             // Ejercicios de ejemplo
             $sentadilla = $exerciseModels->firstWhere('name', 'Sentadilla con barra');
             $pressBanca = $exerciseModels->firstWhere('name', 'Press de banca');
@@ -169,11 +213,16 @@ class ExerciseAndPlanSeeder extends Seeder
             $plancha = $exerciseModels->firstWhere('name', 'Plancha abdominal');
 
             // Workout 1: Sesión completa de un estudiante
-            if ($students->count() >= 1 && $sentadilla && $pressBanca && $plancha) {
+            // Note: In production, workouts should be created via WorkoutOrchestrationService
+            if ($studentOne && $assignmentOne && $sentadilla && $pressBanca && $plancha) {
                 Workout::create([
-                    'student_id' => $students[0]->id,
-                    'training_plan_id' => $fullBodyPlan?->id,
-                    'date' => now()->subDays(7),
+                    'student_id' => $studentOne->id,
+                    'student_plan_assignment_id' => $assignmentOne->id,
+                    'plan_day' => 1,
+                    'sequence_index' => 1,
+                    'cycle_index' => 1,
+                    'started_at' => now()->subDays(7)->subMinutes(65),
+                    'completed_at' => now()->subDays(7),
                     'duration_minutes' => 65,
                     'status' => 'completed',
                     'notes' => 'Excelente sesión, buena técnica',
@@ -220,11 +269,15 @@ class ExerciseAndPlanSeeder extends Seeder
             }
 
             // Workout 2: Sesión de otro estudiante
-            if ($students->count() >= 2 && $pesoMuerto && $remoBarra) {
+            if ($studentTwo && $assignmentTwo && $pesoMuerto && $remoBarra) {
                 Workout::create([
-                    'student_id' => $students[1]->id,
-                    'training_plan_id' => $hipertrofiaPlan?->id,
-                    'date' => now()->subDays(5),
+                    'student_id' => $studentTwo->id,
+                    'student_plan_assignment_id' => $assignmentTwo->id,
+                    'plan_day' => 1,
+                    'sequence_index' => 1,
+                    'cycle_index' => 1,
+                    'started_at' => now()->subDays(5)->subMinutes(55),
+                    'completed_at' => now()->subDays(5),
                     'duration_minutes' => 55,
                     'status' => 'completed',
                     'notes' => 'Día de espalda intenso',
@@ -259,11 +312,15 @@ class ExerciseAndPlanSeeder extends Seeder
             }
 
             // Workout 3: Sesión reciente sin plan asignado
-            if ($students->count() >= 3 && $sentadilla && $plancha) {
+            if ($studentThree && $assignmentThree && $sentadilla && $plancha) {
                 Workout::create([
-                    'student_id' => $students[2]->id,
-                    'training_plan_id' => null, // Sin plan específico
-                    'date' => now()->subDays(1),
+                    'student_id' => $studentThree->id,
+                    'student_plan_assignment_id' => $assignmentThree->id,
+                    'plan_day' => 1,
+                    'sequence_index' => 1,
+                    'cycle_index' => 1,
+                    'started_at' => now()->subDays(1)->subMinutes(40),
+                    'completed_at' => now()->subDays(1),
                     'duration_minutes' => 40,
                     'status' => 'completed',
                     'notes' => 'Sesión express',
@@ -297,12 +354,16 @@ class ExerciseAndPlanSeeder extends Seeder
                 ]);
             }
 
-            // Workout 4: Ejemplo de clonación - mismo workout en diferentes fechas
-            if ($students->count() >= 1 && $sentadilla && $pressBanca) {
-                $originalWorkout = Workout::create([
-                    'student_id' => $students[0]->id,
-                    'training_plan_id' => $fullBodyPlan?->id,
-                    'date' => now()->subDays(14),
+            // Workout 4: Ejemplo de workout anterior
+            if ($studentOne && $assignmentOne && $sentadilla && $pressBanca) {
+                Workout::create([
+                    'student_id' => $studentOne->id,
+                    'student_plan_assignment_id' => $assignmentOne->id,
+                    'plan_day' => 2,
+                    'sequence_index' => 2,
+                    'cycle_index' => 1,
+                    'started_at' => now()->subDays(14)->subMinutes(60),
+                    'completed_at' => now()->subDays(14),
                     'duration_minutes' => 60,
                     'status' => 'completed',
                     'rating' => 4,
@@ -326,12 +387,6 @@ class ExerciseAndPlanSeeder extends Seeder
                             'order' => 2,
                         ],
                     ],
-                ]);
-
-                // 🔥 Ejemplo de clonación (nueva funcionalidad simplificada)
-                $clonedWorkout = $originalWorkout->clone([
-                    'date' => now()->subDays(10),
-                    'notes' => 'Clonado de semana anterior',
                 ]);
             }
         }

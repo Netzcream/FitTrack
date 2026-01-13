@@ -20,7 +20,7 @@
 
 
 <body
-    class="font-sans antialiased bg-gradient-to-b from-[var(--ftt-color-base-transparent)] via-white to-[var(--ftt-color-light)]">
+    class="font-sans antialiased bg-gradient-to-b from-[var(--ftt-color-light)] via-white to-[var(--ftt-color-base-transparent)]">
 
     <div class="min-h-screen ">
 

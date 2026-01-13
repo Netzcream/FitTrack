@@ -27,7 +27,7 @@ class WorkoutToday extends Component
 
     private WorkoutOrchestrationService $orchestration;
 
-    public function mount(?int $workoutId = null): void
+    public function mount(?Workout $workout = null): void
     {
         $this->orchestration = new WorkoutOrchestrationService();
 
@@ -39,11 +39,13 @@ class WorkoutToday extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
-        // Obtener workout por ID o el activo del estudiante
-        if ($workoutId) {
-            $this->workout = Workout::where('id', $workoutId)
-                ->where('student_id', $this->student->id)
-                ->firstOrFail();
+        // Obtener workout por parámetro (route binding por UUID) o el activo del estudiante
+        if ($workout) {
+            // Verificar que el workout pertenece al estudiante
+            if ($workout->student_id !== $this->student->id) {
+                abort(403, 'No autorizado para ver este workout');
+            }
+            $this->workout = $workout;
         } else {
             $this->workout = $this->student->workouts()
                 ->where('status', 'in_progress')
@@ -53,6 +55,7 @@ class WorkoutToday extends Component
         if (!$this->workout) {
             session()->flash('error', 'No hay entrenamiento activo');
             $this->redirect(route('tenant.student.dashboard'));
+            return;
         }
 
         $this->exercisesData = $this->enrichExercises($this->workout->exercises_data ?? []);
@@ -142,27 +145,16 @@ class WorkoutToday extends Component
             $this->survey
         );
 
-        // Guardar peso si fue ingresado y la tabla existe
+        // Guardar peso si fue ingresado usando el modelo oficial StudentWeightEntry
         if ($this->currentWeight) {
             try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('weight_logs')) {
-                    \Illuminate\Support\Facades\DB::table('weight_logs')->insert([
-                        'student_id' => $this->student->id,
-                        'weight' => $this->currentWeight,
-                        'measured_at' => now(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                } else {
-                    // Si no existe la tabla, crear el registro en student->data
-                    $studentData = $this->student->data ?? [];
-                    $studentData['weights'] = $studentData['weights'] ?? [];
-                    $studentData['weights'][] = [
-                        'weight' => $this->currentWeight,
-                        'measured_at' => now()->toIso8601String(),
-                    ];
-                    $this->student->update(['data' => $studentData]);
-                }
+                \App\Models\Tenant\StudentWeightEntry::create([
+                    'student_id' => $this->student->id,
+                    'weight_kg' => $this->currentWeight,
+                    'source' => 'workout_completion',
+                    'recorded_at' => now(),
+                    'notes' => 'Registrado al completar entrenamiento',
+                ]);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Error guardando peso: ' . $e->getMessage());
             }
@@ -175,7 +167,7 @@ class WorkoutToday extends Component
     /**
      * Saltar el workout
      */
-    public function skipWorkout(string $reason = null): void
+    public function skipWorkout(?string $reason = null): void
     {
         $this->workout->skip($reason);
         session()->flash('info', 'Entrenamiento saltado');
@@ -203,6 +195,10 @@ class WorkoutToday extends Component
      */
     public function getExerciseProgress(): array
     {
+        if (!$this->workout) {
+            return [];
+        }
+
         return $this->workout->getExerciseProgress();
     }
 

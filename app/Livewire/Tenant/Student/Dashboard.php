@@ -26,6 +26,7 @@ class Dashboard extends Component
     public int $goalThisMonth = 12;
     public bool $hasPendingPayment = false;
     public ?string $noActivePlanMessage = null;
+    public array $planHistory = [];
 
     private WorkoutOrchestrationService $orchestration;
 
@@ -80,6 +81,24 @@ class Dashboard extends Component
                 ->whereNull('paid_at')
                 ->exists();
         }
+
+        // Cargar historial de planes
+        $this->planHistory = $this->student->planAssignments()
+            ->with('plan')
+            ->orderBy('starts_at', 'desc')
+            ->get()
+            ->map(function ($assignment) {
+                return [
+                    'uuid' => $assignment->uuid,
+                    'plan_name' => $assignment->plan?->name ?? $assignment->name,
+                    'starts_at' => $assignment->starts_at,
+                    'ends_at' => $assignment->ends_at,
+                    'status' => $assignment->status,
+                    'is_current' => $assignment->is_current,
+                    'exercises_count' => $assignment->exercises_by_day->flatten(1)->count(),
+                    'days_count' => $assignment->exercises_by_day->count(),
+                ];
+            })->toArray();
     }
 
     private function resolveTrainingsThisMonth(): int
@@ -113,7 +132,7 @@ class Dashboard extends Component
             session()->flash('success', 'Entrenamiento iniciado');
         }
 
-        return redirect()->route('tenant.student.workout-today', $this->todayWorkout);
+        return redirect()->route('tenant.student.workout-show', ['workout' => $this->todayWorkout]);
     }
 
     public function render()
@@ -128,6 +147,7 @@ class Dashboard extends Component
             'goalThisMonth' => $this->goalThisMonth,
             'hasPendingPayment' => $this->hasPendingPayment,
             'noActivePlanMessage' => $this->noActivePlanMessage,
+            'planHistory' => $this->planHistory,
         ]);
     }
 }

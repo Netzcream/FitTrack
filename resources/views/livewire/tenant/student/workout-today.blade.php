@@ -5,7 +5,7 @@
     elapsedSeconds: 0,
     timer: null,
     lastPersistMinute: -1,
-    workoutId: '{{ $workout->id }}',
+    workoutId: '{{ $workout?->uuid ?? $workout?->id ?? '' }}',
     manualOverride: false,
     allExercisesCompleted: false,
     exercisesData: @js($exercisesData),
@@ -49,6 +49,9 @@
         }
     },
     init() {
+        if (!this.workoutId) {
+            return;
+        }
         const saved = localStorage.getItem('workout_' + this.workoutId + '_seconds');
         this.accumulatedSeconds = saved ? parseInt(saved) : 0;
         this.checkCompletion();
@@ -349,10 +352,16 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">⚖️ Peso actual (kg) - Opcional</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <x-icons.lucide.scale class="w-4 h-4" />
+                    Peso actual (kg) - Opcional
+                </label>
                 <input type="number" wire:model="currentWeight" step="0.1" min="20" max="300" placeholder="Ej: 75.5"
                     class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <p class="text-xs text-gray-500 mt-1">💡 Ayudanos a trackear tu progreso ingresando tu peso actual</p>
+                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <x-icons.lucide.lightbulb class="w-3 h-3" />
+                    Ayudanos a trackear tu progreso ingresando tu peso actual
+                </p>
             </div>
 
             {{-- Encuesta rápida --}}
@@ -394,4 +403,3 @@
         </div>
     @endif
 </div>
-

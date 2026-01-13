@@ -27,47 +27,29 @@ class Workouts extends Component
         $this->resetPage();
     }
 
-    public function quickClone($workoutId)
-    {
-        try {
-            $workout = Workout::findOrFail($workoutId);
-
-            $cloned = $workout->clone([
-                'date' => today(),
-                'status' => 'pending',
-                'rating' => null,
-                'notes' => 'Clonado de ' . $workout->date->format('d/m/Y'),
-            ]);
-
-            session()->flash('success', 'Workout clonado para hoy');
-
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error: ' . $e->getMessage());
-        }
-
-    }
-
     public function render()
     {
         $query = Workout::query()
             ->where('student_id', $this->student->id)
-            ->with('trainingPlan')
-            ->orderByDesc('date');
+            ->with('planAssignment')
+            ->orderByDesc('completed_at');
 
         if ($this->filterDateFrom) {
-            $query->whereDate('date', '>=', $this->filterDateFrom);
+            $query->whereDate('completed_at', '>=', $this->filterDateFrom);
         }
 
         if ($this->filterDateTo) {
-            $query->whereDate('date', '<=', $this->filterDateTo);
+            $query->whereDate('completed_at', '<=', $this->filterDateTo);
         }
 
         return view('livewire.tenant.students.workouts', [
             'workouts' => $query->paginate(10),
             'stats' => [
-                'total' => Workout::where('student_id', $this->student->id)->count(),
+                'total' => Workout::where('student_id', $this->student->id)->where('status', 'completed')->count(),
                 'thisMonth' => Workout::where('student_id', $this->student->id)
-                    ->whereMonth('date', now()->month)
+                    ->where('status', 'completed')
+                    ->whereMonth('completed_at', now()->month)
+                    ->whereYear('completed_at', now()->year)
                     ->count(),
                 'avgRating' => round(
                     Workout::where('student_id', $this->student->id)

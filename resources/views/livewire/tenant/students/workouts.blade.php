@@ -2,17 +2,19 @@
     <div class="mb-6 flex justify-between items-center">
         <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                Workouts de {{ $student->name }}
+                Workouts de {{ $student->full_name }}
             </h2>
             <p class="text-sm text-gray-600 dark:text-gray-400">
                 Historial de sesiones de entrenamiento
             </p>
         </div>
-        <a href="{{ route('tenant.dashboard.workouts.create', ['studentId' => $student->id]) }}"
-           class="btn btn-primary btn-sm">
-            <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-            Nuevo Workout
-        </a>
+        @if (\Illuminate\Support\Facades\Route::has('tenant.dashboard.workouts.create'))
+            <a href="{{ route('tenant.dashboard.workouts.create', ['studentId' => $student->id]) }}"
+               class="btn btn-primary btn-sm">
+                <x-heroicon-o-plus class="w-4 h-4 mr-1" />
+                Nuevo Workout
+            </a>
+        @endif
     </div>
 
     {{-- Stats mini --}}
@@ -52,7 +54,9 @@
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="font-semibold">{{ $workout->date->format('d/m/Y') }}</span>
+                            <span class="font-semibold">
+                                {{ $workout->completed_at ? $workout->completed_at->format('d/m/Y') : 'Sin completar' }}
+                            </span>
                             @php
                                 $statusColors = [
                                     'completed' => 'badge-success',
@@ -61,8 +65,8 @@
                                     'skipped' => 'badge-error',
                                 ];
                             @endphp
-                            <span class="badge badge-xs {{ $statusColors[$workout->status] ?? '' }}">
-                                {{ $workout->status }}
+                            <span class="badge badge-xs {{ $statusColors[$workout->status->value ?? $workout->status] ?? '' }}">
+                                {{ $workout->status->value ?? $workout->status }}
                             </span>
                             @if($workout->rating)
                                 <div class="flex items-center">
@@ -73,9 +77,12 @@
                             @endif
                         </div>
 
-                        @if($workout->trainingPlan)
+                        @if($workout->planAssignment)
                             <div class="text-sm text-gray-600 dark:text-gray-400">
-                                Plan: {{ $workout->trainingPlan->name }}
+                                Plan: {{ $workout->planAssignment->name }}
+                                @if($workout->plan_day)
+                                    • Día {{ $workout->plan_day }}
+                                @endif
                             </div>
                         @endif
 
@@ -94,16 +101,13 @@
                     </div>
 
                     <div class="flex gap-1">
-                        <button wire:click="quickClone({{ $workout->id }})"
-                                class="btn btn-xs btn-ghost"
-                                title="Clonar para hoy">
-                            <x-heroicon-o-document-duplicate class="w-4 h-4" />
-                        </button>
-                        <a href="{{ route('tenant.dashboard.workouts.edit', $workout) }}"
-                           class="btn btn-xs btn-ghost"
-                           title="Editar">
-                            <x-heroicon-o-pencil class="w-4 h-4" />
-                        </a>
+                        @if (\Illuminate\Support\Facades\Route::has('tenant.dashboard.workouts.edit'))
+                            <a href="{{ route('tenant.dashboard.workouts.edit', $workout) }}"
+                               class="btn btn-xs btn-ghost"
+                               title="Ver detalles">
+                               <x-heroicon-o-eye class="w-4 h-4" />
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

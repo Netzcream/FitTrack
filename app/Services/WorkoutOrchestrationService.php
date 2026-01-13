@@ -87,10 +87,10 @@ class WorkoutOrchestrationService
         Student $student,
         StudentPlanAssignment $assignment
     ): ?Workout {
-        // Verificar si existe workout "in_progress" del día actual
+        // Verificar si existe workout "in_progress" o "pending" del día actual
         $existingWorkout = $assignment->workouts()
             ->where('student_id', $student->id)
-            ->where('status', WorkoutStatus::IN_PROGRESS)
+            ->whereIn('status', [WorkoutStatus::IN_PROGRESS, WorkoutStatus::PENDING])
             ->first();
 
         if ($existingWorkout) {
@@ -233,10 +233,9 @@ class WorkoutOrchestrationService
         $completedInCycle = $assignment->workouts()
             ->where('status', WorkoutStatus::COMPLETED)
             ->where('cycle_index', $workout->cycle_index)
-            ->distinct('plan_day')
-            ->count('plan_day');
+            ->count();
 
-        // Si ya pasó total_days, es bonus
+        // Si ya completó más workouts que días totales del plan, es bonus
         return $completedInCycle > $totalDays;
     }
 

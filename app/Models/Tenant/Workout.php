@@ -4,23 +4,23 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Support\Str;
 use App\Enums\WorkoutStatus;
+use App\Traits\HasUuid;
 
 class Workout extends Model
 {
-    use HasUuids;
+    use HasUuid;
 
     protected $table = 'workouts';
 
     protected $primaryKey = 'id';
 
-    protected $keyType = 'string';
+    protected $keyType = 'int';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     protected $fillable = [
+        'uuid',
         'student_id',
         'student_plan_assignment_id',
         'plan_day',
@@ -49,6 +49,8 @@ class Workout extends Model
         'status' => WorkoutStatus::class,
     ];
 
+
+
     /**
      * Relación: pertenece a un estudiante
      */
@@ -65,10 +67,7 @@ class Workout extends Model
         return $this->belongsTo(StudentPlanAssignment::class, 'student_plan_assignment_id');
     }
 
-    public function getRouteKeyName(): string
-    {
-        return 'uuid';
-    }
+
 
     /* ======================== Accessors ======================== */
 
@@ -140,8 +139,8 @@ class Workout extends Model
      */
     public function completeWorkout(
         int $durationMinutes,
-        int $rating = null,
-        string $notes = null,
+        ?int $rating = null,
+        ?string $notes = null,
         array $survey = []
     ): self {
         $this->update([
@@ -173,7 +172,7 @@ class Workout extends Model
     /**
      * Saltar este workout
      */
-    public function skip(string $reason = null): self
+    public function skip(?string $reason = null): self
     {
         $this->update([
             'status' => WorkoutStatus::SKIPPED,

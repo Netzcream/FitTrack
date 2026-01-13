@@ -39,9 +39,9 @@
 body {
     background: linear-gradient(
         180deg,
-        var(--ftt-color-light) 0%,
+        #f3f4f6 0%,
         #f7f8fb 60%,
-        #f3f4f6 100%
+        var(--ftt-color-light) 100%
     );
 }
 
@@ -79,6 +79,13 @@ main {
 }
 .start-button:hover {
     filter: brightness(1.1);
+}
+
+/* === Footer === */
+footer {
+    background-color: #0f172a;
+    color: #94a3b8;
+    border-top: 1px solid #1e293b;
 }
 
 /* === Mobile compact === */

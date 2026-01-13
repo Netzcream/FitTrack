@@ -124,6 +124,7 @@ class Form extends Component
 
         $weightEntries = StudentWeightEntry::forStudent($this->student->id)
             ->orderBy('recorded_at', 'desc')
+            ->take(15)
             ->get();
 
         $this->weightHistory = $weightEntries->map(function ($entry) {
@@ -143,6 +144,30 @@ class Form extends Component
             $this->lastWeightDisplay = $this->data['weight_kg'] ? round($this->data['weight_kg'], 1) . ' kg (inicial)' : '—';
             $this->lastRecordedWeight = $this->data['weight_kg'] ? (float) $this->data['weight_kg'] : null;
         }
+    }
+
+    /**
+     * Obtener historial de pesos para el gráfico (ordenado ascendentemente)
+     */
+    public function getWeightChartDataProperty(): array
+    {
+        if (!$this->student) {
+            return [];
+        }
+
+        $weightEntries = StudentWeightEntry::forStudent($this->student->id)
+            ->orderBy('recorded_at', 'asc')
+            ->take(50)
+            ->get();
+
+        return $weightEntries->map(function ($entry) {
+            return [
+                'date' => $entry->recorded_at->format('Y-m-d'),
+                'weight' => round($entry->weight_kg, 1),
+                'label' => $entry->recorded_at->translatedFormat('d M'),
+                'isInitial' => false,
+            ];
+        })->toArray();
     }
 
     public function addWeightEntry(): void
@@ -173,6 +198,9 @@ class Form extends Component
         $this->newWeightDate = now()->format('Y-m-d');
 
         session()->flash('success', 'Peso registrado correctamente');
+
+        // Forzar cierre del modal en el siguiente render
+        $this->dispatch('weight-added');
     }
 
     public function deleteWeightEntry(int $entryId): void

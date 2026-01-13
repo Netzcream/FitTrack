@@ -72,7 +72,10 @@
                                     </span>
                                 @endif
                             @elseif ($todayWorkout->status === 'completed')
-                                <span class="text-green-600 font-medium">✓ Completado</span>
+                                <span class="text-green-600 font-medium flex items-center gap-1">
+                                    <x-icons.lucide.check-circle class="w-4 h-4" />
+                                    Completado
+                                </span>
                             @elseif ($todayWorkout->status === 'skipped')
                                 <span class="text-yellow-600 font-medium">Saltado</span>
                             @else
@@ -252,6 +255,86 @@
                     <x-icons.lucide.list class="w-4 h-4" />
                     Ver detalle
                 </a>
+            </div>
+        </div>
+    @endif
+
+    {{-- HISTORIAL DE PLANES --}}
+    @if (count($planHistory) > 0)
+        <div class="bg-white rounded-xl shadow-md border border-gray-200">
+            <div x-data="{ expanded: false }" class="divide-y divide-gray-200">
+                {{-- Header expandible --}}
+                <button @click="expanded = !expanded"
+                    class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <x-icons.lucide.calendar class="w-5 h-5" style="color: var(--ftt-color-base);" />
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Historial de planes</h3>
+                            <p class="text-sm text-gray-500">{{ count($planHistory) }} {{ count($planHistory) === 1 ? 'plan asignado' : 'planes asignados' }}</p>
+                        </div>
+                    </div>
+                    <x-icons.lucide.chevron-down class="w-5 h-5 text-gray-400 transition-transform"
+                        x-bind:class="expanded ? 'rotate-180' : ''" />
+                </button>
+
+                {{-- Contenido expandible --}}
+                <div x-show="expanded"
+                    x-collapse
+                    class="px-6 py-4">
+                    <div class="space-y-3">
+                        @foreach ($planHistory as $plan)
+                            <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-semibold text-gray-900">{{ $plan['plan_name'] }}</h4>
+                                            @if ($plan['is_current'])
+                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full text-white"
+                                                    style="background-color: var(--ftt-color-base);">
+                                                    Activo
+                                                </span>
+                                            @elseif ($plan['status'] === 'completed')
+                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                                    Completado
+                                                </span>
+                                            @elseif ($plan['status'] === 'expired')
+                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
+                                                    Expirado
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                                            <div class="flex items-center gap-1">
+                                                <x-icons.lucide.calendar class="w-3.5 h-3.5" />
+                                                <span>{{ $plan['starts_at']?->format('d/m/Y') ?? '—' }}</span>
+                                                @if ($plan['ends_at'])
+                                                    <span>→ {{ $plan['ends_at']->format('d/m/Y') }}</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <x-icons.lucide.dumbbell class="w-3.5 h-3.5" />
+                                                <span>{{ $plan['days_count'] }} días · {{ $plan['exercises_count'] }} ejercicios</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a href="{{ route('tenant.student.download-plan', $plan['uuid']) }}"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90"
+                                            style="background-color: var(--ftt-color-base);">
+                                            <x-icons.lucide.file-down class="w-3.5 h-3.5" />
+                                            Descargar
+                                        </a>
+                                        <a href="{{ route('tenant.student.plan-detail', $plan['uuid']) }}"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
+                                            <x-icons.lucide.eye class="w-3.5 h-3.5" />
+                                            Ver
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     @endif

@@ -395,19 +395,19 @@
                                     $chartAnnotations[] = [
                                         'x' => round($bandMin, 1),
                                         'x2' => round($bandMax, 1),
-                                        'fillColor' => '#38bdf8',
+                                        'fillColor' => tenant_config('color_base', '#263d83'),
                                         'opacity' => 0.2,
                                         'borderColor' => 'transparent',
                                     ];
                                     $chartAnnotations[] = [
                                         'x' => round($idealCenter, 1),
-                                        'borderColor' => '#38bdf8',
+                                        'borderColor' => tenant_config('color_base', '#263d83'),
                                         'strokeDashArray' => 0,
                                         'label' => [
                                             'text' => 'Ideal ' . $idealCenter . ' kg',
                                             'style' => [
-                                                'color' => '#0f172a',
-                                                'background' => '#38bdf8',
+                                                'color' => '#ffffff',
+                                                'background' => tenant_config('color_base', '#263d83'),
                                             ],
                                         ],
                                     ];
@@ -426,13 +426,13 @@
                                     }
                                     $chartAnnotations[] = [
                                         'x' => round($markerWeight, 1),
-                                        'borderColor' => '#f59e0b',
+                                        'borderColor' => '#9ca3af',
                                         'strokeDashArray' => 0,
                                         'label' => [
                                             'text' => 'Actual ' . round($weight, 1) . ' kg' . $labelSuffix,
                                             'style' => [
-                                                'color' => '#111827',
-                                                'background' => '#f59e0b',
+                                                'color' => '#ffffff',
+                                                'background' => '#9ca3af',
                                             ],
                                         ],
                                     ];
@@ -441,127 +441,7 @@
                             }
                         }
                     @endphp
-                    <div class="md:col-span-2">
-                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 space-y-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Curva peso ideal</p>
-                                    @if ($idealRange)
-                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Centro ideal: {{ $idealCenter }} kg</p>
-                                    @else
-                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Se necesita altura para estimar rango</p>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
-                                    <span class="inline-flex items-center gap-2">
-                                        <span class="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
-                                        Ideal
-                                    </span>
-                                    <span class="inline-flex items-center gap-2">
-                                        <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-                                        Actual
-                                    </span>
-                                </div>
-                            </div>
-                            @if ($idealRange && count($chartIdeal))
-                                <div class="space-y-3" wire:key="chart-wrapper-{{ $chartKey }}">
-                                    <div id="weight-ideal-chart-{{ $chartKey }}" data-apex-placeholder
-                                        x-data x-init="$nextTick(() => { if (typeof window.initApexPlaceholders === 'function') window.initApexPlaceholders(); })"
-                                        data-apex-force="true"
-                                        data-chart-type="area"
-                                        data-chart-height="170"
-                                        data-chart-stroke="1.6"
-                                        data-chart-marker-size="0"
-                                        data-chart-fill-opacity="0.50"
-                                        data-chart-ymin="0"
-                                        data-chart-ymax="5"
-                                        data-chart-xaxis-type="numeric"
-                                        data-chart-xmin="{{ $scaleMin }}"
-                                        data-chart-xmax="{{ $scaleMax }}"
-                                        data-chart-sparkline="true"
-                                        data-chart-xlabels="false"
-                                        data-chart-ylabels="false"
-                                        data-chart-grid="false"
-                                        data-chart-colors='@json(["#38bdf8"])'
-                                        data-chart-x-annotations='@json($chartAnnotations)'
-                                        data-series='@json($chartSeries)'
-                                        class="h-[170px]"></div>
-                                    <div class="grid grid-cols-4 text-[11px] text-neutral-500 dark:text-neutral-400">
-                                        <span class="text-left">{{ $scaleMin }} kg</span>
-                                        <span class="text-center">{{ $idealCenter }} kg</span>
-                                        <span class="text-center">{{ $weight !== null ? $weight : '—' }} kg</span>
-                                        <span class="text-right">{{ $scaleMax }} kg</span>
-                                    </div>
-                                    @if ($weight === null)
-                                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Anade peso para ubicar el marcador.</p>
-                                    @endif
-                                </div>
-                            @else
-                                <p class="text-xs text-neutral-500 dark:text-neutral-400">Anade altura para mostrar la curva y el rango ideal.</p>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="md:col-span-2">
-                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 space-y-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Cálculos antropométricos</p>
-                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                                        {{ $genderLabel ?? '—' }}
-                                        @if ($age !== null)
-                                            | {{ $age }} años
-                                        @endif
-                                        @if ($height !== null)
-                                            | {{ number_format($height / 100, 2) }} m
-                                        @endif
-                                        @if ($weight !== null)
-                                            | {{ $weight }} kg
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">Peso Ideal (PI)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $pi !== null ? number_format($pi, 1, ',', '.') . ' kg' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">% Peso Ideal (PPI)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $ppi !== null ? number_format($ppi, 1, ',', '.') . ' %' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">Índice Masa Corporal (IMC)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi !== null ? number_format($bmi, 1, ',', '.') . ' kg/m²' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">Área Sup. Corporal (ASC)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $asc !== null ? number_format($asc, 2, ',', '.') . ' m²' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">Masa Corporal Magra (MCM)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $mcm !== null ? number_format($mcm, 1, ',', '.') . ' kg' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-neutral-500 dark:text-neutral-400">Agua Corporal Total (ACT)</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $act !== null ? number_format($act, 1, ',', '.') . ' L' : '—' }}</span>
-                                </div>
-                            </div>
-                            <div class="border-t border-neutral-200 dark:border-neutral-800 pt-3 space-y-2 text-sm">
-                                <p class="text-neutral-700 dark:text-neutral-200 font-medium">Peso ideal (rango IMC 20-25)</p>
-                                <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-                                    <span>IMC 20 kg/m²</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi20 !== null ? number_format($bmi20, 1, ',', '.') . ' kg' : '—' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-                                    <span>IMC 25 kg/m²</span>
-                                    <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ $bmi25 !== null ? number_format($bmi25, 1, ',', '.') . ' kg' : '—' }}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between text-sm border-t border-neutral-200 dark:border-neutral-800 pt-3">
-                                <span class="text-neutral-600 dark:text-neutral-300">Clasificación (Obesidad)</span>
-                                <span class="font-semibold text-neutral-800 dark:text-neutral-100">{{ $obesityType ?? '—' }}</span>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     </div>
                 </div>
 
@@ -603,66 +483,13 @@
                 </div>
 
                 {{-- Evolución de Peso --}}
-                @if($student && $student->exists)
-                    <flux:separator variant="subtle" class="mt-8" />
-                    <flux:heading size="lg">Evolución de Peso</flux:heading>
-                    <div class="space-y-4">
-                        {{-- Historial de pesos --}}
-                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 mb-4">
-                            <h4 class="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-3">Historial de pesos</h4>
-                            @if(count($weightHistory) > 0)
-                                <div class="space-y-2 max-h-48 overflow-y-auto">
-                                    @foreach($weightHistory as $entry)
-                                        <div class="flex items-center justify-between p-2 bg-neutral-50 dark:bg-neutral-800 rounded">
-                                            <div>
-                                                <p class="font-medium text-neutral-900 dark:text-neutral-100">{{ $entry['weight'] }} kg</p>
-                                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ $entry['date'] }}</p>
-                                                @if($entry['notes'])
-                                                    <p class="text-xs text-neutral-400 dark:text-neutral-500">{{ $entry['notes'] }}</p>
-                                                @endif
-                                            </div>
-                                            <button type="button"
-                                                    wire:click="deleteWeightEntry('{{ $entry['id'] }}')"
-                                                    class="text-xs text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">Eliminar</button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <p class="text-sm text-neutral-500 dark:text-neutral-400">No hay registros de peso</p>
-                            @endif
-                        </div>
+                @include('livewire.tenant.students.partials.weight-evolution')
 
-                        {{-- Formulario para agregar peso --}}
-                        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4">
-                            <h4 class="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-3">Registrar nuevo peso</h4>
+                {{-- Curva Peso Ideal --}}
+                @include('livewire.tenant.students.partials.ideal-weight-curve')
 
-                            <div class="space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <flux:input type="number"
-                                                  step="0.1"
-                                                  wire:model="newWeight"
-                                                  label="Peso (kg)"
-                                                  placeholder="75.5" />
-                                    </div>
-                                    <div>
-                                        <flux:input type="date"
-                                                  wire:model="newWeightDate"
-                                                  label="Fecha" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <flux:textarea wire:model="newWeightNotes"
-                                                 label="Notas (opcional)"
-                                                 placeholder="Desayuno, tarde, etc..." />
-                                </div>
-                                <flux:button type="button" wire:click="addWeightEntry" class="w-full">
-                                    Registrar peso
-                                </flux:button>
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                {{-- Cálculos Antropométricos --}}
+                @include('livewire.tenant.students.partials.anthropometric-calculations')
 
                 {{-- Footer --}}
                 <div class="pt-6 max-w-3xl">
@@ -682,6 +509,7 @@
         </form>
 
         @if ($editMode && $student)
+            {{-- Drawer para asignar plan --}}
             <flux:modal name="assign-plan-drawer" variant="flyout" class="max-w-lg">
                 <div class="space-y-2 mb-6">
                     <flux:heading size="lg">{{ __('students.assign_plan_modal_title') }}</flux:heading>
@@ -689,6 +517,151 @@
                 </div>
                 <livewire:tenant.students.assign-plan :student="$student" :key="'assign-' . $student->uuid" />
             </flux:modal>
+
+            {{-- Drawer para agregar peso --}}
+            <flux:modal name="add-weight-drawer" variant="flyout" class="max-w-md">
+                <div class="space-y-2 mb-6">
+                    <flux:heading size="lg">Registrar peso</flux:heading>
+                    <flux:subheading>Agrega un nuevo registro de peso para el estudiante</flux:subheading>
+                </div>
+
+                <div class="space-y-4">
+                    {{-- Peso actual --}}
+                    @if($lastWeightDisplay && $lastWeightDisplay !== '—')
+                        <div class="rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+                            <div class="flex items-center gap-2 mb-1">
+                                <x-icons.lucide.weight class="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                <span class="text-xs font-medium text-purple-700 dark:text-purple-300">Peso actual</span>
+                            </div>
+                            <p class="text-2xl font-bold text-purple-900 dark:text-purple-100">{{ $lastWeightDisplay }}</p>
+                        </div>
+                    @endif
+
+                    {{-- Formulario --}}
+                    <div class="space-y-4">
+                        <flux:input type="number"
+                                  step="0.1"
+                                  wire:model.defer="newWeight"
+                                  label="Peso (kg)"
+                                  placeholder="75.5"
+                                  required />
+
+                        <flux:input type="date"
+                                  wire:model.defer="newWeightDate"
+                                  label="Fecha"
+                                  required />
+
+                        <flux:textarea wire:model.defer="newWeightNotes"
+                                     label="Notas (opcional)"
+                                     placeholder="Ej: Medición matinal en ayunas"
+                                     rows="3" />
+                    </div>
+
+                    {{-- Historial reciente --}}
+                    @if(count($weightHistory) > 0)
+                        <div class="pt-4 border-t border-gray-200 dark:border-neutral-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-neutral-300">Últimos registros</h4>
+                                <span class="text-xs text-gray-500 dark:text-neutral-400 bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
+                                    {{ count($weightHistory) }} registro{{ count($weightHistory) > 1 ? 's' : '' }}
+                                </span>
+                            </div>
+                            <div class="space-y-2 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+                                @foreach($weightHistory as $index => $entry)
+                                    <div class="group relative flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-white dark:from-neutral-800 dark:to-neutral-800/50 rounded-lg border border-gray-200 dark:border-neutral-700 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-sm transition-all">
+                                        {{-- Indicador visual --}}
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                                @if($index === 0)
+                                                    <x-icons.lucide.trending-down class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                @else
+                                                    <x-icons.lucide.weight class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        {{-- Contenido --}}
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-baseline gap-2">
+                                                <p class="text-lg font-bold text-gray-900 dark:text-neutral-100">{{ $entry['weight'] }} kg</p>
+                                                @if($index === 0)
+                                                    <span class="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
+                                                        Actual
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-2 mt-0.5">
+                                                <x-icons.lucide.calendar class="w-3 h-3 text-gray-400 dark:text-neutral-500" />
+                                                <p class="text-xs text-gray-500 dark:text-neutral-400">{{ $entry['date'] }}</p>
+                                            </div>
+                                            @if($entry['notes'])
+                                                <p class="text-xs text-gray-600 dark:text-neutral-400 mt-1 italic line-clamp-1">
+                                                    "{{ $entry['notes'] }}"
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        {{-- Botón eliminar --}}
+                                        <button type="button"
+                                                wire:click="deleteWeightEntry('{{ $entry['id'] }}')"
+                                                wire:confirm="¿Eliminar este registro?"
+                                                class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                                                title="Eliminar registro">
+                                            <x-icons.lucide.trash-2 class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Estilos para scrollbar personalizado --}}
+                        <style>
+                            .custom-scrollbar::-webkit-scrollbar {
+                                width: 6px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: #d1d5db;
+                                border-radius: 3px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                background: #9ca3af;
+                            }
+                            .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: #4b5563;
+                            }
+                            .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                background: #6b7280;
+                            }
+                        </style>
+                    @endif
+
+                    {{-- Botones de acción --}}
+                    <div class="flex gap-3 pt-4">
+                        <flux:button variant="ghost" class="flex-1" onclick="Flux.modal('add-weight-drawer').close()">
+                            Cancelar
+                        </flux:button>
+                        <flux:button wire:click="addWeightEntry" class="flex-1">
+                            Registrar
+                        </flux:button>
+                    </div>
+                </div>
+            </flux:modal>
+
+            {{-- Script para cerrar drawer automáticamente --}}
+            <script>
+                document.addEventListener('livewire:init', () => {
+                    Livewire.on('weight-added', () => {
+                        // Cerrar el drawer automáticamente
+                        const modal = Flux.modal('add-weight-drawer');
+                        if (modal) {
+                            modal.close();
+                        }
+                    });
+                });
+            </script>
         @endif
     </div>
 </div>
