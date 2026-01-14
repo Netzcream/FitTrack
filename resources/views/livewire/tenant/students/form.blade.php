@@ -220,10 +220,19 @@
                         </flux:select>
                     </div>
                     <div>
-                        <flux:select wire:model.defer="is_user_enabled" :label="__('students.user_enabled')">
-                            <option value="1">{{ __('common.yes') }}</option>
-                            <option value="0">{{ __('common.no') }}</option>
+                        <flux:select wire:model.defer="billing_frequency" :label="__('students.billing_frequency')">
+                            <option value="monthly">{{ __('students.monthly') }}</option>
+                            <option value="quarterly">{{ __('students.quarterly') }}</option>
+                            <option value="yearly">{{ __('students.yearly') }}</option>
                         </flux:select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900/50">
+                    <flux:checkbox wire:model.defer="is_user_enabled" size="sm" />
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900 dark:text-neutral-100">{{ __('students.user_enabled') }}</div>
+                        <div class="text-xs text-gray-600 dark:text-neutral-400">Permite al alumno acceder a su perfil y planes</div>
                     </div>
                 </div>
 

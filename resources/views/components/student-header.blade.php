@@ -1,7 +1,7 @@
 @props(['title', 'subtitle', 'icon' => 'dumbbell', 'student' => null])
 
-<div class="flex items-center justify-between flex-wrap gap-4">
-    <div>
+<div class="flex items-center justify-between gap-4">
+    <div class="flex-1">
         <h1 class="text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
             <x-dynamic-component :component="'icons.lucide.' . $icon" class="w-8 h-8" style="color: var(--ftt-color-base);" />
             {{ $title }}
@@ -11,7 +11,7 @@
         </p>
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
         @php
             $logo = 'https://placehold.co/500x150?text=' . tenant()->name;
         @endphp

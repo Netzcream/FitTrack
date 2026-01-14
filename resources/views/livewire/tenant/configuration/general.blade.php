@@ -177,6 +177,60 @@
                     </div>
                 </div>
 
+                {{-- Sección de Webhook Mercado Pago --}}
+                <div class="space-y-4 pt-4">
+                    <div>
+                        <flux:heading size="lg" class="!mb-1">Integración Mercado Pago - Webhook</flux:heading>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Usá esta URL para configurar notificaciones automáticas de pagos en tu cuenta de Mercado Pago (para el futuro).</p>
+                    </div>
+                    <flux:separator variant="subtle" />
+
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zM8 7a1 1 0 100-2 1 1 0 000 2zm5-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd" />
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                    URL de Webhook para Mercado Pago
+                                </p>
+                                <p class="text-xs text-blue-800 dark:text-blue-200 mt-1">
+                                    Copia esta URL en tu cuenta de Mercado Pago para recibir notificaciones automáticas de pagos
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex gap-2">
+                            <div class="flex-1 p-3 bg-white dark:bg-zinc-800 rounded border border-zinc-300 dark:border-zinc-600 font-mono text-sm break-all">
+                                {{ $this->getWebhookUrl() }}
+                            </div>
+                            <button
+                                type="button"
+                                @click="
+                                    const text = '{{ $this->getWebhookUrl() }}';
+                                    navigator.clipboard.writeText(text).then(() => {
+                                        $dispatch('notify', {message: 'URL copiada al portapapeles'});
+                                    });
+                                "
+                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm whitespace-nowrap transition-colors"
+                            >
+                                Copiar URL
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-zinc-100 dark:bg-zinc-900/30 rounded border border-zinc-300 dark:border-zinc-700 text-sm space-y-2">
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100">Instrucciones para Mercado Pago:</p>
+                        <ol class="list-decimal list-inside space-y-1 text-zinc-700 dark:text-zinc-300">
+                            <li>Ve a <strong>Panel de Desarrollador</strong> → <strong>Notificaciones</strong></li>
+                            <li>Selecciona <strong>Webhooks (para IPN)</strong></li>
+                            <li>Pega esta URL en el campo de webhook</li>
+                            <li>Elige los eventos que quieres recibir (Pagos)</li>
+                            <li>Guarda la configuración</li>
+                        </ol>
+                    </div>
+                </div>
+
                 {{-- Sección de redes sociales --}}
                 <div class="space-y-4 pt-4">
                     <div>

@@ -20,15 +20,21 @@
     @endif
 
     @if ($hasPendingPayment)
-        <div class="border-l-4 p-4 rounded bg-red-50 border-red-500 flex items-start gap-3">
-            <x-icons.lucide.alert-circle class="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
-            <div>
-                <p class="text-sm text-red-700">
-                    Tenés un pago pendiente.
-                </p>
-                <a href="{{ route('tenant.student.payments') }}" class="text-sm text-red-600 underline hover:text-red-700">Ver pagos</a>
-            </div>
-        </div>
+        @php
+            $invoiceService = new \App\Services\Tenant\InvoiceService();
+            $pendingInvoice = $invoiceService->getNextPendingForStudent(auth()->user()->student);
+            // Solo mostrar si está vencido o faltan menos de 5 días
+            $daysUntilDue = now()->diffInDays($pendingInvoice?->due_date);
+            $showAlert = $pendingInvoice && (
+                $pendingInvoice->is_overdue ||
+                $daysUntilDue < 5
+            );
+        @endphp
+        @if ($showAlert)
+            <x-student.alert-notification type="warning" :action="['label' => 'Ver pagos', 'url' => route('tenant.student.payments')]">
+                <p class="text-sm"><span class="font-medium">Pago {{ $pendingInvoice->is_overdue ? 'Vencido' : 'Pendiente' }}:</span> {{ $pendingInvoice->formatted_amount }} - Vencimiento: {{ $pendingInvoice->due_date->format('d/m/Y') }}</p>
+            </x-student.alert-notification>
+        @endif
     @endif
 
     @if (!$assignment)

@@ -106,7 +106,7 @@
 
                         {{-- Método --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $payment->paymentMethod?->name ?? '—' }}
+                            {{ $payment->method ? strtoupper($payment->method) : '—' }}
                         </td>
 
                         {{-- Estado --}}

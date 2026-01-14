@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cca3a64dc8387b29bfb92a301af15322",
+    "content-hash": "8ea44a749bf470191d9818b39c904a39",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -3426,16 +3426,16 @@
         },
         {
             "name": "mercadopago/dx-php",
-            "version": "3.7.0",
+            "version": "3.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mercadopago/sdk-php.git",
-                "reference": "1805d569d427c6f96baf71a18144193a64872904"
+                "reference": "98a3f7da2f13d1e85b309441b2e45c07fa312bf4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mercadopago/sdk-php/zipball/1805d569d427c6f96baf71a18144193a64872904",
-                "reference": "1805d569d427c6f96baf71a18144193a64872904",
+                "url": "https://api.github.com/repos/mercadopago/sdk-php/zipball/98a3f7da2f13d1e85b309441b2e45c07fa312bf4",
+                "reference": "98a3f7da2f13d1e85b309441b2e45c07fa312bf4",
                 "shasum": ""
             },
             "require": {
@@ -3459,9 +3459,9 @@
             "description": "Mercado Pago PHP SDK",
             "homepage": "https://github.com/mercadopago/sdk-php",
             "support": {
-                "source": "https://github.com/mercadopago/sdk-php/tree/3.7.0"
+                "source": "https://github.com/mercadopago/sdk-php/tree/3.8.0"
             },
-            "time": "2025-09-10T18:05:07+00:00"
+            "time": "2025-11-28T14:17:27+00:00"
         },
         {
             "name": "monolog/monolog",

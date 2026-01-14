@@ -4,11 +4,9 @@ namespace App\Livewire\Tenant\Student;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
-use App\Models\Tenant\Student;
-use App\Models\Tenant\Workout;
-use App\Models\Tenant\StudentPlanAssignment;
-use App\Models\Tenant\Payment;
-use App\Services\WorkoutOrchestrationService;
+use App\Models\Tenant\{Student, Workout, StudentPlanAssignment, Invoice};
+use App\Services\{WorkoutOrchestrationService};
+use App\Services\Tenant\InvoiceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -75,11 +73,10 @@ class Dashboard extends Component
         // Meta mensual
         $this->goalThisMonth = data_get($this->student->data, 'training.monthly_goal', 12);
 
-        // Verificar si hay pagos pendientes
-        if (class_exists(Payment::class)) {
-            $this->hasPendingPayment = Payment::where('student_id', $this->student->id)
-                ->whereNull('paid_at')
-                ->exists();
+        // Verificar si hay invoices pendientes (nuevo sistema)
+        if (class_exists(Invoice::class)) {
+            $invoiceService = new InvoiceService();
+            $this->hasPendingPayment = !empty($invoiceService->getNextPendingForStudent($this->student));
         }
 
         // Cargar historial de planes

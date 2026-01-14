@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Illuminate\Validation\Rule;
 use App\Models\Tenant\{Payment, Student};
 use App\Services\Tenant\Payments\PaymentService;
+use Illuminate\Support\Arr;
 
 #[Layout('components.layouts.tenant')]
 class Form extends Component
@@ -18,6 +19,7 @@ class Form extends Component
     public float $amount = 0;
     public string $notes = '';
     public bool $back = true;
+    public bool $autoAmount = true;
 
     public function mount($payment = null, $student = null): void
     {
@@ -38,7 +40,12 @@ class Form extends Component
                 $this->student_id = $foundPayment->student_id;
                 $this->amount = $foundPayment->amount;
                 $this->notes = $foundPayment->notes ?? '';
+                $this->autoAmount = false;
             }
+        }
+
+        if ($this->student_id && !$payment) {
+            $this->prefillAmountFromPlan();
         }
     }
 
@@ -63,9 +70,15 @@ class Form extends Component
             session()->flash('success', __('site.payment_updated'));
         } else {
             $student = Student::findOrFail($this->student_id);
+            if ($this->autoAmount) {
+                $planAmount = $this->resolvePlanAmount($student);
+                if ($planAmount) {
+                    $validated['amount'] = $planAmount;
+                }
+            }
             $service->createForStudent(
                 $student,
-                $this->amount,
+                $validated['amount'],
                 $this->notes
             );
 
@@ -79,6 +92,42 @@ class Form extends Component
         if ($this->editMode) {
             $this->mount($this->id);
         }
+    }
+
+    public function updatedStudentId(): void
+    {
+        $this->prefillAmountFromPlan();
+    }
+
+    private function prefillAmountFromPlan(): void
+    {
+        $student = Student::find($this->student_id);
+        $planAmount = $student ? $this->resolvePlanAmount($student) : null;
+
+        if ($planAmount) {
+            $this->amount = $planAmount;
+            $this->autoAmount = true;
+        } else {
+            $this->autoAmount = false;
+        }
+    }
+
+    private function resolvePlanAmount(Student $student): ?float
+    {
+        $plan = $student->commercialPlan;
+        if (!$plan) {
+            return null;
+        }
+
+        $pricing = collect($plan->pricing ?? []);
+        if ($pricing->isEmpty()) {
+            return null;
+        }
+
+        $billingFrequency = $student->billing_frequency ?? 'monthly';
+        $selected = $pricing->firstWhere('type', $billingFrequency) ?? $pricing->first();
+
+        return Arr::get($selected, 'amount') ? (float) Arr::get($selected, 'amount') : null;
     }
 
     public function render()

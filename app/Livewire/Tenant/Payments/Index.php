@@ -5,7 +5,7 @@ namespace App\Livewire\Tenant\Payments;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
-use App\Models\Tenant\{Payment, Student, PaymentMethod};
+use App\Models\Tenant\Payment;
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
@@ -73,7 +73,7 @@ class Index extends Component
     public function render()
     {
         $query = Payment::query()
-            ->with(['student', 'paymentMethod'])
+            ->with(['student'])
             // Búsqueda agrupada correctamente
             ->when($this->search, function ($q) {
                 $t = "%{$this->search}%";

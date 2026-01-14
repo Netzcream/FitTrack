@@ -123,11 +123,13 @@ class StudentWeightEntry extends Model
      */
     public static function weightChangeSince($studentId, $date): ?array
     {
+        // Get earliest entry since the given date
         $earliest = static::forStudent($studentId)
             ->since($date)
-            ->latest()
-            ->last();
+            ->orderBy('recorded_at', 'asc')
+            ->first();
 
+        // Get latest entry (current weight)
         $latest = static::latestForStudent($studentId);
 
         if (!$earliest || !$latest) {

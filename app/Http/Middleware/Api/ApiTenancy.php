@@ -28,7 +28,7 @@ class ApiTenancy
             ], 400);
         }
 
-        // Buscar el tenant
+        // Buscar el tenant por ID
         $tenant = Tenant::find($tenantId);
 
         if (!$tenant) {

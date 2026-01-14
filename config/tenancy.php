@@ -21,6 +21,8 @@ return [
         env('APP_DOMAIN'),
         'www.' . env('APP_DOMAIN'),
         'app.' . env('APP_DOMAIN'),
+        'api.' . env('APP_DOMAIN'),  // API accesible desde api.<dominio>
+        '127.0.0.1',
 /*        '69.62.98.168',
         '127.0.0.1',**/
     ],

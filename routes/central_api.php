@@ -2,7 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::post('/auth/login', [\App\Http\Controllers\Central\AuthController::class, 'login']);
+/*
+|--------------------------------------------------------------------------
+| Central API Routes (OPCIONAL)
+|--------------------------------------------------------------------------
+| Este archivo está disponible si necesitas rutas centrales específicas.
+| Por ahora, la API de tenants se sirve desde routes/api.php
+| accesible tanto en api.<dominio> como en <dominio>/api
+*/
 
 /*
 |--------------------------------------------------------------------------

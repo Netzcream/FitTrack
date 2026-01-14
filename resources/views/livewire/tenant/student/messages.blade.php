@@ -1,4 +1,4 @@
-<div class="space-y-6 md:space-y-8">
+<div class="space-y-6">
     {{-- ENCABEZADO --}}
     <x-student-header
         title="Mensajes con tu entrenador"

@@ -34,9 +34,13 @@ class General extends Component
     public bool $accepts_cash = false;
     public string $cash_instructions = '';
 
+    // Webhook de Mercado Pago
+    public ?string $webhookUrl = null;
+
     public function mount(): void
     {
         $this->name = tenant()->name;
+        $this->generateWebhookUrl();
         $this->whatsapp = Configuration::conf('landing_whatsapp', '');
         $this->instagram = Configuration::conf('landing_instagram', '');
         $this->facebook = Configuration::conf('landing_facebook', '');
@@ -124,5 +128,33 @@ class General extends Component
     public function render()
     {
         return view('livewire.tenant.configuration.general');
+    }
+
+    /**
+     * Generar la URL del webhook para Mercado Pago
+     * Formato: {tenant_domain}/webhooks/mercadopago
+     */
+    public function generateWebhookUrl(): string
+    {
+        $tenantId = tenant()->id;
+
+        // Obtener el dominio principal del tenant
+        $tenantDomain = tenant()->domains()->first()?->domain;
+
+        if (!$tenantDomain) {
+            // Fallback: usar el id como subdominio
+            $tenantDomain = $tenantId . '.' . parse_url(config('app.url'), PHP_URL_HOST);
+        }
+
+        $this->webhookUrl = "https://{$tenantDomain}/webhooks/mercadopago";
+        return $this->webhookUrl;
+    }
+
+    /**
+     * Obtener la URL del webhook (para la vista)
+     */
+    public function getWebhookUrl(): string
+    {
+        return $this->webhookUrl ?? $this->generateWebhookUrl();
     }
 }

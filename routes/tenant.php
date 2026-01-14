@@ -86,6 +86,10 @@ Route::middleware([
         })->where('path', '.*')
             ->name('file');
 
+        // Webhook para Mercado Pago (sin autenticación)
+        Route::post('/webhooks/mercadopago', [\App\Http\Controllers\Tenant\MercadoPagoWebhookController::class, 'handle'])
+            ->name('webhooks.mercadopago');
+
         Route::middleware(['tenant.auth', 'role:Admin|Asistente|Entrenador'])->group(function () {
             Route::get('/dashboard', function () {
                 return view('tenant.dashboard');
@@ -98,10 +102,22 @@ Route::middleware([
                 Route::get('settings/password', Password::class)->name('settings.password');
                 Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 
+                Route::get('billing/invoices', \App\Livewire\Tenant\Billing\InvoicesIndex::class)
+                    ->name('billing.invoices.index');
+                Route::get('billing/invoices/create/{student?}', \App\Livewire\Tenant\Billing\InvoiceForm::class)
+                    ->name('billing.invoices.create');
+
+                // Backward-compat: redirect legacy Payments list to Invoices
                 Route::prefix('payments')->as('payments.')->group(function () {
-                    Route::get('/', \App\Livewire\Tenant\Payments\Index::class)->name('index');
-                    Route::get('/create/{student?}', \App\Livewire\Tenant\Payments\Form::class)->name('create');
-                    Route::get('/{payment}/edit', \App\Livewire\Tenant\Payments\Form::class)->name('edit');
+                    Route::get('/', function () {
+                        return redirect()->route('tenant.dashboard.billing.invoices.index');
+                    })->name('index');
+                    Route::get('/create/{student?}', function ($student = null) {
+                        return redirect()->route('tenant.dashboard.billing.invoices.create', ['student' => $student]);
+                    })->name('create');
+                    Route::get('/{payment}/edit', function () {
+                        return redirect()->route('tenant.dashboard.billing.invoices.index');
+                    })->name('edit');
                 });
 
                 Route::prefix('contacts')->name('contacts.')->group(function () {

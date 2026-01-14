@@ -169,6 +169,25 @@ class Student extends Model implements HasMedia
             ->latestOfMany('recorded_at');
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function pendingInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)
+            ->whereIn('status', ['pending', 'overdue'])
+            ->orderBy('due_date', 'asc');
+    }
+
+    public function paidInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)
+            ->where('status', 'paid')
+            ->orderBy('paid_at', 'desc');
+    }
+
     /* ------------------------------ UUID boot ----------------------------- */
 
     protected static function booted(): void

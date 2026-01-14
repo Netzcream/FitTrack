@@ -55,6 +55,16 @@
         </flux:navlist>
 
         <flux:navlist variant="outline">
+            <flux:navlist.group :heading="__('site.billing')">
+                <flux:navlist.item icon="credit-card"
+                    :href="route('tenant.dashboard.billing.invoices.index')"
+                    :current="request()->routeIs('tenant.dashboard.billing.invoices.*')" wire:navigate>
+                    {{ __('payments.index_title') }}
+                </flux:navlist.item>
+            </flux:navlist.group>
+        </flux:navlist>
+
+        <flux:navlist variant="outline">
             @canany(['gestionar contactos', 'gestionar usuarios', 'gestionar roles'])
                 <flux:navlist.group :heading="__('site.management')">
 

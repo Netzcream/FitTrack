@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        then: function () {
+            // También servir API desde api.<dominio> sin prefijo /api
+            \Illuminate\Support\Facades\Route::middleware('api')
+                ->domain('api.' . env('APP_DOMAIN'))
+                ->group(base_path('routes/api.php'));
+        }
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->group('universal', []);
@@ -25,8 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.auth'      => \App\Http\Middleware\Tenant\TenantAuthenticate::class,
             'tenant.active'    => \App\Http\Middleware\EnsureTenantIsActive::class,
             'tenant.student.access' => \App\Http\Middleware\Tenant\EnsureStudentAccessEnabled::class,
-
+            'validate.api'     => \App\Http\Middleware\Api\ValidateApiRequest::class,
         ]);
+
+        // Aplicar middleware global para API
+        $middleware->api(\App\Http\Middleware\Api\ValidateApiRequest::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

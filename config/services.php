@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'mercadopago' => [
+        'base_url' => env('MERCADOPAGO_BASE_URL', 'https://api.mercadopago.com'),
+        'runtime_env' => env('MERCADOPAGO_RUNTIME_ENV', 'local'),
+    ],
+
 ];

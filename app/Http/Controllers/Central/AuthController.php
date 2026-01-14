@@ -6,16 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
+        Log::info('Login attempt', ['email' => $request->email]);
+
         // Validación básica
-        $request->validate([
+        $validated = $request->validate([
             'email'    => 'required|email',
             'password' => 'required'
         ]);
+
+        Log::info('Validation passed', $validated);
 
         /*
         |--------------------------------------------------------------------------
@@ -32,21 +37,25 @@ class AuthController extends Controller
         $user   = null;
 
         foreach (Tenant::all() as $t) {
+            Log::info('Checking tenant', ['tenant_id' => $t->id]);
 
             // Cambiar contexto al tenant
             tenancy()->initialize($t);
 
             // Buscar el usuario en la DB del tenant actual
             $u = \App\Models\User::where('email', $request->email)->first();
+            Log::info('User search result', ['tenant_id' => $t->id, 'found' => $u ? true : false]);
 
             if ($u) {
                 $tenant = $t;
                 $user   = $u;
+                Log::info('User found', ['tenant_id' => $t->id, 'user_id' => $u->id]);
                 break;
             }
         }
 
         if (!$tenant || !$user) {
+            Log::error('User not found in any tenant', ['email' => $request->email]);
             return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
@@ -57,6 +66,7 @@ class AuthController extends Controller
         */
 
         if (!Hash::check($request->password, $user->password)) {
+            Log::error('Password mismatch', ['user_id' => $user->id]);
             return response()->json(['error' => 'Credenciales inválidas'], 401);
         }
 

@@ -13,7 +13,7 @@
 
             <div class="max-w-4xl space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <flux:select wire:model.defer="student_id" label="{{ __('Alumno') }}" required>
+                    <flux:select wire:model.live="student_id" label="{{ __('Alumno') }}" required>
                         <option value="">{{ __('Seleccionar alumno') }}</option>
                         @foreach($students as $student)
                             <option value="{{ $student->id }}">
@@ -22,7 +22,14 @@
                         @endforeach
                     </flux:select>
 
-                    <flux:input wire:model.defer="amount" label="{{ __('Monto ($)') }}" type="number" step="0.01" required />
+                    <div class="space-y-2">
+                        <flux:input wire:model.defer="amount" label="{{ __('Monto ($)') }}" type="number" step="0.01"
+                            :disabled="$autoAmount" required />
+                        <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-neutral-400">
+                            <flux:checkbox wire:model.live="autoAmount" size="sm" />
+                            <span>{{ __('Usar monto del plan comercial si existe. Destilda para editar manualmente.') }}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <flux:textarea wire:model.defer="notes" label="{{ __('Notas') }}" placeholder="Detalles opcionales..." />
