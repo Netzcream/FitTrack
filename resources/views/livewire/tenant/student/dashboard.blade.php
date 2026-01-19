@@ -1,5 +1,7 @@
 <div class="space-y-6">
 
+    @php /** @var \App\Models\User|null $user */ $user = \Illuminate\Support\Facades\Auth::user(); @endphp
+
     {{-- ENCABEZADO --}}
     <x-student-header
         title="Panel de entrenamiento"
@@ -22,7 +24,7 @@
     @if ($hasPendingPayment)
         @php
             $invoiceService = new \App\Services\Tenant\InvoiceService();
-            $pendingInvoice = $invoiceService->getNextPendingForStudent(auth()->user()->student);
+            $pendingInvoice = $invoiceService->getNextPendingForStudent($user?->student);
             // Solo mostrar si está vencido o faltan menos de 5 días
             $daysUntilDue = now()->diffInDays($pendingInvoice?->due_date);
             $showAlert = $pendingInvoice && (
@@ -228,6 +230,14 @@
                         <p class="text-center text-gray-500 py-4">Sin datos de progreso</p>
                     @endif
                 </div>
+
+                {{-- Card de Gamificación disfrazado de "Progreso Personal" --}}
+                @if ($student->gamificationProfile)
+                    <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Mi Evolución</h3>
+                        <x-gamification-widget :student="$student" :showProgress="true" :showStats="true" size="default" />
+                    </div>
+                @endif
             </div>
         </div>
     @endif

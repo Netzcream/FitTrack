@@ -1,6 +1,8 @@
 <div class="flex items-start max-md:flex-col">
     <div class="flex-1 self-stretch max-md:pt-6 space-y-6">
 
+        @php /** @var \App\Models\User|null $currentUser */ $currentUser = \Illuminate\Support\Facades\Auth::user(); @endphp
+
         {{-- Header --}}
         <div class="relative w-full">
             <div class="flex items-center justify-between gap-4 flex-wrap">
@@ -165,7 +167,7 @@
                                     {{ __('common.edit') }}
                                 </flux:button>
 
-                                @if (auth()->user()->id !== $user->id)
+                                @if ($currentUser?->id !== $user->id)
                                     <flux:modal.trigger name="confirm-delete-user">
                                         <flux:button size="sm" variant="ghost"
                                             wire:click="confirmDelete('{{ $user->id }}')">

@@ -9,6 +9,7 @@ use App\Models\Tenant\Workout;
 use App\Models\Tenant\Exercise;
 use App\Services\WorkoutOrchestrationService;
 use Illuminate\Support\Facades\Auth;
+use App\Events\Tenant\ExerciseCompleted;
 
 #[Layout('layouts.student')]
 class WorkoutToday extends Component
@@ -39,6 +40,9 @@ class WorkoutToday extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
+        // Asegurar perfil de gamificación para mostrar nivel 0 por defecto
+        $this->ensureGamificationProfile();
+
         // Obtener workout por parámetro (route binding por UUID) o el activo del estudiante
         if ($workout) {
             // Verificar que el workout pertenece al estudiante
@@ -67,6 +71,21 @@ class WorkoutToday extends Component
 
         // Persist enriched data so subsequent renders have images/metadata
         $this->workout->updateExercisesData($this->exercisesData);
+    }
+
+    private function ensureGamificationProfile(): void
+    {
+        $this->student
+            ->gamificationProfile()
+            ->firstOrCreate(
+                ['student_id' => $this->student->id],
+                [
+                    'total_xp' => 0,
+                    'current_level' => 0,
+                    'current_tier' => 0,
+                    'active_badge' => 'not_rated',
+                ]
+            );
     }
 
     /**
@@ -121,8 +140,32 @@ class WorkoutToday extends Component
     public function toggleExerciseComplete(int $index): void
     {
         if (isset($this->exercisesData[$index])) {
-            $this->exercisesData[$index]['completed'] = !($this->exercisesData[$index]['completed'] ?? false);
+            $wasCompleted = $this->exercisesData[$index]['completed'] ?? false;
+            $this->exercisesData[$index]['completed'] = !$wasCompleted;
             $this->workout->updateExercisesData($this->exercisesData);
+
+            // Si se marcó como completado (no descompleto), disparar evento de gamificación
+            if (!$wasCompleted && ($this->exercisesData[$index]['completed'] ?? false)) {
+                // Algunos planes guardan el id como "id" y otros como "exercise_id"; soportamos ambos
+                $exerciseId = $this->exercisesData[$index]['exercise_id']
+                    ?? $this->exercisesData[$index]['id']
+                    ?? null;
+
+                if ($exerciseId) {
+                    $exercise = Exercise::find($exerciseId);
+                    if ($exercise) {
+                        event(new ExerciseCompleted($this->student, $exercise, $this->workout));
+
+                        // Garantizar que el perfil existe y despachar feedback inmediato de XP
+                        $profile = $this->student
+                            ->gamificationProfile()
+                            ->firstOrCreate(['student_id' => $this->student->id]);
+
+                        $xpGained = \App\Models\Tenant\ExerciseCompletionLog::getXpForExerciseLevel($exercise->level);
+                        $this->dispatch('xp-gained', xp: $xpGained, level: $profile->current_level);
+                    }
+                }
+            }
         }
     }
 

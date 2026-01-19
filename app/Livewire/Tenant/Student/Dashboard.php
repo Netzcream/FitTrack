@@ -40,6 +40,9 @@ class Dashboard extends Component
 
         $this->student = Student::where('email', $user->email)->firstOrFail();
 
+        // Asegurar perfil de gamificación para mostrar nivel 0 por defecto
+        $this->ensureGamificationProfile();
+
         // Resolver plan activo con el servicio
         $this->assignment = $this->orchestration->resolveActivePlan($this->student);
 
@@ -96,6 +99,21 @@ class Dashboard extends Component
                     'days_count' => $assignment->exercises_by_day->count(),
                 ];
             })->toArray();
+    }
+
+    private function ensureGamificationProfile(): void
+    {
+        $this->student
+            ->gamificationProfile()
+            ->firstOrCreate(
+                ['student_id' => $this->student->id],
+                [
+                    'total_xp' => 0,
+                    'current_level' => 0,
+                    'current_tier' => 0,
+                    'active_badge' => 'not_rated',
+                ]
+            );
     }
 
     private function resolveTrainingsThisMonth(): int

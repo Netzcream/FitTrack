@@ -27,15 +27,17 @@
 
 <body class="text-gray-900 min-h-screen flex flex-col">
 
+    @php /** @var \App\Models\User|null $user */ $user = \Illuminate\Support\Facades\Auth::user(); @endphp
+
     <header class="student-header sticky top-0 z-10">
         <div class="max-w-6xl mx-auto flex justify-between items-center px-4 py-2 md:py-3">
             <div class="student-greeting text-base md:text-lg flex items-center gap-3">
-                @if (auth()->user()->student?->hasMedia('avatar'))
-                    <img src="{{ auth()->user()->student->getFirstMediaUrl('avatar', 'thumb') }}"
-                         alt="{{ auth()->user()->student->full_name }}"
+                @if ($user?->student?->hasMedia('avatar'))
+                    <img src="{{ $user->student->getFirstMediaUrl('avatar', 'thumb') }}"
+                         alt="{{ $user->student->full_name }}"
                          class="w-10 h-10 rounded-full object-cover shadow-sm">
                 @endif
-                ¡Hola, {{ auth()->user()->student->first_name ?? auth()->user()->name }}!
+                ¡Hola, {{ $user?->student->first_name ?? $user?->name }}!
             </div>
 
             <nav class="flex items-center gap-4 text-xs md:text-sm">

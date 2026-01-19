@@ -188,6 +188,22 @@ class Student extends Model implements HasMedia
             ->orderBy('paid_at', 'desc');
     }
 
+    /**
+     * Relación con el perfil de gamificación
+     */
+    public function gamificationProfile(): HasOne
+    {
+        return $this->hasOne(StudentGamificationProfile::class);
+    }
+
+    /**
+     * Relación con logs de ejercicios completados
+     */
+    public function exerciseCompletionLogs(): HasMany
+    {
+        return $this->hasMany(ExerciseCompletionLog::class);
+    }
+
     /* ------------------------------ UUID boot ----------------------------- */
 
     protected static function booted(): void

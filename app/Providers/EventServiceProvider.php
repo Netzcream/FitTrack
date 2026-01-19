@@ -47,6 +47,11 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\Tenant\ContactFormSubmitted::class => [
             \App\Listeners\Tenant\NotifyContactFormSubmission::class,
         ],
+
+        // Tenant Events - Gamification
+        \App\Events\Tenant\ExerciseCompleted::class => [
+            \App\Listeners\Tenant\AwardExperiencePoints::class,
+        ],
     ];
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Configuration;
+use Illuminate\Support\Facades\Auth;
 
 if (!function_exists('tenant_config')) {
     function tenant_config(string $key, mixed $default = null): mixed
@@ -63,6 +64,86 @@ if (!function_exists('payment_method_config')) {
                 'instructions' => tenant_config('payment_cash_instructions', ''),
             ],
             default => ['enabled' => false],
+        };
+    }
+}
+
+if (!function_exists('gamification_stats')) {
+    /**
+     * Helper para obtener estadísticas de gamificación de un alumno.
+     *
+     * @param \App\Models\Tenant\Student|int|null $student Student model, ID, o null para usuario autenticado
+     * @return array
+     */
+    function gamification_stats($student = null): array
+    {
+        if ($student === null) {
+            /** @var \App\Models\User|null $user */
+            $user = Auth::user();
+            $student = $user?->student;
+        }
+
+        if (is_int($student)) {
+            $student = \App\Models\Tenant\Student::find($student);
+        }
+
+        if (!$student) {
+            return [
+                'has_profile' => false,
+                'total_xp' => 0,
+                'current_level' => 0,
+                'current_tier' => 0,
+                'tier_name' => 'Not Rated',
+                'active_badge' => 'not_rated',
+                'total_exercises' => 0,
+                'level_progress' => 0,
+                'xp_for_next_level' => 100,
+            ];
+        }
+
+        $service = new \App\Services\Tenant\GamificationService();
+        return $service->getStudentStats($student);
+    }
+}
+
+if (!function_exists('gamification_badge_class')) {
+    /**
+     * Retorna las clases CSS de Tailwind para un badge según el tier.
+     *
+     * @param int $tier (0-5)
+     * @return string
+     */
+    function gamification_badge_class(int $tier): string
+    {
+        return match ($tier) {
+            0 => 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+            1 => 'bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-300',
+            2 => 'bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+            3 => 'bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+            4 => 'bg-purple-200 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+            5 => 'bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-300',
+            default => 'bg-gray-200 text-gray-800',
+        };
+    }
+}
+
+if (!function_exists('gamification_tier_icon')) {
+    /**
+     * Retorna el icono/emoji conceptual para un tier.
+     *
+     * @param int $tier (0-5)
+     * @return string
+     */
+    function gamification_tier_icon(int $tier): string
+    {
+        return match ($tier) {
+            0 => '🥚',
+            1 => '🐢',
+            2 => '🐕',
+            3 => '🐅',
+            4 => '🐺',
+            5 => '🦅',
+            default => '🥚',
         };
     }
 }

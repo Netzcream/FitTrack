@@ -9,6 +9,22 @@
     manualOverride: false,
     allExercisesCompleted: false,
     exercisesData: @js($exercisesData),
+    xpNotifications: [],
+    showXpNotification(xp, level) {
+        const id = Date.now();
+        this.xpNotifications.push({ id, xp, level, visible: false });
+        setTimeout(() => {
+            const notification = this.xpNotifications.find(n => n.id === id);
+            if (notification) notification.visible = true;
+        }, 50);
+        setTimeout(() => {
+            const notification = this.xpNotifications.find(n => n.id === id);
+            if (notification) notification.visible = false;
+            setTimeout(() => {
+                this.xpNotifications = this.xpNotifications.filter(n => n.id !== id);
+            }, 500);
+        }, 2500);
+    },
     checkCompletion() {
         const total = this.exercisesData.length;
         const completed = this.exercisesData.filter(e => e.completed).length;
@@ -64,14 +80,50 @@
             this.exercisesData = @this.exercisesData;
             this.checkCompletion();
         });
+        $wire.on('xp-gained', (event) => {
+            this.showXpNotification(event.xp, event.level);
+        });
     }
-}">
+}"
+    @xp-gained.window="showXpNotification($event.detail.xp, $event.detail.level)">
+
+    {{-- NOTIFICACIONES XP FLOTANTES --}}
+    <div class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none">
+        <template x-for="notification in xpNotifications" :key="notification.id">
+            <div
+                x-show="notification.visible"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform translate-x-8 scale-75"
+                x-transition:enter-end="opacity-100 transform translate-x-0 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-4"
+                class="flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border-2"
+                style="background: linear-gradient(135deg, var(--ftt-color-base) 0%, var(--ftt-color-dark) 100%); border-color: var(--ftt-color-light);">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm">
+                    <x-icons.lucide.zap class="w-6 h-6 text-white" />
+                </div>
+                <div class="text-white">
+                    <div class="text-2xl font-bold tracking-tight" x-text="'+' + notification.xp + ' XP'"></div>
+                    <div class="text-xs font-medium opacity-90">¡Ejercicio completado!</div>
+                </div>
+            </div>
+        </template>
+    </div>
+
     {{-- ENCABEZADO --}}
     <x-student-header
         title="Entrenamiento de Hoy"
         subtitle="Completa todos los ejercicios de tu sesión"
         icon="zap"
         :student="$student" />
+
+    {{-- BARRA DE PROGRESO DE GAMIFICACIÓN --}}
+    @if ($student->gamificationProfile)
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 border border-gray-200 dark:border-gray-700">
+            <x-gamification-level-bar :student="$student" />
+        </div>
+    @endif
 
     @if (!$workout)
         <div class="bg-white rounded-xl shadow-md p-8 text-center border border-gray-200">
