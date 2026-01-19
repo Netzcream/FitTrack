@@ -1,115 +1,167 @@
-<div class="space-y-6 md:space-y-8" x-data="{
-    accumulatedSeconds: 0,
-    sessionStart: null,
-    elapsedMinutes: 0,
-    elapsedSeconds: 0,
-    timer: null,
-    lastPersistMinute: -1,
-    workoutId: '{{ $workout?->uuid ?? $workout?->id ?? '' }}',
-    manualOverride: false,
-    allExercisesCompleted: false,
-    exercisesData: @js($exercisesData),
-    xpNotifications: [],
-    showXpNotification(xp, level) {
-        const id = Date.now();
-        this.xpNotifications.push({ id, xp, level, visible: false });
-        setTimeout(() => {
-            const notification = this.xpNotifications.find(n => n.id === id);
-            if (notification) notification.visible = true;
-        }, 50);
-        setTimeout(() => {
-            const notification = this.xpNotifications.find(n => n.id === id);
-            if (notification) notification.visible = false;
-            setTimeout(() => {
-                this.xpNotifications = this.xpNotifications.filter(n => n.id !== id);
-            }, 500);
-        }, 2500);
-    },
-    checkCompletion() {
-        const total = this.exercisesData.length;
-        const completed = this.exercisesData.filter(e => e.completed).length;
-        this.allExercisesCompleted = (total > 0 && completed === total);
-        if (this.allExercisesCompleted) {
-            this.stopTimer();
-        }
-    },
-    startTimer() {
-        if (this.timer || this.allExercisesCompleted || this.manualOverride) return;
-        this.sessionStart = Date.now();
-        const update = () => {
-            if (document.hidden || this.allExercisesCompleted || this.manualOverride) return;
-            const sessionElapsed = Math.floor((Date.now() - this.sessionStart) / 1000);
-            const totalSeconds = this.accumulatedSeconds + sessionElapsed;
-            this.elapsedMinutes = Math.floor(totalSeconds / 60);
-            this.elapsedSeconds = totalSeconds % 60;
-            if (!this.manualOverride) {
-                $wire.durationMinutes = this.elapsedMinutes;
-            }
-            if (this.elapsedMinutes !== this.lastPersistMinute) {
-                this.lastPersistMinute = this.elapsedMinutes;
-                $wire.persistLiveProgress(this.elapsedMinutes);
-            }
-        };
-        update();
-        this.timer = setInterval(update, 1000);
-    },
-    stopTimer() {
-        if (this.timer) {
-            if (this.sessionStart) {
-                this.accumulatedSeconds += Math.floor((Date.now() - this.sessionStart) / 1000);
-                localStorage.setItem('workout_' + this.workoutId + '_seconds', this.accumulatedSeconds);
-            }
-            clearInterval(this.timer);
-            this.timer = null;
-            this.sessionStart = null;
-        }
-    },
-    init() {
-        if (!this.workoutId) {
-            return;
-        }
-        const saved = localStorage.getItem('workout_' + this.workoutId + '_seconds');
-        this.accumulatedSeconds = saved ? parseInt(saved) : 0;
-        this.checkCompletion();
-        if (!document.hidden && !this.allExercisesCompleted) this.startTimer();
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) { this.stopTimer(); } else { if (!this.allExercisesCompleted) this.startTimer(); }
-        });
-        window.addEventListener('beforeunload', () => { this.stopTimer(); });
-        Livewire.hook('morph.updated', () => {
-            this.exercisesData = @this.exercisesData;
-            this.checkCompletion();
-        });
-        $wire.on('xp-gained', (event) => {
-            this.showXpNotification(event.xp, event.level);
-        });
-    }
-}"
-    @xp-gained.window="showXpNotification($event.detail.xp, $event.detail.level)">
+<div class="space-y-6 md:space-y-8" x-data="workoutData()" @xp-gained.window="handleXpGained($event.detail)" x-init="init()">
 
-    {{-- NOTIFICACIONES XP FLOTANTES --}}
-    <div class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none">
-        <template x-for="notification in xpNotifications" :key="notification.id">
-            <div
-                x-show="notification.visible"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 transform translate-x-8 scale-75"
-                x-transition:enter-end="opacity-100 transform translate-x-0 scale-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 transform translate-y-0"
-                x-transition:leave-end="opacity-0 transform -translate-y-4"
-                class="flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border-2"
-                style="background: linear-gradient(135deg, var(--ftt-color-base) 0%, var(--ftt-color-dark) 100%); border-color: var(--ftt-color-light);">
-                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm">
-                    <x-icons.lucide.zap class="w-6 h-6 text-white" />
-                </div>
-                <div class="text-white">
-                    <div class="text-2xl font-bold tracking-tight" x-text="'+' + notification.xp + ' XP'"></div>
-                    <div class="text-xs font-medium opacity-90">¡Ejercicio completado!</div>
-                </div>
-            </div>
-        </template>
-    </div>
+<style>
+    .xp-particle {
+        color: var(--ftt-color-base);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        will-change: transform, opacity;
+        animation: xpFloat var(--xp-duration, 2400ms) cubic-bezier(0.34, 1.56, 0.64, 1) var(--xp-delay, 0ms) forwards;
+    }
+
+    @keyframes xpFloat {
+        0% {
+            transform: translate(0, 0) scale(0.85) rotate(0deg);
+            opacity: 1;
+        }
+        60% {
+            opacity: 1;
+        }
+        100% {
+            transform: translate(var(--xp-tx), var(--xp-ty)) scale(1.25) rotate(var(--xp-rot));
+            opacity: 0;
+        }
+    }
+</style>
+
+<script>
+function workoutData() {
+    return {
+        accumulatedSeconds: 0,
+        sessionStart: null,
+        elapsedMinutes: 0,
+        elapsedSeconds: 0,
+        timer: null,
+        lastPersistMinute: -1,
+        workoutId: '{{ $workout?->uuid ?? $workout?->id ?? '' }}',
+        manualOverride: false,
+        allExercisesCompleted: false,
+        exercisesData: @js($exercisesData),
+        lastClickedElement: null,
+        xpParticles: [],
+        nextParticleId: 0,
+
+        handleXpGained(data) {
+            if (!this.lastClickedElement || !data.xp) return;
+
+            const rect = this.lastClickedElement.getBoundingClientRect();
+            const originX = rect.left + rect.width / 2;
+            const originY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 60 + Math.random() * 140;
+                const duration = 2000 + Math.random() * 2000;
+
+                const particle = {
+                    id: this.nextParticleId++,
+                    xp: data.xp,
+                    originX,
+                    originY,
+                    targetX: Math.cos(angle) * distance,
+                    targetY: Math.sin(angle) * distance - 40,
+                    duration,
+                    delay: i * 40,
+                    rotation: Math.random() * 360
+                };
+
+                this.xpParticles.push(particle);
+
+                setTimeout(() => {
+                    this.xpParticles = this.xpParticles.filter(p => p.id !== particle.id);
+                }, duration + particle.delay + 100);
+            }
+
+            this.lastClickedElement = null;
+        },
+
+        checkCompletion() {
+            const total = this.exercisesData.length;
+            const completed = this.exercisesData.filter(e => e.completed).length;
+            this.allExercisesCompleted = total > 0 && completed === total;
+            if (this.allExercisesCompleted) {
+                this.stopTimer();
+            }
+        },
+
+        startTimer() {
+            if (this.timer || this.allExercisesCompleted || this.manualOverride) return;
+            this.sessionStart = Date.now();
+            const update = () => {
+                if (document.hidden || this.allExercisesCompleted || this.manualOverride) return;
+                const sessionElapsed = Math.floor((Date.now() - this.sessionStart) / 1000);
+                const totalSeconds = this.accumulatedSeconds + sessionElapsed;
+                this.elapsedMinutes = Math.floor(totalSeconds / 60);
+                this.elapsedSeconds = totalSeconds % 60;
+                if (!this.manualOverride) {
+                    Livewire.find('{{ $this->getId() }}').durationMinutes = this.elapsedMinutes;
+                }
+                if (this.elapsedMinutes !== this.lastPersistMinute) {
+                    this.lastPersistMinute = this.elapsedMinutes;
+                    Livewire.find('{{ $this->getId() }}').call('persistLiveProgress', this.elapsedMinutes);
+                }
+            };
+            update();
+            this.timer = setInterval(update, 1000);
+        },
+
+        stopTimer() {
+            if (this.timer) {
+                if (this.sessionStart) {
+                    this.accumulatedSeconds += Math.floor((Date.now() - this.sessionStart) / 1000);
+                    localStorage.setItem('workout_' + this.workoutId + '_seconds', this.accumulatedSeconds);
+                }
+                clearInterval(this.timer);
+                this.timer = null;
+                this.sessionStart = null;
+            }
+        },
+
+        init() {
+            if (!this.workoutId) return;
+            const saved = localStorage.getItem('workout_' + this.workoutId + '_seconds');
+            this.accumulatedSeconds = saved ? parseInt(saved) : 0;
+            this.checkCompletion();
+            if (!document.hidden && !this.allExercisesCompleted) this.startTimer();
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.stopTimer();
+                } else if (!this.allExercisesCompleted) {
+                    this.startTimer();
+                }
+            });
+
+            window.addEventListener('beforeunload', () => { this.stopTimer(); });
+
+            Livewire.hook('morph.updated', () => {
+                this.exercisesData = Livewire.find('{{ $this->getId() }}').exercisesData;
+                this.checkCompletion();
+            });
+
+            Livewire.on('xp-gained', (event) => {
+                // Livewire envuelve los datos en un array
+                const data = Array.isArray(event) ? event[0] : event;
+                this.handleXpGained(data);
+            });
+        }
+    };
+}
+</script>
+    <template x-for="particle in xpParticles" :key="particle.id">
+        <div
+            class="xp-particle fixed pointer-events-none z-50 text-2xl whitespace-nowrap drop-shadow-lg font-semibold"
+            :style="{
+                left: `${particle.originX}px`,
+                top: `${particle.originY}px`,
+                '--xp-tx': `${particle.targetX}px`,
+                '--xp-ty': `${particle.targetY}px`,
+                '--xp-rot': `${particle.rotation}deg`,
+                '--xp-delay': `${particle.delay}ms`,
+                '--xp-duration': `${particle.duration}ms`,
+            }"
+            x-text="`+${particle.xp} XP`">
+        </div>
+    </template>
 
     {{-- ENCABEZADO --}}
     <x-student-header
@@ -118,10 +170,12 @@
         icon="zap"
         :student="$student" />
 
-    {{-- BARRA DE PROGRESO DE GAMIFICACIÓN --}}
+    {{-- BARRA DE PROGRESO DE GAMIFICACIÓN (STICKY) --}}
     @if ($student->gamificationProfile)
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 border border-gray-200 dark:border-gray-700">
-            <x-gamification-level-bar :student="$student" />
+        <div class="sticky top-2 md:top-4 z-30">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 border border-gray-200 dark:border-gray-700">
+                <x-gamification-level-bar :student="$student" />
+            </div>
         </div>
     @endif
 
@@ -169,7 +223,7 @@
                         <div class="flex-1">
                             <div class="flex items-center justify-between gap-3 mb-1">
                                 <div class="flex items-center gap-2">
-                                    <button wire:click="toggleExerciseComplete({{ $index }})" type="button"
+                                    <button @click="lastClickedElement = $el; $wire.toggleExerciseComplete({{ $index }})" type="button"
                                             class="flex-shrink-0 transition hover:scale-110"
                                             style="color: {{ ($exercise['completed'] ?? false) ? 'var(--ftt-color-base)' : '#bfdbfe' }};"
                                             title="{{ ($exercise['completed'] ?? false) ? 'Marcar como incompleto' : 'Marcar como completado' }}">
@@ -183,10 +237,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     @if ($exercise['completed'] ?? false)
-                                        <button wire:click="toggleExerciseComplete({{ $index }})" type="button"
+                                        <button @click="lastClickedElement = $el; $wire.toggleExerciseComplete({{ $index }})" type="button"
                                                 class="text-xs text-gray-600 underline">Desmarcar</button>
                                     @else
-                                        <button wire:click="toggleExerciseComplete({{ $index }})" type="button"
+                                        <button @click="lastClickedElement = $el; $wire.toggleExerciseComplete({{ $index }})" type="button"
                                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition shadow-sm"
                                                 style="background-color: var(--ftt-color-base)"
                                                 aria-pressed="false">
@@ -213,43 +267,37 @@
                     </div>
 
                     @if ($mainImage)
-                        <div class="mb-4 flex flex-col md:flex-row gap-4 items-start">
-                            <button type="button" class="w-full md:max-w-[55%] rounded-lg overflow-hidden bg-gray-100" style="aspect-ratio: 1 / 1; max-height: 420px;" @if(count($galleryUrls)) @click.prevent="galleryOpen = true; galleryIndex = 0" @endif>
-                                <img src="{{ $mainImage }}" alt="{{ $exercise['name'] }}" class="w-full h-full object-contain">
+                        @php
+                            // Build URL list without duplicates and ensure main image is first
+                            $urls = array_values(array_filter(array_map(fn($img) => $img['url'] ?? null, $images)));
+                            if ($mainImage && (empty($urls) || $urls[0] !== $mainImage)) {
+                                array_unshift($urls, $mainImage);
+                            }
+                            $urls = array_values(array_unique($urls));
+                            $countAll = count($urls);
+                        @endphp
+                        <div class="mb-4 relative"
+                             x-data="{ idx: 0, visible: window.innerWidth >= 768 ? 5 : 4, itemGap: 12, itemSize: window.innerWidth >= 768 ? 160 : 140, total: {{ $countAll }} }"
+                             x-init="const onResize = () => { visible = window.innerWidth >= 768 ? 5 : 4; itemSize = window.innerWidth >= 768 ? 160 : 140; const maxStart = Math.max(0, total - visible); idx = Math.min(idx, maxStart); }; window.addEventListener('resize', onResize); onResize()">
+                            <button type="button" x-show="total > visible" @click="const maxStart = Math.max(0, total - visible); idx = (idx === 0 ? maxStart : idx - 1)" class="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white/90 text-gray-700 shadow hover:bg-white">
+                                <x-icons.lucide.chevron-left class="w-5 h-5 m-auto" />
                             </button>
-                            @if (count($images) > 1)
-                                @php
-                                    // Show up to 6 thumbnails (skip the main image at index 0)
-                                    $thumbLimit = 6;
-                                    $startIndex = 1;
-                                    $totalThumbs = max(count($images) - $startIndex, 0);
 
-                                    // If we have more than 6 thumbnails, show 5 + overlay with extra count
-                                    if ($totalThumbs > $thumbLimit) {
-                                        $visibleThumbs = 5;
-                                        $extraThumbs = $totalThumbs - 5;
-                                    } else {
-                                        $visibleThumbs = $totalThumbs;
-                                        $extraThumbs = 0;
-                                    }
-                                @endphp
-                                <div class="w-full md:max-w-[45%] md:h-[420px] grid grid-cols-2 md:grid-cols-2 md:grid-rows-3 gap-3 content-start self-stretch">
-                                    @for ($i = 0; $i < $visibleThumbs; $i++)
-                                        @php $imgIndex = $startIndex + $i; @endphp
-                                        <button type="button" @click.prevent="galleryOpen = true; galleryIndex = {{ $imgIndex }}" class="block h-full">
-                                            <img src="{{ $images[$imgIndex]['url'] ?? '' }}" alt="{{ $exercise['name'] }}" class="w-full h-full rounded-md object-cover border border-gray-200" loading="lazy">
+                            <div class="overflow-hidden" :style="`height: ${itemSize}px`">
+                                <div class="flex gap-3 transition-transform duration-300"
+                                     :style="`transform: translateX(-${idx * (itemSize + itemGap)}px)`">
+                                    @foreach ($urls as $i => $url)
+                                        <button type="button" @click.prevent="galleryOpen = true; galleryIndex = {{ $i }}" class="rounded-md overflow-hidden border border-gray-200 flex-shrink-0"
+                                            :style="`width: ${itemSize}px; height: ${itemSize}px`">
+                                            <img src="{{ $url }}" alt="{{ $exercise['name'] }}" class="w-full h-full object-cover" loading="lazy">
                                         </button>
-                                    @endfor
-
-                                    @if ($extraThumbs > 0)
-                                        @php $overlayIndex = $startIndex + 5; @endphp
-                                        <button type="button" @click.prevent="galleryOpen = true; galleryIndex = {{ $overlayIndex }}" class="relative block h-full">
-                                            <img src="{{ $images[$overlayIndex]['url'] ?? '' }}" alt="{{ $exercise['name'] }}" class="w-full h-full rounded-md object-cover border border-gray-200" loading="lazy">
-                                            <span class="absolute inset-0 bg-black/60 text-white text-2xl font-bold flex items-center justify-center rounded-md">+{{ $extraThumbs }}</span>
-                                        </button>
-                                    @endif
+                                    @endforeach
                                 </div>
-                            @endif
+                            </div>
+
+                            <button type="button" x-show="total > visible" @click="const maxStart = Math.max(0, total - visible); idx = Math.min(idx + 1, maxStart); if (idx === maxStart && total > visible) { setTimeout(() => idx = 0, 0) }" class="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white/90 text-gray-700 shadow hover:bg-white">
+                                <x-icons.lucide.chevron-right class="w-5 h-5 m-auto" />
+                            </button>
                         </div>
                     @endif
 

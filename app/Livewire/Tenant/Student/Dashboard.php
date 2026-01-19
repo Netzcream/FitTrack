@@ -93,7 +93,11 @@ class Dashboard extends Component
                     'plan_name' => $assignment->plan?->name ?? $assignment->name,
                     'starts_at' => $assignment->starts_at,
                     'ends_at' => $assignment->ends_at,
-                    'status' => $assignment->status,
+                    'status' => is_string($assignment->status)
+                        ? $assignment->status
+                        : ($assignment->status instanceof \BackedEnum
+                            ? $assignment->status->value
+                            : (string) $assignment->status),
                     'is_current' => $assignment->is_current,
                     'exercises_count' => $assignment->exercises_by_day->flatten(1)->count(),
                     'days_count' => $assignment->exercises_by_day->count(),

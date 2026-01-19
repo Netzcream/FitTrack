@@ -115,14 +115,13 @@ class StudentGamificationProfile extends Model
     /**
      * Calcula el XP total requerido para alcanzar un nivel específico
      *
-     * Fórmula: XP = 100 * (1.15 ^ (level - 1))
-     * Redondeado a múltiplos de 10
+     * Progresión exponencial con multiplicador ~2.5x entre niveles
      *
      * Nivel 0 = 0 XP (estado inicial)
      * Nivel 1 = 100 XP
-     * Nivel 2 = 115 XP
-     * Nivel 3 = 132 XP
-     * etc.
+     * Nivel 2 = 350 XP (100 + 250)
+     * Nivel 3 = 950 XP (100 + 250 + 600)
+     * Nivel 4 = 2450 XP (100 + 250 + 600 + 1500)
      */
     public static function calculateXpRequiredForLevel(int $level): int
     {
@@ -134,11 +133,20 @@ class StudentGamificationProfile extends Model
             return 100;
         }
 
-        // Progresión exponencial suave con factor 1.15
-        $xp = 100 * pow(1.15, $level - 1);
+        // XP base para nivel 1
+        $baseXp = 100;
+        $totalXp = $baseXp;
 
-        // Redondear a múltiplos de 10
-        return (int) (ceil($xp / 10) * 10);
+        // Calcular XP acumulado hasta el nivel solicitado
+        for ($i = 2; $i <= $level; $i++) {
+            // Cada nivel requiere 2.5x el XP del nivel anterior
+            $xpForThisLevel = $baseXp * pow(2.5, $i - 1);
+            // Redondear a múltiplos de 10
+            $xpForThisLevel = round($xpForThisLevel / 10) * 10;
+            $totalXp += $xpForThisLevel;
+        }
+
+        return (int) $totalXp;
     }
 
     /**

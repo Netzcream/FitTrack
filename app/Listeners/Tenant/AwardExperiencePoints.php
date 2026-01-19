@@ -4,13 +4,13 @@ namespace App\Listeners\Tenant;
 
 use App\Events\Tenant\ExerciseCompleted;
 use App\Services\Tenant\GamificationService;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Listener que procesa el otorgamiento de XP cuando se completa un ejercicio
+ * NOTA: Se ejecuta síncronamente para garantizar feedback inmediato al usuario
  */
-class AwardExperiencePoints implements ShouldQueue
+class AwardExperiencePoints
 {
     /**
      * Create the event listener.

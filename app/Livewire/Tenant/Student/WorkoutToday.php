@@ -154,15 +154,49 @@ class WorkoutToday extends Component
                 if ($exerciseId) {
                     $exercise = Exercise::find($exerciseId);
                     if ($exercise) {
-                        event(new ExerciseCompleted($this->student, $exercise, $this->workout));
+                        // Verificar si ya fue completado hoy ANTES de disparar evento
+                        $alreadyCompleted = \App\Models\Tenant\ExerciseCompletionLog::where('student_id', $this->student->id)
+                            ->where('exercise_id', $exerciseId)
+                            ->whereDate('completed_date', now()->toDateString())
+                            ->exists();
 
-                        // Garantizar que el perfil existe y despachar feedback inmediato de XP
-                        $profile = $this->student
-                            ->gamificationProfile()
-                            ->firstOrCreate(['student_id' => $this->student->id]);
+                        // Solo procesar si NO fue completado hoy (anti-farming)
+                        if (!$alreadyCompleted) {
+                            // Store old level and tier before event
+                            $oldLevel = $this->student->gamificationProfile?->current_level ?? 0;
+                            $oldTier = $this->student->gamificationProfile?->current_tier ?? 0;
 
-                        $xpGained = \App\Models\Tenant\ExerciseCompletionLog::getXpForExerciseLevel($exercise->level);
-                        $this->dispatch('xp-gained', xp: $xpGained, level: $profile->current_level);
+                            event(new ExerciseCompleted($this->student, $exercise, $this->workout));
+
+                            // Recargar el perfil después del evento para obtener XP actualizado
+                            $this->student->refresh();
+                            $profile = $this->student->gamificationProfile;
+
+                            if ($profile) {
+                                $xpGained = \App\Models\Tenant\ExerciseCompletionLog::getXpForExerciseLevel($exercise->level);
+                                $this->dispatch('xp-gained', [
+                                    'xp' => $xpGained,
+                                    'level' => $profile->current_level,
+                                    'progress' => $profile->level_progress_percent,
+                                    'currentXp' => $profile->total_xp - $profile->xp_for_current_level,
+                                    'requiredXp' => $profile->xp_for_next_level - $profile->xp_for_current_level
+                                ]);
+
+                                // Check if leveled up
+                                if ($profile->current_level > $oldLevel) {
+                                    $this->dispatch('level-up', [
+                                        'newLevel' => $profile->current_level,
+                                        'newProgress' => $profile->level_progress_percent,
+                                        'newCurrentXp' => $profile->total_xp - $profile->xp_for_current_level,
+                                        'newRequiredXp' => $profile->xp_for_next_level - $profile->xp_for_current_level,
+                                        'newTierName' => $profile->tier_name,
+                                        'oldTier' => $oldTier,
+                                        'newTier' => $profile->current_tier,
+                                        'tierChanged' => $profile->current_tier !== $oldTier
+                                    ]);
+                                }
+                            }
+                        }
                     }
                 }
             }

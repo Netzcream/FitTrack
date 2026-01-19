@@ -2,12 +2,82 @@
 
     @php /** @var \App\Models\User|null $user */ $user = \Illuminate\Support\Facades\Auth::user(); @endphp
 
+    {{-- ALERTA DE PAGO PENDIENTE (arriba de todo) --}}
+
     {{-- ENCABEZADO --}}
     <x-student-header
         title="Panel de entrenamiento"
         subtitle="Resumen de tu actividad y tus próximos pasos"
         icon="dumbbell"
         :student="$student" />
+
+    {{-- ALERTA DE PAGO PENDIENTE (debajo del título) --}}
+    @if ($hasPendingPayment)
+        @php
+            $invoiceService = new \App\Services\Tenant\InvoiceService();
+            $pendingInvoice = $invoiceService->getNextPendingForStudent($user?->student);
+            $daysUntilDue = now()->diffInDays($pendingInvoice?->due_date);
+            $showAlert = $pendingInvoice && ($pendingInvoice->is_overdue || $daysUntilDue < 5);
+        @endphp
+        @if ($showAlert)
+            <x-student.alert-notification type="warning" :action="['label' => 'Ver pagos', 'url' => route('tenant.student.payments')]">
+                <p class="text-sm"><span class="font-medium">Pago {{ $pendingInvoice->is_overdue ? 'Vencido' : 'Pendiente' }}:</span> {{ $pendingInvoice->formatted_amount }} - Vencimiento: {{ $pendingInvoice->due_date->format('d/m/Y') }}</p>
+            </x-student.alert-notification>
+        @endif
+    @endif
+
+    {{-- HERO GAMIFICADO --}}
+    @if ($student->gamificationProfile)
+        @php
+            $profile = $student->gamificationProfile;
+            $badgeClass = gamification_badge_class($profile->current_tier);
+            $tierIcon = gamification_tier_icon($profile->current_tier);
+        @endphp
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative">
+            <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(128, 90, 213, 0.08), rgba(236, 72, 153, 0.06));"></div>
+            <div class="relative p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold {{ $badgeClass }}">
+                            @if ($tierIcon)
+                                <span>{{ $tierIcon }}</span>
+                            @endif
+                            <span>{{ $profile->tier_name }}</span>
+                        </span>
+                        <span class="text-sm font-medium text-gray-600">Nivel {{ $profile->current_level }}</span>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Tu progreso de hoy</h2>
+                        <p class="text-sm text-gray-600">Sigue sumando XP para subir de nivel</p>
+                    </div>
+                    <div class="max-w-2xl">
+                        <x-gamification-level-bar :student="$student" />
+                    </div>
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-700">
+                        <div class="px-3 py-2 rounded-lg bg-white/80 border border-gray-200 shadow-sm">
+                            <span class="font-semibold">{{ $profile->total_xp }} XP</span> acumulados
+                        </div>
+                        <div class="px-3 py-2 rounded-lg bg-white/80 border border-gray-200 shadow-sm">
+                            <span class="font-semibold">{{ $profile->xp_for_next_level - $profile->total_xp }} XP</span> para el próximo nivel
+                        </div>
+                        <div class="px-3 py-2 rounded-lg bg-white/80 border border-gray-200 shadow-sm">
+                            <span class="font-semibold">{{ $profile->level_progress_percent }}%</span> del nivel actual
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-3 w-full md:w-auto">
+                    <button type="button" wire:click="startOrContinueWorkout" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white font-semibold shadow-md" style="background-color: var(--ftt-color-base);">
+                        <x-icons.lucide.zap class="w-5 h-5" />
+                        Continuar entrenamiento
+                    </button>
+                    <a href="{{ route('tenant.student.progress') }}" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-800 font-semibold shadow-sm hover:bg-gray-50">
+                        <x-icons.lucide.line-chart class="w-5 h-5" />
+                        Ver mi progreso
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- ALERTAS (ahora arriba del contenido principal) --}}
     @if ($goalThisMonth && $trainingsThisMonth >= $goalThisMonth)
@@ -21,23 +91,7 @@
         </div>
     @endif
 
-    @if ($hasPendingPayment)
-        @php
-            $invoiceService = new \App\Services\Tenant\InvoiceService();
-            $pendingInvoice = $invoiceService->getNextPendingForStudent($user?->student);
-            // Solo mostrar si está vencido o faltan menos de 5 días
-            $daysUntilDue = now()->diffInDays($pendingInvoice?->due_date);
-            $showAlert = $pendingInvoice && (
-                $pendingInvoice->is_overdue ||
-                $daysUntilDue < 5
-            );
-        @endphp
-        @if ($showAlert)
-            <x-student.alert-notification type="warning" :action="['label' => 'Ver pagos', 'url' => route('tenant.student.payments')]">
-                <p class="text-sm"><span class="font-medium">Pago {{ $pendingInvoice->is_overdue ? 'Vencido' : 'Pendiente' }}:</span> {{ $pendingInvoice->formatted_amount }} - Vencimiento: {{ $pendingInvoice->due_date->format('d/m/Y') }}</p>
-            </x-student.alert-notification>
-        @endif
-    @endif
+
 
     @if (!$assignment)
         <div class="border-l-4 p-4 rounded bg-gray-50 border-gray-400 flex items-start gap-3">
@@ -48,14 +102,10 @@
         </div>
     @endif
 
-    {{-- ACCESOS RÁPIDOS --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <a href="{{ route('tenant.student.progress') }}" class="student-card">
-            <x-icons.lucide.line-chart class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
-            <h3>Mi Progreso</h3>
-            <p>Métricas y evolución</p>
-        </a>
 
+
+    {{-- ACCESOS RÁPIDOS (solo mensajes y pagos para evitar duplicar progreso) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
         <a href="{{ route('tenant.student.messages') }}" class="student-card">
             <x-icons.lucide.message-circle class="w-7 h-7 mb-2" style="color: var(--ftt-color-base)" />
             <h3>Mensajes</h3>
@@ -231,13 +281,6 @@
                     @endif
                 </div>
 
-                {{-- Card de Gamificación disfrazado de "Progreso Personal" --}}
-                @if ($student->gamificationProfile)
-                    <div class="bg-white rounded-xl p-6" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Mi Evolución</h3>
-                        <x-gamification-widget :student="$student" :showProgress="true" :showStats="true" size="default" />
-                    </div>
-                @endif
             </div>
         </div>
     @endif
@@ -267,70 +310,61 @@
         </div>
     @endif
 
-    {{-- RUTINA DE ENTRENAMIENTO + HISTORIAL DE PLANES --}}
-    @if ($assignment)
-        {{-- Historial compacto --}}
-        @if (count($planHistory) > 0)
-                <div class="bg-white rounded-xl overflow-hidden" x-data="{ expanded: false }" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
-                    <button type="button" @click="expanded = !expanded"
-                        class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <x-icons.lucide.calendar class="w-5 h-5" style="color: var(--ftt-color-base);" />
-                            <div class="text-left">
-                                <h3 class="text-base font-semibold text-gray-900">Historial de planes</h3>
-                                <p class="text-xs text-gray-500">{{ count($planHistory) }} {{ count($planHistory) === 1 ? 'plan' : 'planes' }} anteriores</p>
+{{-- HISTORIAL DE PLANES (al final de la página) --}}
+@if ($assignment && count($planHistory) > 0)
+    <div class="mt-6 bg-white rounded-xl overflow-hidden" x-data="{ expanded: true }" style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+        <button type="button" @click="expanded = !expanded"
+            class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+            <div class="flex items-center gap-3">
+                <x-icons.lucide.calendar class="w-5 h-5" style="color: var(--ftt-color-base);" />
+                <div class="text-left">
+                    <h3 class="text-base font-semibold text-gray-900">Historial de planes</h3>
+                    <p class="text-xs text-gray-500">{{ count($planHistory) }} {{ count($planHistory) === 1 ? 'plan' : 'planes' }} anteriores</p>
+                </div>
+            </div>
+            <x-icons.lucide.chevron-down class="w-5 h-5 text-gray-400 transition-transform"
+                x-bind:class="expanded ? 'rotate-180' : ''" />
+        </button>
+
+        <div x-show="expanded" class="border-t border-gray-200">
+            <div class="px-6 py-4 space-y-2 max-h-80 overflow-y-auto">
+                @foreach ($planHistory as $plan)
+                    @if (!$plan['is_current'])
+                        <div class="p-3 rounded-lg border border-gray-100">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1">
+                                    <p class="font-medium text-sm text-gray-900">{{ $plan['plan_name'] }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        {{ $plan['starts_at']?->format('d/m/Y') ?? '—' }} → {{ $plan['ends_at']?->format('d/m/Y') ?? '—' }}
+                                    </p>
+                                    <div class="flex gap-1.5 items-center text-xs text-gray-600 mt-2">
+                                        <span>{{ $plan['days_count'] }} días</span>
+                                        <span class="text-gray-400">·</span>
+                                        <span>{{ $plan['exercises_count'] }} ejercicios</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-1.5">
+                                    @if ($plan['status'] === 'completed')
+                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+                                            Completado
+                                        </span>
+                                    @elseif ($plan['status'] === 'active')
+                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 whitespace-nowrap">
+                                            Activo
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-700 whitespace-nowrap">
+                                            {{ ucfirst($plan['status']) }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        <x-icons.lucide.chevron-down class="w-5 h-5 text-gray-400 transition-transform"
-                            x-bind:class="expanded ? 'rotate-180' : ''" />
-                    </button>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
 
-                    <div x-show="expanded" class="border-t border-gray-200">
-                        <div class="px-6 py-4 space-y-2 max-h-96 overflow-y-auto">
-                            @foreach ($planHistory as $plan)
-                                @if (!$plan['is_current'])
-                                    <div class="p-3 rounded-lg border border-gray-100">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div class="flex-1">
-                                                <p class="font-medium text-sm text-gray-900">{{ $plan['plan_name'] }}</p>
-                                                <p class="text-xs text-gray-500 mt-1">
-                                                    {{ $plan['starts_at']?->format('d/m/Y') ?? '—' }} → {{ $plan['ends_at']?->format('d/m/Y') ?? '—' }}
-                                                </p>
-                                                <div class="flex gap-1.5 items-center text-xs text-gray-600 mt-2">
-                                                    <span>{{ $plan['days_count'] }} días</span>
-                                                    <span class="text-gray-400">·</span>
-                                                    <span>{{ $plan['exercises_count'] }} ejercicios</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-start gap-1.5">
-                                                @if ($plan['status'] === 'completed')
-                                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">
-                                                        Completado
-                                                    </span>
-                                                @elseif ($plan['status'] === 'expired')
-                                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
-                                                        Expirado
-                                                    </span>
-                                                @endif
-                                                <a href="{{ route('tenant.student.download-plan', $plan['uuid']) }}"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium text-white transition-colors hover:opacity-90"
-                                                    style="background-color: var(--ftt-color-base);">
-                                                    <x-icons.lucide.file-down class="w-3 h-3" />
-                                                    Descargar
-                                                </a>
-                                                <a href="{{ route('tenant.student.plan-detail', $plan['uuid']) }}"
-                                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50">
-                                                    <x-icons.lucide.eye class="w-3 h-3" />
-                                                    Ver
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-    @endif
 </div>
