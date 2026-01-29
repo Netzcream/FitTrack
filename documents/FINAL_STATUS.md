@@ -1,4 +1,61 @@
-# 📊 FitTrack API - Status Final
+# FitTrack — Estado operativo
+
+## Resumen
+- API móvil lista (20 endpoints)
+- Multi-tenant activo
+- Branding automático en respuestas
+
+## Endpoints disponibles
+Autenticación:
+- POST /api/auth/login
+- POST /api/auth/logout
+
+Perfil:
+- GET /api/profile
+- PATCH /api/profile
+
+Planes:
+- GET /api/plans
+- GET /api/plans/current
+- GET /api/plans/{id}
+
+Workouts:
+- GET /api/workouts
+- GET /api/workouts/today
+- GET /api/workouts/stats
+- GET /api/workouts/{id}
+- POST /api/workouts/{id}/start
+- PATCH /api/workouts/{id}
+- POST /api/workouts/{id}/complete
+- POST /api/workouts/{id}/skip
+
+Peso:
+- GET /api/weight
+- GET /api/weight/latest
+- GET /api/weight/change
+- GET /api/weight/average
+- POST /api/weight
+
+Progreso:
+- GET /api/progress
+- GET /api/progress/recent
+
+Mensajería:
+- GET /api/messages/conversation
+- POST /api/messages/send
+- POST /api/messages/read
+- GET /api/messages/unread-count
+- POST /api/messages/mute
+
+## Verificación rápida
+- Login y obtener `token`
+- Llamar `GET /api/profile` con headers
+- Llamar `GET /api/workouts/today`
+
+## Proyección
+- Push notifications
+- Offline caching en app móvil
+- Métricas avanzadas de progreso# 📊 FitTrack API - Status Final
 
 > **API Lista para producción | Integración Next.go completa | Branding incluido**
 

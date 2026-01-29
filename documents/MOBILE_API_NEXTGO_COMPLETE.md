@@ -1,4 +1,40 @@
-# 🚀 FitTrack Mobile API - Documentación Completa (Next.go Edition)
+# FitTrack API — Next.go (Guía corta)
+
+## 1) Configuración básica
+- Base URL: `NEXT_PUBLIC_API_URL`
+- Persistir `token` y `tenant_id` tras login
+
+## 2) Cliente HTTP
+Usa un cliente central que inyecte headers `Authorization` y `X-Tenant-ID` en cada request.
+
+## 3) Flujo mínimo
+1. `POST /api/auth/login`
+2. Guardar `token` y `tenant.id`
+3. Consumir:
+   - `GET /api/profile`
+   - `GET /api/plans/current`
+   - `GET /api/workouts/today`
+   - `POST /api/workouts/{id}/complete`
+   - `GET /api/messages/conversation`
+
+## 4) Branding
+Todas las respuestas traen `branding`. Aplicar a CSS variables:
+
+```css
+:root {
+  --primary-color: #3B82F6;
+  --secondary-color: #10B981;
+  --accent-color: #F59E0B;
+}
+```
+
+## 5) Errores
+En errores, la respuesta usa `error` y `details` (validaciones). Mostrar mensaje y seguir.
+
+## 6) Proyección
+- Push notifications para recordatorios
+- Offline caching de workouts
+- Métricas avanzadas en progreso# 🚀 FitTrack Mobile API - Documentación Completa (Next.go Edition)
 
 ## 📋 Índice
 

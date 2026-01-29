@@ -9,12 +9,15 @@ use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
 use Stancl\Tenancy\Database\Concerns\MaintenanceMode;
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
-use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
+
+
 {
-    use HasDatabase, HasDomains, MaintenanceMode;
+    use HasDatabase, HasDomains, MaintenanceMode, HasFactory;
 
     protected $guarded = [];
     protected $fillable = [

@@ -1,4 +1,36 @@
-# 🎨 Guía: Configurar Branding para tu App Móvil
+# Branding — Configuración mínima
+
+El branding se guarda en la tabla `configuration` del tenant. Todas las respuestas API incluyen `branding`.
+
+## Campos
+- `brand_name`
+- `trainer_name`
+- `trainer_email`
+- `logo_url`
+- `logo_light_url`
+- `primary_color`
+- `secondary_color`
+- `accent_color`
+
+## Configurar vía Tinker (rápido)
+```php
+use App\Models\Configuration;
+
+Configuration::setConf('brand_name', "Juan's Coaching");
+Configuration::setConf('trainer_name', 'Juan Pérez');
+Configuration::setConf('trainer_email', 'juan@example.com');
+Configuration::setConf('logo_url', 'https://example.com/logo.png');
+Configuration::setConf('logo_light_url', 'https://example.com/logo-light.png');
+Configuration::setConf('primary_color', '#3B82F6');
+Configuration::setConf('secondary_color', '#10B981');
+Configuration::setConf('accent_color', '#F59E0B');
+```
+
+## Uso en la app
+Aplicar colores y logo desde la respuesta API (`branding`).
+
+## Proyección
+UI de branding en dashboard (pendiente si no existe).# 🎨 Guía: Configurar Branding para tu App Móvil
 
 Esta guía explica cómo configurar el logo, colores y datos del trainer para que aparezcan en la app móvil (Next.go).
 

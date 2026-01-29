@@ -1,4 +1,32 @@
-# 🚀 Next.go Integration Checklist
+# Next.go — Checklist de Integración
+
+## Preparación
+- [ ] Backend FitTrack activo
+- [ ] Variables de entorno configuradas (`NEXT_PUBLIC_API_URL`)
+
+## Cliente API
+- [ ] Crear cliente HTTP central
+- [ ] Inyectar `Authorization` y `X-Tenant-ID`
+
+## Autenticación
+- [ ] Login con `/api/auth/login`
+- [ ] Persistir `token` y `tenant.id`
+- [ ] Logout con `/api/auth/logout`
+
+## Flujos esenciales
+- [ ] Perfil: `GET /api/profile` y `PATCH /api/profile`
+- [ ] Plan activo: `GET /api/plans/current`
+- [ ] Workouts: `GET /api/workouts/today`, start, update, complete
+- [ ] Peso: `GET /api/weight` y `POST /api/weight`
+- [ ] Mensajes: `GET /api/messages/conversation`, `POST /api/messages/send`
+
+## Branding
+- [ ] Aplicar colores/logo desde `branding` en cada respuesta
+
+## Validación rápida
+- [ ] Login funciona
+- [ ] Header `X-Tenant-ID` correcto
+- [ ] Workouts completos# 🚀 Next.go Integration Checklist
 
 Checklist paso a paso para integrar la API FitTrack en tu app Next.go.
 

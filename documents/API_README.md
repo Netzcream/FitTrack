@@ -1,4 +1,96 @@
-# 📱 FitTrack Mobile API - Next.go Ready
+# FitTrack Mobile API (Resumen práctico)
+
+## Base URL
+- Local: http://localhost:8000/api
+- Producción: https://api.fittrack.com/api
+
+## Headers
+Login:
+- Content-Type: application/json
+
+Resto de endpoints:
+- Authorization: Bearer {token}
+- X-Tenant-ID: {tenant_id}
+- Content-Type: application/json
+
+## Respuesta estándar
+Todas las respuestas incluyen branding del trainer:
+
+```json
+{
+  "data": { "...": "..." },
+  "message": "optional",
+  "branding": {
+    "brand_name": "...",
+    "trainer_name": "...",
+    "trainer_email": "...",
+    "logo_url": "...",
+    "logo_light_url": "...",
+    "primary_color": "#RRGGBB",
+    "secondary_color": "#RRGGBB",
+    "accent_color": "#RRGGBB"
+  }
+}
+```
+
+## Endpoints
+Autenticación:
+- POST /api/auth/login
+- POST /api/auth/logout
+
+Perfil:
+- GET /api/profile
+- PATCH /api/profile
+
+Planes:
+- GET /api/plans
+- GET /api/plans/current
+- GET /api/plans/{id}
+
+Workouts:
+- GET /api/workouts
+- GET /api/workouts/today
+- GET /api/workouts/stats
+- GET /api/workouts/{id}
+- POST /api/workouts/{id}/start
+- PATCH /api/workouts/{id}
+- POST /api/workouts/{id}/complete
+- POST /api/workouts/{id}/skip
+
+Peso:
+- GET /api/weight
+- GET /api/weight/latest
+- GET /api/weight/change
+- GET /api/weight/average
+- POST /api/weight
+
+Progreso:
+- GET /api/progress
+- GET /api/progress/recent
+
+Mensajería:
+- GET /api/messages/conversation
+- POST /api/messages/send
+- POST /api/messages/read
+- GET /api/messages/unread-count
+- POST /api/messages/mute
+
+## Ejemplo rápido
+Login:
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"student@example.com","password":"password"}'
+```
+
+Consultar workout de hoy:
+
+```bash
+curl -X GET http://localhost:8000/api/workouts/today \
+  -H "Authorization: Bearer {token}" \
+  -H "X-Tenant-ID: {tenant_id}"
+```# 📱 FitTrack Mobile API - Next.go Ready
 
 > **API 100% funcional y documentada para consumir desde Next.go (Next.js + Go)**
 

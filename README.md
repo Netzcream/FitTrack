@@ -146,3 +146,16 @@ routes/
 ## Estado actual del proyecto
 
 El proyecto se encuentra aún en etapa de desarrollo; se estima llegar a un MVP para el 2Q 2026.
+
+---
+
+## 📚 Documentación
+
+**[👉 VER DOCUMENTACIÓN COMPLETA](documents/INICIO.md)** ← Punto de entrada
+
+Toda la documentación está organizada en la carpeta `documents/`:
+- Guías de navegación y quick start
+- Análisis completo del estado actual  
+- Documentación de API (20 endpoints)
+- Guías de integración y configuración
+- Estándares de código y diagramas técnicos

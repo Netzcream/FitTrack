@@ -1,4 +1,19 @@
-# 📚 Índice de Documentación - FitTrack API para Next.go
+# Índice de Documentación (API + App)
+
+## Lectura mínima
+1. [API_README.md](API_README.md)
+2. [NEXTGO_INTEGRATION_CHECKLIST.md](NEXTGO_INTEGRATION_CHECKLIST.md)
+3. [BRANDING_CONFIG_GUIDE.md](BRANDING_CONFIG_GUIDE.md)
+
+## Referencias
+- [ESTADO_ACTUAL_APLICACION.md](ESTADO_ACTUAL_APLICACION.md)
+- [FINAL_STATUS.md](FINAL_STATUS.md)
+
+## Carpetas útiles
+- [disenio_ux/](disenio_ux/)
+- [diagramas_arquitectura/](diagramas_arquitectura/)
+- [diagramas_componentes/](diagramas_componentes/)
+- [examples/](examples/)# 📚 Índice de Documentación - FitTrack API para Next.go
 
 Todos los documentos generados para la integración de la API con Next.go.
 

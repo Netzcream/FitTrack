@@ -1,4 +1,75 @@
-# FitTrack Mobile API - Documentación
+# FitTrack Mobile API — Uso práctico
+
+Esta guía muestra los flujos mínimos para integrar una app móvil.
+
+## Headers
+Login:
+- Content-Type: application/json
+
+Resto:
+- Authorization: Bearer {token}
+- X-Tenant-ID: {tenant_id}
+- Content-Type: application/json
+
+## Flujo mínimo
+1. Login
+2. Guardar `token` y `tenant.id`
+3. Consumir endpoints con headers
+4. Usar `branding` para colores/logo
+
+## Requests clave
+
+### Login
+POST /api/auth/login
+
+```json
+{ "email": "student@example.com", "password": "password" }
+```
+
+Respuesta contiene `token`, `tenant`, `student`, `branding`.
+
+### Perfil
+GET /api/profile
+
+### Plan activo
+GET /api/plans/current
+
+### Workouts
+- GET /api/workouts/today
+- POST /api/workouts/{id}/start
+- PATCH /api/workouts/{id}
+- POST /api/workouts/{id}/complete
+
+Ejemplo de completar:
+```json
+{
+  "duration_minutes": 45,
+  "rating": 4,
+  "notes": "Good",
+  "survey": { "fatigue": 3, "rpe": 7 }
+}
+```
+
+### Peso
+- GET /api/weight
+- POST /api/weight
+
+Ejemplo:
+```json
+{ "weight_kg": 84.2, "date": "2026-01-29" }
+```
+
+### Mensajes
+- GET /api/messages/conversation
+- POST /api/messages/send
+
+Ejemplo:
+```json
+{ "message": "Necesito ajustar el plan" }
+```
+
+## Branding
+Todas las respuestas incluyen `branding` con colores y logo. Usar esos valores en la UI.# FitTrack Mobile API - Documentación
 
 **Versión:** 1.0  
 **Fecha:** Enero 2026  
