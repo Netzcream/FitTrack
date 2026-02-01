@@ -150,6 +150,34 @@ class Panel extends Component
             ['name' => __('site.new_students'), 'data' => $chartNew->values()],
         ];
 
+        // Uso de IA (si tiene acceso)
+        $tenant = tenant();
+        $hasAiAccess = false;
+        $aiUsage = [];
+        $aiChartData = [];
+
+        if ($tenant && $tenant->plan) {
+            $planSlug = $tenant->plan->slug ?? '';
+            $hasAiAccess = in_array($planSlug, ['pro', 'equipo']);
+
+            if ($hasAiAccess) {
+                $aiUsage = $tenant->getAiGenerationUsage();
+
+                // Obtener historial de últimos 6 meses
+                $history = $tenant->getAiUsageHistory(6)->reverse();
+
+                $aiChartData = [
+                    'labels' => $history->pluck('month')->map(function($month) {
+                        return \Carbon\Carbon::createFromFormat('Y-m', $month)->format('M Y');
+                    })->toArray(),
+                    'series' => [
+                        ['name' => 'Usado', 'data' => $history->pluck('usage_count')->toArray()],
+                        ['name' => 'Límite', 'data' => $history->pluck('limit')->toArray()],
+                    ],
+                ];
+            }
+        }
+
         return view('livewire.tenant.dashboard.panel', compact(
             'publishedCount',
             // 'draftCount' removed
@@ -168,6 +196,9 @@ class Panel extends Component
             'recentBlogCount',
             'chartLabels',
             'chartSeries',
+            'hasAiAccess',
+            'aiUsage',
+            'aiChartData',
         ));
     }
 }

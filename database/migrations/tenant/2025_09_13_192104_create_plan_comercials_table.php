@@ -12,8 +12,8 @@ return new class extends Migration {
         Schema::create('commercial_plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('uuid')->unique();
-            $table->string('slug')->unique();
+            $table->string('uuid');
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->json('pricing')->nullable();
@@ -23,6 +23,32 @@ return new class extends Migration {
             $table->softDeletes();
             $table->timestamps();
         });
+
+        // Add unique indexes for uuid and slug if not exists
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'commercial_plans' AND index_name = 'commercial_plans_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $uuidIndexExists = $result->count > 0;
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'commercial_plans' AND index_name = 'commercial_plans_slug_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $slugIndexExists = $result->count > 0;
+
+        if (! $uuidIndexExists) {
+            Schema::table('commercial_plans', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
+        if (! $slugIndexExists) {
+            Schema::table('commercial_plans', function (Blueprint $table) {
+                $table->unique('slug');
+            });
+        }
 
         DB::table('commercial_plans')->insert([
             [

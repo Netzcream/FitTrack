@@ -74,7 +74,20 @@ Route::middleware([
             $user = User::findOrFail($id);
             Auth::login($user);
 
-            return redirect()->route('tenant.dashboard');
+            $redirect = request()->query('redirect');
+            if ($redirect && str_starts_with($redirect, '/')
+                && ! str_starts_with($redirect, '//')
+                && ! str_contains($redirect, '://')
+            ) {
+                return redirect($redirect);
+            }
+
+            $target = route('tenant.dashboard');
+            if ($user->hasRole('Alumno')) {
+                $target = route('tenant.student.dashboard');
+            }
+
+            return redirect()->to($target);
         })->name('tenant.impersonate.login');
 
         Route::get('/file/{path}', function ($path) {

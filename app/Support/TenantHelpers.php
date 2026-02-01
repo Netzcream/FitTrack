@@ -147,3 +147,72 @@ if (!function_exists('gamification_tier_icon')) {
         };
     }
 }
+
+if (!function_exists('ai_usage')) {
+    /**
+     * Obtiene información sobre el uso de generación con IA del tenant actual.
+     *
+     * @return array ['used' => int, 'limit' => int, 'available' => int, 'percentage' => float, 'has_limit' => bool, 'is_exceeded' => bool]
+     */
+    function ai_usage(): array
+    {
+        $tenant = tenant();
+
+        if (!$tenant) {
+            return [
+                'used' => 0,
+                'limit' => 0,
+                'available' => 0,
+                'percentage' => 0,
+                'has_limit' => false,
+                'is_exceeded' => false,
+            ];
+        }
+
+        return $tenant->getAiGenerationUsage();
+    }
+}
+
+if (!function_exists('ai_usage_history')) {
+    /**
+     * Obtiene el historial de uso de IA del tenant actual.
+     *
+     * @param int $months Número de meses a consultar (por defecto 12)
+     * @return \Illuminate\Support\Collection
+     */
+    function ai_usage_history(int $months = 12): \Illuminate\Support\Collection
+    {
+        $tenant = tenant();
+
+        if (!$tenant) {
+            return collect();
+        }
+
+        return $tenant->getAiUsageHistory($months);
+    }
+}
+
+if (!function_exists('ai_usage_stats')) {
+    /**
+     * Obtiene estadísticas agregadas de uso de IA del tenant actual.
+     *
+     * @return array ['total_usage' => int, 'avg_usage' => float, 'max_usage' => int, 'months_tracked' => int, 'total_available' => int, 'usage_percentage' => float]
+     */
+    function ai_usage_stats(): array
+    {
+        $tenant = tenant();
+
+        if (!$tenant) {
+            return [
+                'total_usage' => 0,
+                'avg_usage' => 0,
+                'max_usage' => 0,
+                'months_tracked' => 0,
+                'total_available' => 0,
+                'usage_percentage' => 0,
+            ];
+        }
+
+        return $tenant->getAiUsageStats();
+    }
+}

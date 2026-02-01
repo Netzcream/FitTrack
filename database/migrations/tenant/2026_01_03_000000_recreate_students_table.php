@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration {
     public function up(): void
     {
@@ -13,11 +15,11 @@ return new class extends Migration {
 
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->uuid('uuid');
 
             // Identificación principal
             $table->string('status', 20)->default('active'); // active|paused|inactive|prospect
-            $table->string('email')->unique();
+            $table->string('email');
             $table->string('first_name', 100);
             $table->string('last_name', 100);
             $table->string('phone', 30)->nullable();
@@ -39,6 +41,32 @@ return new class extends Migration {
             $table->timestamps();
             $table->softDeletes();
         });
+
+        // Add unique indexes for uuid and email if not exists
+        $connection = Schema::getConnection();
+        $result = DB::select(
+            "SELECT index_name FROM information_schema.statistics WHERE table_schema = database() AND table_name = 'students' AND (index_name = 'students_uuid_unique' OR index_name = 'students_email_unique')"
+        );
+        $uuidIndexExists = false;
+        $emailIndexExists = false;
+        foreach ($result as $row) {
+            if ($row->index_name === 'students_uuid_unique') {
+                $uuidIndexExists = true;
+            }
+            if ($row->index_name === 'students_email_unique') {
+                $emailIndexExists = true;
+            }
+        }
+        if (! $uuidIndexExists) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
+        if (! $emailIndexExists) {
+            Schema::table('students', function (Blueprint $table) {
+                $table->unique('email');
+            });
+        }
     }
 
     public function down(): void

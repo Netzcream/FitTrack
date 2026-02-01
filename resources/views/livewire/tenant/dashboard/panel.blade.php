@@ -1,5 +1,5 @@
 <div>
-    <div class="flex h-full w-full flex-1 flex-col gap-6">
+    <div class="flex h-full w-full flex-1 flex-col gap-4">
 
         {{-- KPIs (estilo ejemplo) --}}
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -52,20 +52,60 @@
                         class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
             </a>
 
-            {{-- Contactos desde la web (pendientes) --}}
-            <a wire:navigate href="{{ route('tenant.dashboard.contacts.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-xs text-neutral-500">Contactos desde la web (pendientes)</p>
-                        <p class="mt-1 text-2xl font-semibold">{{ number_format($webContactsPending) }}</p>
+            {{-- Contactos desde la web (pendientes) O Mini Gráfico de Uso de IA --}}
+            @if ($hasAiAccess)
+                {{-- Card con mini gráfico de uso de IA --}}
+                <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <p class="text-xs text-neutral-500">Uso de IA este mes</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ $aiUsage['used'] ?? 0 }}<span class="text-sm text-neutral-500">/{{ $aiUsage['limit'] ?? 0 }}</span></p>
+                        </div>
+                        <div class="rounded-lg bg-violet-100 dark:bg-violet-900/30 p-2">
+                            <flux:icon.sparkles class="size-5 text-violet-600 dark:text-violet-400" />
+                        </div>
                     </div>
-                    <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
-                        <flux:icon.globe class="size-5" />
+
+                    {{-- Mini barra de progreso --}}
+                    <div class="w-full bg-neutral-200 dark:bg-neutral-800 rounded-full h-1.5 mb-3">
+                        <div class="h-full rounded-full transition-all {{ ($aiUsage['percentage'] ?? 0) >= 90 ? 'bg-red-500' : (($aiUsage['percentage'] ?? 0) >= 70 ? 'bg-amber-500' : 'bg-violet-600') }}"
+                             style="width: {{ min(100, $aiUsage['percentage'] ?? 0) }}%">
+                        </div>
                     </div>
+
+                    {{-- Mini gráfico de tendencia (últimos 6 meses) --}}
+                    @if (!empty($aiChartData['labels']))
+                        <div id="ai-usage-mini-chart"
+                             data-apex-placeholder
+                             data-categories='@json($aiChartData['labels'])'
+                             data-series='@json($aiChartData['series'])'
+                             data-chart-type="line"
+                             data-chart-height="80"
+                             data-chart-colors='["#8b5cf6", "#d1d5db"]'
+                             data-stroke-width="2"
+                             data-chart-toolbar="false"
+                             class="h-20 -mb-2">
+                        </div>
+                    @else
+                        <p class="text-xs text-neutral-500 text-center py-4">Sin datos históricos aún</p>
+                    @endif
                 </div>
-                <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.updated') }}: <span
-                        class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
-            </a>
+            @else
+                {{-- Card original de contactos web --}}
+                <a wire:navigate href="{{ route('tenant.dashboard.contacts.index') }}" class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 flex flex-col">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs text-neutral-500">Contactos desde la web (pendientes)</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ number_format($webContactsPending) }}</p>
+                        </div>
+                        <div class="rounded-lg bg-neutral-100 dark:bg-neutral-800 p-2">
+                            <flux:icon.globe class="size-5" />
+                        </div>
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-auto pt-3">{{ __('site.updated') }}: <span
+                            class="font-medium text-neutral-700 dark:text-neutral-300">hoy</span></p>
+                </a>
+            @endif
         </div>
 
         {{-- Gráfico + Acciones rápidas (estilo ejemplo) --}}

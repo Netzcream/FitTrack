@@ -27,8 +27,16 @@ return new class extends Migration
                 ->update(['uuid' => Str::uuid()->toString()]);
         });
 
-        // Make uuid unique and not nullable
-        if (!Schema::hasColumn('conversations', 'uuid') || DB::table('conversations')->whereNull('uuid')->exists() === false) {
+        // Make uuid unique and not nullable, but only if the index does not already exist
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'conversations' AND index_name = 'conversations_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $indexExists = $result->count > 0;
+
+        if (!$indexExists) {
             Schema::table('conversations', function (Blueprint $table) {
                 $table->uuid('uuid')->nullable(false)->unique()->change();
             });

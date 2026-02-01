@@ -7,6 +7,23 @@
     <!-- Session Status -->
     <x-tenant.auth-session-status class="text-center" :status="session('status')" />
 
+    @php
+        $ssoError = request()->query('sso_error');
+        $ssoMessage = match ($ssoError) {
+            'user_not_found' => __('site.sso_user_not_found'),
+            'email_missing' => __('site.sso_email_missing'),
+            'oauth_failed' => __('site.sso_failed'),
+            'state_expired' => __('site.sso_expired'),
+            default => null,
+        };
+    @endphp
+
+    @if ($ssoMessage)
+        <div class="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-center text-sm text-red-700">
+            {{ $ssoMessage }}
+        </div>
+    @endif
+
     <form wire:submit="login" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
@@ -48,6 +65,22 @@
             </flux:button>
         </div>
     </form>
+
+    @if (config('services.google.client_id'))
+        <div class="text-center text-sm text-white/60 -mb-2">
+            {{ __('site.login_or') }}
+        </div>
+
+        <flux:button
+            as="a"
+            href="{{ route('tenant.google.redirect', array_filter(['redirect' => request()->query('redirect')])) }}"
+            variant="filled"
+            class="w-full !bg-white hover:!bg-gray-50 !text-gray-700 !border-0"
+        >
+            <img src="{{ config('app.url') }}/images/google.svg" alt="Google" class="w-5 h-5" />
+            {{ __('site.login_google') }}
+        </flux:button>
+    @endif
 
     @if (Route::has('tenant.register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Livewire\Auth\ConfirmPassword;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Tenant\Login;
@@ -21,6 +22,8 @@ Route::middleware('universal')->group(function () {
         //Route::get('register', Register::class)->name('register');
         Route::get('forgot-password', ForgotPassword::class)->name('password.request');
         Route::get('reset-password/{token}', ResetPassword::class)->name('password.reset');
+        Route::get('auth/google/redirect', [GoogleLoginController::class, 'redirect'])
+            ->name('google.redirect');
     });
 
     Route::middleware('auth')->group(function () {

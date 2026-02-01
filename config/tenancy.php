@@ -57,7 +57,7 @@ return [
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'fittrack_',
+        'prefix' => env('TENANT_DB_PREFIX', 'fittrack_'),
         'suffix' => '',
 
         /**
@@ -203,6 +203,6 @@ return [
         '--force' => true,
     ],
     'migrate_after_creation' => true, // Mantener habilitado para ejecutar migraciones automáticamente
-    'seed_after_migration' => true, // Habilitar para ejecutar seeders automáticamente después de migraciones,
+    'seed_after_migration' => env('TENANT_SEED_AFTER_MIGRATION', true), // Habilitar para ejecutar seeders automáticamente después de migraciones,
 
 ];

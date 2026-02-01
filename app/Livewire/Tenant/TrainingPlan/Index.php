@@ -15,12 +15,25 @@ class Index extends Component
 
     public string $search = '';
     public string $status = '';
+    public string $aiGenerated = ''; // filtro por generado por IA
     public string $sortBy = 'name';
     public string $sortDirection = 'asc';
     public ?string $deleteUuid = null;
 
     /** 🔍 Flag de debug: incluir planes asignados (por defecto false) */
     public bool $includeAssigned = false;
+
+    /**
+     * Verifica si el tenant actual tiene plan pro o equipo.
+     */
+    public function hasPremiumPlan(): bool
+    {
+        $tenant = tenant();
+        if (!$tenant || !$tenant->plan) {
+            return false;
+        }
+        return in_array($tenant->plan->slug, ['pro', 'equipo']);
+    }
 
 
 
@@ -36,7 +49,7 @@ class Index extends Component
     /* -------------------- Reactividad -------------------- */
     public function updating($field): void
     {
-        if (in_array($field, ['search', 'status', 'includeAssigned'])) {
+        if (in_array($field, ['search', 'status', 'includeAssigned', 'aiGenerated'])) {
             $this->resetPage();
         }
     }
@@ -166,6 +179,13 @@ class Index extends Component
 
             // Filtro de búsqueda
             ->search($this->search)
+
+            // Filtro de generado por IA
+            ->when(
+                $this->aiGenerated !== '',
+                fn(Builder $q) =>
+                $q->where('created_by_ai', (bool) $this->aiGenerated)
+            )
 
             // Excluir asignados salvo que $includeAssigned sea true
             ->when(

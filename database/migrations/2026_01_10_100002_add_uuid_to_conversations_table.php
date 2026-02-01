@@ -28,28 +28,10 @@ return new class extends Migration
         });
 
         // Make uuid unique and not nullable (guard against duplicate index creation)
-        $driver = Schema::getConnection()->getDriverName();
-        $indexExists = false;
-
-        if ($driver === 'sqlite') {
-            $indexes = DB::select("PRAGMA index_list('conversations')");
-            foreach ($indexes as $index) {
-                if (($index->name ?? null) === 'conversations_uuid_unique') {
-                    $indexExists = true;
-                    break;
-                }
-            }
-        } elseif ($driver === 'mysql') {
-            $result = DB::selectOne(
-                "SELECT 1 FROM information_schema.statistics WHERE table_schema = database() AND table_name = 'conversations' AND index_name = 'conversations_uuid_unique' LIMIT 1"
-            );
-            $indexExists = $result !== null;
-        } elseif ($driver === 'pgsql') {
-            $result = DB::selectOne(
-                "SELECT 1 FROM pg_indexes WHERE tablename = 'conversations' AND indexname = 'conversations_uuid_unique' LIMIT 1"
-            );
-            $indexExists = $result !== null;
-        }
+        $result = DB::selectOne(
+            "SELECT 1 FROM information_schema.statistics WHERE table_schema = database() AND table_name = 'conversations' AND index_name = 'conversations_uuid_unique' LIMIT 1"
+        );
+        $indexExists = $result !== null;
 
         if (
             Schema::hasColumn('conversations', 'uuid') &&

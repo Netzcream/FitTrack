@@ -15,8 +15,13 @@ return new class extends Migration
         Schema::rename('configurations', 'tenant_configurations');
 
         // Alterar estructura
-        Schema::table('tenant_configurations', function (Blueprint $table) {
-            $table->dropUnique('configurations_key_unique');
+        $connection = Schema::getConnection();
+        $result = $connection->select("SELECT COUNT(1) as cnt FROM information_schema.statistics WHERE table_schema = database() AND table_name = 'tenant_configurations' AND index_name = 'configurations_key_unique'");
+        $indexExists = !empty($result) && ($result[0]->cnt ?? 0) > 0;
+        Schema::table('tenant_configurations', function (Blueprint $table) use ($indexExists) {
+            if ($indexExists) {
+                $table->dropUnique('configurations_key_unique');
+            }
             $table->dropColumn(['key', 'value']);
 
             $table->string('tenant_id')->unique()->after('id');

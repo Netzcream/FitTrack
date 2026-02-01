@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Log;
 
 class ApiService
 {
@@ -37,18 +38,81 @@ class ApiService
             ]);
         }
 
-        $response = OpenAI::chat()->create($params);
+        // Si se solicita JSON mode (gpt-4o, gpt-4o-mini, gpt-4-turbo)
+        if (isset($options['response_format']) && $options['response_format'] === 'json_object') {
+            $params['response_format'] = ['type' => 'json_object'];
+        }
 
-        // El SDK devuelve objetos; los convertimos a array
-        $raw = json_decode(json_encode($response), true);
+        Log::info('[AI Service] Llamando a OpenAI API', [
+            'model' => $model,
+            'temperature' => $temperature,
+            'max_tokens' => $maxTokens,
+            'prompt_length' => strlen($prompt),
+        ]);
 
-        // Extraemos el texto de la respuesta
-        $text = $raw['choices'][0]['message']['content'] ?? null;
+        // Reintentos automáticos para timeouts
+        $maxRetries = 2;
+        $retryDelay = 2; // segundos
 
-        return [
-            'text' => $text,
-            'raw'  => $raw, // incluye usage (tokens), model, etc.
-        ];
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                if ($attempt > 1) {
+                    Log::info('[AI Service] Reintentando llamada a OpenAI', [
+                        'attempt' => $attempt,
+                        'max_retries' => $maxRetries,
+                    ]);
+                    sleep($retryDelay);
+                }
+
+                $response = OpenAI::chat()->create($params);
+
+                // El SDK devuelve objetos; los convertimos a array
+                $raw = json_decode(json_encode($response), true);
+
+                // Extraemos el texto de la respuesta
+                $text = $raw['choices'][0]['message']['content'] ?? null;
+
+                Log::info('[AI Service] Respuesta recibida de OpenAI', [
+                    'model' => $model,
+                    'has_text' => !empty($text),
+                    'text_length' => $text ? strlen($text) : 0,
+                    'finish_reason' => $raw['choices'][0]['finish_reason'] ?? null,
+                    'usage' => $raw['usage'] ?? [],
+                    'attempt' => $attempt,
+                ]);
+
+                return [
+                    'text' => $text,
+                    'raw'  => $raw, // incluye usage (tokens), model, etc.
+                ];
+
+            } catch (\Exception $e) {
+                $isTimeout = str_contains($e->getMessage(), 'timed out') ||
+                            str_contains($e->getMessage(), 'cURL error 28');
+
+                $isLastAttempt = $attempt === $maxRetries;
+
+                Log::error('[AI Service] Error en llamada a OpenAI', [
+                    'error_message' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'error_code' => $e->getCode(),
+                    'model' => $model,
+                    'attempt' => $attempt,
+                    'is_timeout' => $isTimeout,
+                    'will_retry' => $isTimeout && !$isLastAttempt,
+                ]);
+
+                // Si no es un timeout o ya agotamos los reintentos, lanzar el error
+                if (!$isTimeout || $isLastAttempt) {
+                    throw $e;
+                }
+
+                // Si es timeout y no es el último intento, continuar con el siguiente intento
+            }
+        }
+
+        // Fallback de seguridad (no debería alcanzarse nunca)
+        throw new \RuntimeException('[AI Service] Error inesperado: se agotaron los reintentos sin respuesta ni excepción.');
     }
 
     /**

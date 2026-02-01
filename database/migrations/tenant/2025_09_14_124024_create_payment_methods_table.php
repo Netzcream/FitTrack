@@ -12,9 +12,9 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->uuid('uuid');
             $table->string('name');
-            $table->string('code')->unique();              // e.g., TRANSFER, CARD, CASH, MERCADOPAGO
+            $table->string('code');              // e.g., TRANSFER, CARD, CASH, MERCADOPAGO
             $table->text('description')->nullable();       // breve descripción del método
             $table->text('instructions')->nullable();      // instrucciones libres: CBU, descuentos, etc.
             $table->json('config')->nullable();            // credenciales o settings (provider, token, etc.)
@@ -22,6 +22,32 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
         });
+
+        // Add unique indexes for uuid and code if not exists
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'payment_methods' AND index_name = 'payment_methods_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $uuidIndexExists = $result->count > 0;
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'payment_methods' AND index_name = 'payment_methods_code_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $codeIndexExists = $result->count > 0;
+
+        if (! $uuidIndexExists) {
+            Schema::table('payment_methods', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
+        if (! $codeIndexExists) {
+            Schema::table('payment_methods', function (Blueprint $table) {
+                $table->unique('code');
+            });
+        }
 
         // Initial data per tenant
         $now = now();

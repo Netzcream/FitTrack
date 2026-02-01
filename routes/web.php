@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Central\ClientController;
+use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Livewire\Central\Dashboard\Clients\ClientsForm;
 use App\Livewire\Central\Dashboard\Clients\ClientsIndex;
 use App\Livewire\Central\Dashboard\DeployPanel;
@@ -35,6 +36,8 @@ foreach (config('tenancy.central_domains') as $domain) {
             return view('central.pages.terms');
         })->name('central.terms');
 
+        Route::get('auth/google/callback', [GoogleLoginController::class, 'callback'])
+            ->name('auth.google.callback');
 
         Route::view('dashboard', 'dashboard')
             ->middleware(['auth'])

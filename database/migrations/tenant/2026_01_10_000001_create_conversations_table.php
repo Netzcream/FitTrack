@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->uuid('uuid');
             $table->string('type'); // tenant_student
             $table->unsignedBigInteger('student_id')->nullable();
             $table->string('subject')->nullable();
@@ -25,6 +26,17 @@ return new class extends Migration
             $table->index('last_message_at');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
         });
+
+        // Add unique index for uuid if not exists
+        $result = DB::selectOne(
+            "SELECT 1 FROM information_schema.statistics WHERE table_schema = database() AND table_name = 'conversations' AND index_name = 'conversations_uuid_unique' LIMIT 1"
+        );
+        $indexExists = $result !== null;
+        if (! $indexExists) {
+            Schema::table('conversations', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
     }
 
     /**

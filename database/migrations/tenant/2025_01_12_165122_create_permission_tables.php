@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     /**
@@ -25,31 +27,57 @@ return new class extends Migration
         }
 
         Schema::create($tableNames['permissions'], function (Blueprint $table) {
-            //$table->engine('InnoDB');
-            $table->bigIncrements('id'); // permission id
-            $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
-            $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('guard_name');
             $table->timestamps();
-
-            $table->unique(['name', 'guard_name']);
         });
+        // Add unique index for permissions (name, guard_name)
+        $result = DB::selectOne(
+            "SELECT 1 FROM information_schema.statistics WHERE table_schema = database() AND table_name = '".$tableNames['permissions']."' AND index_name = '".$tableNames['permissions']."_name_guard_name_unique' LIMIT 1"
+        );
+        $permIndexExists = $result !== null;
+        if (! $permIndexExists) {
+            Schema::table($tableNames['permissions'], function (Blueprint $table) {
+                $table->unique(['name', 'guard_name']);
+            });
+        }
 
         Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
-            //$table->engine('InnoDB');
-            $table->bigIncrements('id'); // role id
-            if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
+            $table->bigIncrements('id');
+            if ($teams || config('permission.testing')) {
                 $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
-            $table->string('name');       // For MyISAM use string('name', 225); // (or 166 for InnoDB with Redundant/Compact row format)
-            $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
+            $table->string('name');
+            $table->string('guard_name');
             $table->timestamps();
-            if ($teams || config('permission.testing')) {
-                $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
-            } else {
-                $table->unique(['name', 'guard_name']);
-            }
         });
+        // Add unique index for roles
+        $result = DB::select(
+            "SELECT index_name FROM information_schema.statistics WHERE table_schema = database() AND table_name = '".$tableNames['roles']."' AND (index_name = '".$tableNames['roles'].'_'.$columnNames['team_foreign_key'].'_name_guard_name_unique' . "' OR index_name = '".$tableNames['roles']."_name_guard_name_unique')"
+        );
+        $roleIndexExists = false;
+        foreach ($result as $row) {
+            if ($teams || config('permission.testing')) {
+                if ($row->index_name === $tableNames['roles'].'_'.$columnNames['team_foreign_key'].'_name_guard_name_unique') {
+                    $roleIndexExists = true;
+                }
+            } else {
+                if ($row->index_name === $tableNames['roles'].'_name_guard_name_unique') {
+                    $roleIndexExists = true;
+                }
+            }
+        }
+        if (! $roleIndexExists) {
+            Schema::table($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
+                if ($teams || config('permission.testing')) {
+                    $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
+                } else {
+                    $table->unique(['name', 'guard_name']);
+                }
+            });
+        }
 
         Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
             $table->unsignedBigInteger($pivotPermission);
@@ -131,10 +159,10 @@ return new class extends Migration
             throw new \Exception('Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
         }
 
-        Schema::drop($tableNames['role_has_permissions']);
-        Schema::drop($tableNames['model_has_roles']);
-        Schema::drop($tableNames['model_has_permissions']);
-        Schema::drop($tableNames['roles']);
-        Schema::drop($tableNames['permissions']);
+        Schema::dropIfExists($tableNames['role_has_permissions']);
+        Schema::dropIfExists($tableNames['model_has_roles']);
+        Schema::dropIfExists($tableNames['model_has_permissions']);
+        Schema::dropIfExists($tableNames['roles']);
+        Schema::dropIfExists($tableNames['permissions']);
     }
 };

@@ -95,7 +95,59 @@
 
                 {{-- Sección de ejercicios --}}
                 <flux:separator variant="subtle" class="my-6" />
-                <flux:heading size="md" level="2">{{ __('training_plans.exercises_section') }}</flux:heading>
+                <div class="flex items-center justify-between gap-4">
+                    <flux:heading size="md" level="2">{{ __('training_plans.exercises_section') }}</flux:heading>
+                    @if ($this->hasAiAccess)
+                        <flux:button wire:click="openAiModal" size="sm" variant="ghost" icon="sparkles" type="button">
+                            Generar con IA
+                        </flux:button>
+                    @else
+                        <div class="relative group">
+                            <flux:button size="sm" variant="ghost" icon="sparkles" type="button" disabled>
+                                Generar con IA
+                            </flux:button>
+                            <div class="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50">
+                                <div class="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap">
+                                    Disponible solo en planes Pro y Equipo
+                                    <div class="absolute top-full right-4 -mt-1">
+                                        <div class="border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Barra de progreso de uso de IA (solo si tiene acceso) --}}
+                @if ($this->hasAiAccess && $this->aiUsage['has_limit'])
+                    <div class="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <flux:icon.sparkles class="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                    Uso de IA este mes
+                                </span>
+                            </div>
+                            <span class="text-sm font-semibold {{ $this->aiUsage['is_exceeded'] ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-400' }}">
+                                {{ $this->aiUsage['used'] }} / {{ $this->aiUsage['limit'] }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 {{ $this->aiUsage['percentage'] >= 90 ? 'bg-red-500' : ($this->aiUsage['percentage'] >= 70 ? 'bg-amber-500' : 'bg-violet-600') }}"
+                                 style="width: {{ min(100, $this->aiUsage['percentage']) }}%">
+                            </div>
+                        </div>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
+                            @if ($this->aiUsage['is_exceeded'])
+                                Límite alcanzado. Se renovará el 1° del próximo mes.
+                            @elseif ($this->aiUsage['percentage'] >= 90)
+                                ¡Cuidado! Solo quedan {{ $this->aiUsage['available'] }} generaciones disponibles.
+                            @else
+                                {{ $this->aiUsage['available'] }} generaciones disponibles hasta fin de mes.
+                            @endif
+                        </p>
+                    </div>
+                @endif
 
                 <div class="space-y-4">
                     {{-- Buscador --}}
@@ -227,7 +279,22 @@
 
                                             <td colspan="3"
                                                 class="px-4 pt-1 pb-2 text-[15px] font-medium text-gray-900 dark:text-neutral-100 leading-snug align-bottom">
-                                                {{ $ex['name'] }}
+                                                <button type="button"
+                                                    wire:click="viewExerciseDetails({{ $ex['id'] }}, {{ $i }})"
+                                                    wire:loading.class="opacity-50 pointer-events-none"
+                                                    wire:target="viewExerciseDetails({{ $ex['id'] }}, {{ $i }})"
+                                                    class="hover:underline focus:outline-none text-left cursor-pointer inline-flex items-center gap-1.5">
+                                                    <span class="inline-flex items-center justify-center w-4">
+                                                        <svg wire:loading.remove wire:target="viewExerciseDetails({{ $ex['id'] }}, {{ $i }})" class="h-3.5 w-3.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+                                                        </svg>
+                                                        <svg wire:loading wire:target="viewExerciseDetails({{ $ex['id'] }}, {{ $i }})" class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                    </span>
+                                                    {{ $ex['name'] }}
+                                                </button>
                                                 <span class="text-[12px] text-gray-700 dark:text-neutral-300">
                                                     ({{ $ex['category'] }})
                                                 </span>
@@ -315,5 +382,184 @@
 
             <livewire:tenant.exercises.quick-create />
         </form>
+    </flux:modal>
+
+    {{-- Modal para generar con IA --}}
+    @if ($showAiModal)
+        <flux:modal wire:model="showAiModal" class="max-w-md" variant="flyout" :closable="false">
+            <form class="space-y-6" @submit.prevent>
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <flux:heading size="lg">Generar Plan con IA</flux:heading>
+                        <flux:subheading>
+                            Describe el tipo de plan que necesitas y la IA lo generará usando los ejercicios disponibles.
+                        </flux:subheading>
+                    </div>
+                    <button type="button"
+                            wire:click="closeAiModal"
+                            wire:loading.attr="disabled"
+                            wire:target="generateWithAi"
+                            class="text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <flux:separator variant="subtle" />
+
+                <div class="space-y-4">
+                    <div wire:loading.class="opacity-50 pointer-events-none" wire:target="generateWithAi">
+                        <flux:textarea
+                            wire:model="aiPrompt"
+                            label="¿Qué tipo de plan necesitas?"
+                            placeholder="Ej: Plan de hipertrofia para principiantes, 4 días por semana, enfocado en tren superior e inferior"
+                            rows="4"
+                            required
+                        />
+                    </div>
+
+                    <div class="text-xs text-gray-500 dark:text-neutral-400 space-y-1">
+                        <p><strong>Reglas automáticas:</strong></p>
+                        <p>• Si no especificas días, se usarán entre 3-5 días</p>
+                        <p>• Mínimo 4 ejercicios por día (pueden ser más)</p>
+                        <p>• Si la IA sugiere ejercicios que no existen, se crearán automáticamente</p>
+                        <p>• Puedes editar el plan después de generarlo</p>
+                    </div>
+                </div>
+
+                <flux:separator variant="subtle" />
+
+                <div class="flex gap-2 justify-end">
+                    <flux:button
+                        wire:click="closeAiModal"
+                        variant="ghost"
+                        type="button"
+                        wire:loading.attr="disabled"
+                        wire:target="generateWithAi">
+                        Cancelar
+                    </flux:button>
+                    <flux:button
+                        wire:click="generateWithAi"
+                        variant="primary"
+                        icon="sparkles">
+                        Generar Plan
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        {{-- Overlay de bloqueo durante generación --}}
+        <div wire:loading wire:target="generateWithAi">
+            <div class="fixed inset-0 bg-black/80 flex items-center justify-center"
+                 style="z-index: 999999; margin: 0 !important;">
+                <div class="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center border border-gray-200 dark:border-neutral-800">
+                    <div class="relative">
+                        <flux:icon.arrow-path class="animate-spin size-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <flux:heading size="lg" class="mb-2">Generando plan con IA</flux:heading>
+                    <flux:subheading class="text-gray-600 dark:text-neutral-400">
+                        Por favor espera, esto puede tomar unos segundos...
+                    </flux:subheading>
+                    <div class="mt-4 text-xs text-gray-500 dark:text-neutral-500">
+                        No cierres esta ventana
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal de detalles del ejercicio --}}
+    <flux:modal wire:model.live="showExerciseDetails" class="max-w-2xl" variant="flyout">
+        @if($selectedExerciseDetails)
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ $selectedExerciseDetails['name'] }}</flux:heading>
+                <flux:subheading>
+                    <span class="inline-flex items-center gap-2">
+                        <flux:badge size="sm" color="zinc">{{ $selectedExerciseDetails['category'] }}</flux:badge>
+                        @if($selectedExerciseDetails['level'])
+                            <flux:badge size="sm"
+                                color="{{ $selectedExerciseDetails['level'] === 'beginner' ? 'green' : ($selectedExerciseDetails['level'] === 'intermediate' ? 'yellow' : 'red') }}">
+                                {{ __('exercises.levels.' . $selectedExerciseDetails['level']) ?? ucfirst($selectedExerciseDetails['level']) }}
+                            </flux:badge>
+                        @endif
+                    </span>
+                </flux:subheading>
+            </div>
+
+            <flux:separator variant="subtle" />
+
+            {{-- Imágenes --}}
+            @if(!empty($selectedExerciseDetails['images']))
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach($selectedExerciseDetails['images'] as $image)
+                        <div class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700">
+                            <img src="{{ $image['url'] }}"
+                                 alt="{{ $selectedExerciseDetails['name'] }}"
+                                 class="w-full h-48 object-cover">
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Descripción --}}
+            @if($selectedExerciseDetails['description'])
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('exercises.description') }}</flux:heading>
+                    <p class="text-sm text-gray-700 dark:text-neutral-300 whitespace-pre-line">
+                        {{ $selectedExerciseDetails['description'] }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- Equipamiento --}}
+            @if($selectedExerciseDetails['equipment'])
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('exercises.equipment') }}</flux:heading>
+                    <p class="text-sm text-gray-700 dark:text-neutral-300">
+                        {{ $selectedExerciseDetails['equipment'] }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- Grupo muscular --}}
+            @if($selectedExerciseDetails['muscle_group'])
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('exercises.muscle_group') }}</flux:heading>
+                    <p class="text-sm text-gray-700 dark:text-neutral-300">
+                        {{ $selectedExerciseDetails['muscle_group'] }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- Video URL --}}
+            @if($selectedExerciseDetails['video_url'])
+                <div>
+                    <flux:heading size="sm" class="mb-2">{{ __('exercises.video') }}</flux:heading>
+                    <a href="{{ $selectedExerciseDetails['video_url'] }}"
+                       target="_blank"
+                       class="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                        <x-icons.lucide.external-link class="size-4" />
+                        Ver video
+                    </a>
+                </div>
+            @endif
+
+            <flux:separator variant="subtle" />
+
+            {{-- Botón para editar --}}
+            <div class="flex justify-end">
+                <flux:button as="a"
+                    href="{{ route('tenant.dashboard.exercises.edit', $selectedExerciseDetails['uuid']) }}"
+                    target="_blank"
+                    variant="ghost"
+                    size="sm"
+                    icon="pencil">
+                    {{ __('common.edit') }}
+                </flux:button>
+            </div>
+        </div>
+        @endif
     </flux:modal>
 </div>

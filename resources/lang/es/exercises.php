@@ -28,6 +28,8 @@ return [
     'category'           => 'Categoría',
     'level'              => 'Nivel',
     'equipment'          => 'Equipamiento',
+    'muscle_group'       => 'Grupo muscular',
+    'video'              => 'Video',
     'is_active'          => 'Activo',
 
     // 🔹 Placeholders

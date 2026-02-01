@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     /**
@@ -13,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('training_plans', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid('uuid');
 
             $table->string('name');
             $table->text('description')->nullable();
@@ -26,6 +28,20 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
         });
+
+        // Add unique index for uuid if not exists
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'training_plans' AND index_name = 'training_plans_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $indexExists = $result->count > 0;
+        if (! $indexExists) {
+            Schema::table('training_plans', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
     }
 
     /**

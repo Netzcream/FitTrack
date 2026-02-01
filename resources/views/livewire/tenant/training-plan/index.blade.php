@@ -34,6 +34,17 @@
                                     <option value="0">{{ __('common.inactive') }}</option>
                                 </flux:select>
                             </div>
+
+                            {{-- Filtro por generado por IA (solo para plan pro o equipo) --}}
+                            @if($this->hasPremiumPlan())
+                                <div class="min-w-[160px]">
+                                    <flux:select size="sm" wire:model.live="aiGenerated" label="Generado por IA">
+                                        <option value="">{{ __('common.all') }}</option>
+                                        <option value="1">Sí</option>
+                                        <option value="0">No</option>
+                                    </flux:select>
+                                </div>
+                            @endif
                         </x-slot>
                     </x-index-filters>
                 </x-slot>
@@ -121,7 +132,26 @@
 
                         {{-- Nombre --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->name }}
+                            <div class="flex items-center gap-2">
+                                <span>{{ $plan->name }}</span>
+                                @if ($plan->created_by_ai)
+                                    <div class="relative inline-flex" x-data="{ show: false }" @mouseenter="show = true" @mouseleave="show = false">
+                                        <flux:icon.sparkles class="size-4 text-violet-500 dark:text-violet-400 cursor-help" variant="solid" />
+                                        <div x-show="show"
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-90"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-90"
+                                             class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-900 dark:bg-neutral-700 text-white text-xs rounded-md shadow-lg whitespace-nowrap z-50"
+                                             style="display: none;">
+                                            Generado por IA
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-neutral-700"></div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
 
                             @if ($plan->student_id)
                             <div class="text-gray-600 dark:text-neutral-400">

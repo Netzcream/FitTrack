@@ -21,18 +21,21 @@ abstract class TestCase extends BaseTestCase
      */
     protected function setUp(): void
     {
-            // Create testing SQLite database file with absolute path BEFORE calling parent::setUp()
-            // Use direct path construction since storage_path() helper isn't available yet
-            $dbPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'testing.sqlite';
-        if (!file_exists($dbPath)) {
-            @mkdir(dirname($dbPath), 0777, true);
-            touch($dbPath);
-        }
 
-        // Force the DB_DATABASE env variable to absolute path
-        // This must be done before parent::setUp() which initializes the database connection
-        $_ENV['DB_DATABASE'] = $dbPath;
-        putenv('DB_DATABASE=' . $dbPath);
+        // Ensure the test database exists before running migrations
+        $dbName = env('DB_DATABASE', 'test_fittrack');
+        $dbHost = env('DB_HOST', '127.0.0.1');
+        $dbPort = env('DB_PORT', '3306');
+        $dbUser = env('DB_USERNAME', 'test_fittrack');
+        $dbPass = env('DB_PASSWORD', '');
+
+        try {
+            $pdo = new \PDO("mysql:host=$dbHost;port=$dbPort", $dbUser, $dbPass);
+            $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+        } catch (\Exception $e) {
+            echo "\n[ERROR] Could not create test database: ".$e->getMessage()."\n";
+            exit(1);
+        }
 
         parent::setUp();
     }
@@ -68,7 +71,7 @@ abstract class TestCase extends BaseTestCase
      */
     public function inTenant(Tenant $tenant, callable $callback): mixed
     {
-        $previousTenant = tenancy()->tenant();
+        $previousTenant = tenancy()->initialized ? app('tenant') : null;
 
         try {
             tenancy()->initialize($tenant);
@@ -88,7 +91,7 @@ abstract class TestCase extends BaseTestCase
     protected function tearDown(): void
     {
         try {
-            if (tenancy()->tenant()) {
+            if (tenancy()->initialized) {
                 tenancy()->end();
             }
         } finally {

@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained('conversations')->onDelete('cascade');
             $table->string('participant_type'); // central, tenant
-            $table->unsignedBigInteger('participant_id');
+            $table->string('participant_id', 255); // Changed from unsignedBigInteger to support tenant slugs
             $table->timestamp('last_read_at')->nullable();
             $table->timestamp('muted_at')->nullable();
 
             $table->unique(['conversation_id', 'participant_type', 'participant_id'], 'conv_participant_unique');
-            $table->index(['participant_type', 'participant_id']);
+            // Use a short index name for MySQL compatibility
+            $table->index(['participant_type', 'participant_id'], 'cpt_pt_pid_idx');
         });
     }
 

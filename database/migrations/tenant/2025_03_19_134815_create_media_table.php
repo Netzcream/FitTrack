@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void
@@ -12,7 +14,7 @@ return new class extends Migration
             $table->id();
 
             $table->morphs('model');
-            $table->uuid()->nullable()->unique();
+            $table->uuid('uuid')->nullable();
             $table->string('collection_name');
             $table->string('name');
             $table->string('file_name');
@@ -28,6 +30,20 @@ return new class extends Migration
 
             $table->nullableTimestamps();
         });
+
+        // Add unique index for uuid if not exists
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'media' AND index_name = 'media_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $indexExists = $result->count > 0;
+        if (! $indexExists) {
+            Schema::table('media', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
     }
 
     public function down(): void

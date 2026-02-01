@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     /**
@@ -36,13 +38,28 @@ return new class extends Migration
 
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid')->unique();
+            $table->string('uuid');
             $table->text('connection');
             $table->text('queue');
             $table->longText('payload');
             $table->longText('exception');
             $table->timestamp('failed_at')->useCurrent();
         });
+
+        // Add unique index for uuid if not exists
+        $connection = Schema::getConnection();
+        $result = $connection->selectOne(
+            "SELECT COUNT(*) as count FROM information_schema.statistics
+             WHERE table_schema = ? AND table_name = 'failed_jobs' AND index_name = 'failed_jobs_uuid_unique'",
+            [$connection->getDatabaseName()]
+        );
+        $indexExists = $result->count > 0;
+
+        if (! $indexExists) {
+            Schema::table('failed_jobs', function (Blueprint $table) {
+                $table->unique('uuid');
+            });
+        }
     }
 
     /**

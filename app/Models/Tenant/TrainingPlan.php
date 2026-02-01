@@ -22,6 +22,7 @@ class TrainingPlan extends Model implements HasMedia
         'duration',
         'exercises_data',
         'is_active',
+        'created_by_ai',
         'student_id',
         'assigned_from',
         'assigned_until',
@@ -31,6 +32,7 @@ class TrainingPlan extends Model implements HasMedia
     protected $casts = [
         'exercises_data' => 'array',
         'is_active' => 'boolean',
+        'created_by_ai' => 'boolean',
         'meta'      => 'array',
         'assigned_from' => 'date',
         'assigned_until' => 'date',

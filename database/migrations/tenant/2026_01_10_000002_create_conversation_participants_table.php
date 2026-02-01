@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('conversation_id')->constrained('conversations')->onDelete('cascade');
             $table->string('participant_type'); // tenant, student
-            $table->unsignedBigInteger('participant_id');
+            $table->string('participant_id', 255);
             $table->timestamp('last_read_at')->nullable();
             $table->timestamp('muted_at')->nullable();
 
             $table->unique(['conversation_id', 'participant_type', 'participant_id'], 'conv_participant_unique');
-            $table->index(['participant_type', 'participant_id']);
+            // Use a very short index name to avoid MySQL 64-char limit with test_ prefix
+            $table->index(['participant_type', 'participant_id'], 'cpt_type_id_idx');
         });
     }
 

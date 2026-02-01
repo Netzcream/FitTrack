@@ -22,9 +22,13 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- SQLite con archivo para mejor debugging y estabilidad en tests multi-tenant -->
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value="storage/testing.sqlite" force="true"/>
+        <!-- Use MySQL for tests, with isolated test DB -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="test_fittrack"/>
+        <env name="DB_USERNAME" value="test_fittrack"/>
+        <env name="DB_PASSWORD" value="test_fittrack"/>
+        <env name="TENANT_DB_PREFIX" value="test_fittrack_"/>
+        <env name="TENANT_SEED_AFTER_MIGRATION" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

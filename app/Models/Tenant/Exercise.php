@@ -24,11 +24,13 @@ class Exercise extends Model implements HasMedia
         'level',
         'equipment',
         'is_active',
+        'created_by_ai',
         'meta',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'created_by_ai' => 'boolean',
         'meta'      => 'array',
     ];
 
