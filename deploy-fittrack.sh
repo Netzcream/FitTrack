@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuración
-REPO_DIR="/var/repository/fittrack.com"
-TARGET_DIR="/var/www/fittrack.com"
+REPO_DIR="/var/repository/fittrack.com.ar"
+TARGET_DIR="/var/www/fittrack.com.ar"
 BRANCH="main"
 
 echo "🚀 Deploy iniciado..."
