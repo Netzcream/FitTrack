@@ -1,11 +1,9 @@
 #!/bin/bash
 
 # Configuración
-REPO_DIR="/var/repository/fittrack.com.ar"
-TARGET_DIR="/var/www/fittrack.com.ar"
+REPO_DIR="/var/repository/fittrack.com"
+TARGET_DIR="/var/www/fittrack.com"
 BRANCH="main"
-BACKUP_DIR="/var/backups/fittrack.com.ar"
-NOW=$(date +"%Y-%m-%d_%H%M")
 
 echo "🚀 Deploy iniciado..."
 
@@ -15,10 +13,13 @@ cd "$REPO_DIR" || { echo "❌ No se pudo acceder al repositorio"; exit 1; }
 echo "📥 Haciendo pull desde la rama $BRANCH..."
 git pull origin "$BRANCH" || { echo "❌ Falló el git pull"; exit 1; }
 
-# 2. Crear backup antes de sobrescribir
-echo "🔄 Creando backup en $BACKUP_DIR/$NOW"
-sudo mkdir -p "$BACKUP_DIR/$NOW"
-sudo rsync -az "$TARGET_DIR/" "$BACKUP_DIR/$NOW/" || { echo "❌ Falló el backup"; exit 1; }
+# 2. Crear backup antes de sobrescribir (usando comando Laravel)
+echo "🔄 Creando backup..."
+cd "$TARGET_DIR" || { echo "❌ No se pudo acceder al directorio de Laravel"; exit 1; }
+sudo -u www-data php artisan app:backup || { echo "⚠️ Advertencia: el backup no se completó, pero continuamos el deploy"; }
+
+# Volver al repositorio
+cd "$REPO_DIR" || { echo "❌ No se pudo volver al repositorio"; exit 1; }
 
 # 3. Sincronizar archivos, excluyendo carpetas dinámicas
 echo "📂 Sincronizando hacia $TARGET_DIR preservando media y descargas..."
@@ -35,8 +36,6 @@ if [ $RSYNC_EXIT -ne 0 ]; then
 else
     echo "✅ Rsync finalizado correctamente"
 fi
-
-
 
 # 4. Crear carpetas dinámicas si no existen
 mkdir -p "$TARGET_DIR/storage/app/public"
@@ -58,25 +57,50 @@ if [ ! -f "$TARGET_DIR/.env" ]; then
 fi
 
 echo "🔧 Ajustando permisos..."
-sudo chown -R www-data:www-data "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
-sudo chmod -R 775 "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+#sudo chown -R www-data:www-data "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+#sudo chmod -R 775 "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+chown -R www-data:www-data "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+chmod -R 775 "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+
+# Refuerza permisos correctos en los logs para evitar archivos creados por root
+if [ -d "$TARGET_DIR/storage/logs" ]; then
+    chown -R www-data:www-data "$TARGET_DIR/storage/logs"
+    find "$TARGET_DIR/storage/logs" -type d -exec chmod 775 {} +
+    find "$TARGET_DIR/storage/logs" -type f -exec chmod 664 {} +
+fi
 
 # 7. Comandos Laravel
 cd "$TARGET_DIR" || { echo "❌ No se pudo acceder al directorio de Laravel"; exit 1; }
 
+mkdir -p "$TARGET_DIR/vendor"
+chown -R www-data:www-data "$TARGET_DIR/vendor"
+chown -R www-data:www-data "$TARGET_DIR"
+
+mkdir -p "$TARGET_DIR/storage/framework/cache"
+mkdir -p "$TARGET_DIR/storage/framework/sessions"
+mkdir -p "$TARGET_DIR/storage/framework/views"
+chown -R www-data:www-data "$TARGET_DIR/storage"
+
 echo "📦 Ejecutando Composer (sin dev)..."
-sudo -u www-data HOME=/tmp composer install --no-dev --optimize-autoloader --no-interaction  || { echo "❌ Composer falló"; exit 1; }
+# Limpiar cache de Composer para evitar problemas
+runuser -u www-data -- env HOME=/tmp composer clear-cache
+
+# Instalar dependencias con opciones seguras para producción
+echo "  → Instalando dependencias..."
+runuser -u www-data -- env HOME=/tmp COMPOSER_MEMORY_LIMIT=-1 composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --prefer-dist \
+    --no-interaction \
+    --no-progress || { echo "❌ Composer falló"; exit 1; }
+
+echo "  ✓ Dependencias instaladas correctamente"
 
 echo "🔧 Artisan commands..."
-php artisan cache:clear
-php artisan config:clear
-php artisan config:cache
-php artisan route:clear
-php artisan route:cache
-php artisan view:clear
-php artisan view:cache
-php artisan migrate --force
-php artisan queue:restart
-php artisan tenants:migrate --force
-php artisan tenants:seed --force
+sudo -u www-data php artisan optimize:clear
+sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan migrate --force
+sudo -u www-data php artisan tenants:migrate --force
+sudo -u www-data php artisan tenants:seed --force
+sudo -u www-data php artisan queue:restart
 echo "✅ Deploy completado con éxito."

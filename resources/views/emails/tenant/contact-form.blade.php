@@ -35,7 +35,7 @@ Equipo de {{ $tenantName }}
 {{-- Footer --}}
 @slot('footer')
     @component('mail::footer')
-        © {{ date('Y') }} {{ $tenantName }}. Todos los derechos reservados.<br>
+        {{ date('Y') }} {{ $tenantName }}. <br>
         Contacto: {{ $contactEmail }}
     @endcomponent
 @endslot

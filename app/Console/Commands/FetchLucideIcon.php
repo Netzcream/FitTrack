@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'icons:lucide', description: 'Descarga iconos de Lucide y genera blades en resources/views/components/icons/lucide')]
+#[AsCommand(name: 'lucide:make', description: 'Descarga iconos de Lucide y genera blades en resources/views/components/icons/lucide')]
 class FetchLucideIcon extends Command
 {
     /**
      * Firma:
-     *   php artisan icons:lucide chevron-down bell calendar --force
+     *   php artisan lucide:make chevron-down bell calendar --force
      */
-    protected $signature = 'icons:lucide
+    protected $signature = 'lucide:make
         {name* : Nombre(s) del icono en kebab-case, ej: chevron-down}
         {--force : Sobrescribir si el blade ya existe}';
 

@@ -5,7 +5,8 @@
 
   <div class="container mx-auto px-6">
     <div class="mb-2 text-indigo-50 dark:text-indigo-100">
-      &copy; {{ date('Y') }} FitTrack. Herramienta profesional para entrenadores.
+      {{ date('Y') }} FitTrack. Herramienta profesional para entrenadores. <br>
+      <span class="text-xs">FitTrack es una marca ficticia creada a fines ilustrativos. Todos los contenidos, servicios y datos publicados en este sitio son de carácter demostrativo.</span>
     </div>
 
     <div class="space-x-2">

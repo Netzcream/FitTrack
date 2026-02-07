@@ -25,7 +25,7 @@ Enviado por {{ $tenantName }} el {{ now()->format('Y-m-d H:i:s') }}.
 
     @slot('footer')
         @component('mail::footer')
-            © {{ date('Y') }} {{ $tenantName }}. Todos los derechos reservados.
+            {{ date('Y') }} {{ $tenantName }}.
         @endcomponent
     @endslot
 @endcomponent

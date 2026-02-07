@@ -1,7 +1,28 @@
-import ApexCharts from "apexcharts";
 import "preline";
 
-window.ApexCharts = ApexCharts;
+let apexChartsConstructor = null;
+let apexChartsPromise = null;
+
+const loadApexCharts = async () => {
+    if (apexChartsConstructor) {
+        return apexChartsConstructor;
+    }
+
+    if (!apexChartsPromise) {
+        apexChartsPromise = import("apexcharts")
+            .then((module) => {
+                apexChartsConstructor = module.default;
+                window.ApexCharts = apexChartsConstructor;
+                return apexChartsConstructor;
+            })
+            .catch((error) => {
+                apexChartsPromise = null;
+                throw error;
+            });
+    }
+
+    return apexChartsPromise;
+};
 
 document.addEventListener("livewire:navigated", () => {
     window.HSStaticMethods?.autoInit();
@@ -12,12 +33,26 @@ const scheduleApexInit = () => {
     window._apexInitScheduled = true;
     requestAnimationFrame(() => {
         window._apexInitScheduled = false;
-        initApexPlaceholders();
+        void initApexPlaceholders();
     });
 };
 
-const initApexPlaceholders = () => {
-    document.querySelectorAll("[data-apex-placeholder]").forEach((el) => {
+const initApexPlaceholders = async () => {
+    const placeholders = document.querySelectorAll("[data-apex-placeholder]");
+    if (!placeholders.length) {
+        return;
+    }
+
+    let ApexCharts;
+    try {
+        ApexCharts = await loadApexCharts();
+    } catch (error) {
+        console.error("No se pudo cargar ApexCharts", error);
+        return;
+    }
+
+    placeholders.forEach((el) => {
+        if (!document.body.contains(el)) return;
         if (el.dataset.apexForce === "true") {
             if (el._apexChart) {
                 el._apexChart.destroy();

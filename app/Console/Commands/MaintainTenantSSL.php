@@ -16,12 +16,12 @@ class MaintainTenantSSL extends Command
 
     public function handle(): int
     {
-        Log::info('[SSL] ssl:maintain START', ['list_orphans' => $this->option('list-orphans')]);
+        //Log::info('[SSL] ssl:maintain START', ['list_orphans' => $this->option('list-orphans')]);
         if ($this->option('list-orphans')) {
             $this->info('[SSL] Modo listado de huérfanos (no se tocan certificados ni vhosts).');
-            Log::info('[SSL] Orphans report BEGIN');
+            //Log::info('[SSL] Orphans report BEGIN');
             $this->reportOrphanCertificatesAndVhosts();
-            Log::info('[SSL] Orphans report END');
+            //Log::info('[SSL] Orphans report END');
             return Command::SUCCESS;
         }
         $this->info('[SSL] Ejecutando certbot renew...');
@@ -34,9 +34,9 @@ class MaintainTenantSSL extends Command
         }
 
         $this->info('[SSL] Renovación completada.');
-        Log::info('[SSL] certbot renew OK');
+        //Log::info('[SSL] certbot renew OK');
         $this->cleanExpiredTenantCertificates();
-        Log::info('[SSL] ssl:maintain END');
+        //Log::info('[SSL] ssl:maintain END');
         return Command::SUCCESS;
     }
 
@@ -97,7 +97,7 @@ class MaintainTenantSSL extends Command
         $knownNormalized = array_map($normalize, $known);
 
         // 2) Dominios “protegidos” (no reportar como huérfanos)
-        $root = strtolower((string) env('APP_DOMAIN', 'fittrack.com.ar'));
+        $root = strtolower((string) env('APP_DOMAIN', 'luniqo.com'));
         $protected = array_filter([
             $root,
             "www.$root",

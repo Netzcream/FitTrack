@@ -12,6 +12,11 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        // ApexCharts se carga en lazy chunk y pesa ~580 kB minificado.
+        // Subimos el umbral para evitar warning falso-positivo del bundle principal.
+        chunkSizeWarningLimit: 600,
+    },
     server: {
         cors: true,
     },

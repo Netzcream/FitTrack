@@ -65,7 +65,7 @@
     </main>
 
     <footer class="text-center text-xs py-4" style="background-color: #333; color: #ffffff;">
-        FitTrack © {{ date('Y') }}
+        FitTrack - {{ date('Y') }}. es una marca ficticia creada a fines ilustrativos. Todos los contenidos, servicios y datos publicados en este sitio son de carácter demostrativo.
     </footer>
 
     @livewireScripts
