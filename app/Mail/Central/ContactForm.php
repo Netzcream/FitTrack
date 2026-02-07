@@ -29,7 +29,7 @@ class ContactForm extends Mailable
     public function build()
     {
         return $this->from(
-            'services@luniqo.com',
+            env('MAIL_FROM_ADDRESS', 'notifications@fittrack.com.ar'),
             tenant('name') ?? config('app.name')
         )
             ->subject('Nuevo mensaje desde formulario de contacto')

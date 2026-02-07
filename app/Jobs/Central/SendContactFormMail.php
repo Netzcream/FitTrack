@@ -49,9 +49,9 @@ class SendContactFormMail implements ShouldQueue
 
         try {
 
-            $recipient = 'info@luniqo.com';
+            $recipient = 'notifications@fittrack.com.ar';
             if (env('APP_ENV') != 'production') {
-                $recipient = 'luciano@luniqo.com';
+                $recipient = 'info@fittrack.com.ar';
 
             }
 

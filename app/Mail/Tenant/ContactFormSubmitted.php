@@ -32,7 +32,7 @@ class ContactFormSubmitted extends Mailable
             ->subject('Nuevo mensaje desde formulario de contacto')
             ->markdown('emails.tenant.contact-form')->with([
                 'tenantName' => tenant('name') ?? config('app.name'),
-                'contactEmail' => tenant('contact_email') ?? 'services@fittrack.com.ar',
+                'contactEmail' => tenant_config('contact_email', 'services@fittrack.com.ar'),
             ]);
     }
 }

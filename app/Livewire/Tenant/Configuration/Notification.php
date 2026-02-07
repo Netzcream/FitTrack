@@ -5,6 +5,7 @@ namespace App\Livewire\Tenant\Configuration;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Jobs\Tenant\SendTestTenantNotificationMail;
+use App\Models\Configuration;
 
 #[Layout('components.layouts.tenant')]
 class Notification extends Component
@@ -13,7 +14,7 @@ class Notification extends Component
 
     public function mount(): void
     {
-        $this->contact_email = tenant()->contact_email ?? 'services@fittrack.com.ar';
+        $this->contact_email = Configuration::conf('contact_email', 'services@fittrack.com.ar');
     }
 
     public function testContactEmail(): void
@@ -37,9 +38,9 @@ class Notification extends Component
             'contact_email' => ['required', 'email', 'max:255'],
         ]);
 
-        tenant()->update(['contact_email' => $validated['contact_email']]);
+        Configuration::setConf('contact_email', $validated['contact_email']);
 
-        $this->dispatch('updated', email: tenant()->contact_email);
+        $this->dispatch('updated', email: $validated['contact_email']);
     }
 
     public function render()
