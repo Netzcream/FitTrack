@@ -16,8 +16,6 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Livewire\Livewire;
 use App\Models\TenantConfiguration;
 use Livewire\Features\SupportFileUploads\FilePreviewController;
-use App\Events\TenantCustomDomainAttached;
-use App\Listeners\ProvisionCustomDomainSsl;
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -168,10 +166,6 @@ class TenancyServiceProvider extends ServiceProvider
             'universal', // si usás universal en tus rutas
             InitializeTenancyByDomain::class,
         ];
-        Event::listen(
-            TenantCustomDomainAttached::class,
-            [ProvisionCustomDomainSsl::class, 'handle']
-        );
     }
 
     protected function bootEvents()

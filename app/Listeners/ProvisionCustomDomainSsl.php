@@ -27,7 +27,15 @@ class ProvisionCustomDomainSsl
         }
 
         Log::info("[SSL] Queueing job GenerateTenantSSLCertificate", ['domain' => $event->domain]);
-        GenerateTenantSSLCertificate::dispatch($event->domain)->onQueue('ssl');
+        GenerateTenantSSLCertificate::dispatch($event->domain)
+            ->onConnection('database')
+            ->onQueue('default');
+
+        Log::info("[SSL] Queued GenerateTenantSSLCertificate", [
+            'domain' => $event->domain,
+            'connection' => 'database',
+            'queue' => 'default',
+        ]);
     }
 
     private function hasLocalLetsEncryptCert(string $domain): bool

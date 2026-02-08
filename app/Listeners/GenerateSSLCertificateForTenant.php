@@ -20,6 +20,15 @@ class GenerateSSLCertificateForTenant
             Log::info("[SSL] Skipping SSL generation for {$event->domain} (not production)");
             return;
         }
-        GenerateTenantSSLCertificate::dispatch($event->domain);
+
+        GenerateTenantSSLCertificate::dispatch($event->domain)
+            ->onConnection('database')
+            ->onQueue('default');
+
+        Log::info("[SSL] Queued GenerateTenantSSLCertificate", [
+            'domain' => $event->domain,
+            'connection' => 'database',
+            'queue' => 'default',
+        ]);
     }
 }

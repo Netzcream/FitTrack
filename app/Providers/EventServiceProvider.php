@@ -15,9 +15,9 @@ class EventServiceProvider extends ServiceProvider
         // Central Events
         \App\Events\TenantCreatedSuccessfully::class => [
             \App\Listeners\SendTenantWelcomeMail::class,
+            \App\Listeners\GenerateSSLCertificateForTenant::class,
         ],
         \App\Events\TenantCustomDomainAttached::class => [
-            \App\Listeners\GenerateSSLCertificateForTenant::class,
             \App\Listeners\ProvisionCustomDomainSsl::class,
         ],
         \App\Events\Central\MessageSent::class => [

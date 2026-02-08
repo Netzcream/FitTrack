@@ -16,6 +16,9 @@ class GenerateTenantSSLCertificate implements ShouldQueue
 
     public string $domain;
 
+    public string $connection = 'database';
+    public string $queue = 'default';
+
     public $tries = 3;
     public $timeout = 60;
 
