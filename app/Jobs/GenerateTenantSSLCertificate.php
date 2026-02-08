@@ -59,16 +59,16 @@ CONF;
 
             $this->writeRootOwnedFile($confPath, $conf);
             $this->runCommandOrFail(
-                'sudo a2ensite ' . escapeshellarg($site80),
+                'sudo -n a2ensite ' . escapeshellarg($site80),
                 "a2ensite {$site80}"
             );
-            $this->runCommandOrFail('sudo systemctl reload apache2', 'reload apache2 (80)');
+            $this->runCommandOrFail('sudo -n systemctl reload apache2', 'reload apache2 (80)');
 
             Log::info("[SSL] VirtualHost activado para {$this->domain}");
         }
 
         $certbotCommand =
-            'sudo certbot certonly --apache -d '
+            'sudo -n certbot certonly --apache -d '
             . escapeshellarg($this->domain)
             . ' --non-interactive --agree-tos --email admin@fittrack.com.ar';
 
@@ -119,10 +119,10 @@ CONF;
 
             $this->writeRootOwnedFile($sslConfPath, $sslConf);
             $this->runCommandOrFail(
-                'sudo a2ensite ' . escapeshellarg($site443),
+                'sudo -n a2ensite ' . escapeshellarg($site443),
                 "a2ensite {$site443}"
             );
-            $this->runCommandOrFail('sudo systemctl reload apache2', 'reload apache2 (443)');
+            $this->runCommandOrFail('sudo -n systemctl reload apache2', 'reload apache2 (443)');
 
             Log::info("[SSL] VirtualHost SSL activado para {$this->domain}");
         }
@@ -147,7 +147,7 @@ CONF;
         }
 
         $command = sprintf(
-            'sudo install -m 644 %s %s',
+            'sudo -n install -m 644 %s %s',
             escapeshellarg($tmpFile),
             escapeshellarg($path)
         );
@@ -156,8 +156,12 @@ CONF;
         @unlink($tmpFile);
 
         if (!$result->successful()) {
+            $details = trim($result->errorOutput() . PHP_EOL . $result->output());
+            if (str_contains($details, 'a password is required')) {
+                $details .= ' | Hint: configure NOPASSWD sudoers for www-data on install/a2ensite/systemctl/certbot';
+            }
             throw new RuntimeException(
-                "[SSL] No se pudo copiar archivo a {$path}: " . trim($result->errorOutput() . PHP_EOL . $result->output())
+                "[SSL] No se pudo copiar archivo a {$path}: " . $details
             );
         }
     }
@@ -169,8 +173,12 @@ CONF;
         $result = Process::run($command);
 
         if (!$result->successful()) {
+            $details = trim($result->errorOutput() . PHP_EOL . $result->output());
+            if (str_contains($details, 'a password is required')) {
+                $details .= ' | Hint: configure NOPASSWD sudoers for www-data on install/a2ensite/systemctl/certbot';
+            }
             throw new RuntimeException(
-                "[SSL] Fallo {$label}: " . trim($result->errorOutput() . PHP_EOL . $result->output())
+                "[SSL] Fallo {$label}: " . $details
             );
         }
     }

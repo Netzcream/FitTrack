@@ -2,5 +2,5 @@
     <x-app-logo-icon class="size-6 " />
 </div>
 <div class="ms-1 grid flex-1 text-start text-sm">
-    <span class="mb-0.5 truncate leading-none font-semibold">{{env('APP_NAME'??'LNQ')}}</span>
+    <span class="mb-0.5 truncate leading-none font-semibold">{{env('APP_NAME') ?? 'FTT'}}</span>
 </div>
