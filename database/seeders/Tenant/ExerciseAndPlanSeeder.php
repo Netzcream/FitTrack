@@ -133,23 +133,26 @@ class ExerciseAndPlanSeeder extends Seeder
                 ]
             );
 
-            // Asignar ejercicios al plan
+            // Asignar ejercicios al plan (estructura JSON en exercises_data)
+            $exercisesData = [];
             foreach ($p['structure'] as $dayData) {
                 foreach ($dayData['exercises'] as $ex) {
                     $exercise = $exerciseModels->firstWhere('name', $ex['name']);
                     if ($exercise) {
-                        $plan->exercises()->syncWithoutDetaching([
-                            $exercise->id => [
-                                'day'   => $dayData['day'],
-                                'order' => $ex['order'],
-                                'detail' => $ex['detail'],
-                                'notes' => $ex['notes'],
-                                'meta'  => json_encode(['source' => 'seed']),
-                            ],
-                        ]);
+                        $exercisesData[] = [
+                            'exercise_id' => $exercise->id,
+                            'name'        => $exercise->name,
+                            'day'         => $dayData['day'],
+                            'order'       => $ex['order'],
+                            'detail'      => $ex['detail'],
+                            'notes'       => $ex['notes'],
+                            'meta'        => ['source' => 'seed'],
+                        ];
                     }
                 }
             }
+
+            $plan->update(['exercises_data' => $exercisesData]);
         }
 
         // -------------------------------
