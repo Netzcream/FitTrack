@@ -7,15 +7,14 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
-
 class TenantSeeder extends Seeder
 {
     public function run(): void
     {
         // Permisos y roles
-
         $this->call([
             \Database\Seeders\Tenant\RoleAndPermissionSeeder::class,
+            \Database\Seeders\Tenant\UserSeeder::class,
             \Database\Seeders\Tenant\StudentSeeder::class,
             \Database\Seeders\Tenant\ExerciseAndPlanSeeder::class,
         ]);

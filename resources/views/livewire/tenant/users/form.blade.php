@@ -38,6 +38,65 @@
             @error('role') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
         </div>
 
+        <div>
+            <flux:label class="text-xs">{{ __('users.extra_permissions') }}</flux:label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+                {{ __('users.extra_permissions_help') }}
+            </p>
+
+            @if (count($selectedDirectPermissions) > 0)
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @foreach ($selectedDirectPermissions as $permission)
+                        <span
+                            class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                            <span>{{ ucfirst($permission['name']) }}</span>
+                            <button
+                                type="button"
+                                wire:click="removeDirectPermission({{ $permission['id'] }})"
+                                class="inline-flex h-4 w-4 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
+                                aria-label="{{ __('users.extra_permissions_remove') }}"
+                            >
+                                x
+                            </button>
+                        </span>
+                    @endforeach
+                </div>
+            @else
+                <p class="mt-3 text-xs text-gray-500 dark:text-neutral-400">
+                    {{ __('users.extra_permissions_empty') }}
+                </p>
+            @endif
+
+            <div class="mt-3">
+                <flux:input
+                    wire:model.live.debounce.250ms="permissionSearch"
+                    :label="__('users.extra_permissions_search')"
+                    :placeholder="__('users.extra_permissions_search_placeholder')"
+                    autocomplete="off"
+                />
+            </div>
+
+            <div class="mt-2 max-h-52 overflow-y-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                @forelse ($permissionSuggestions as $permissionId => $permissionName)
+                    <button
+                        type="button"
+                        wire:click="addDirectPermission({{ $permissionId }})"
+                        class="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                        <span>{{ ucfirst($permissionName) }}</span>
+                        <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ __('users.extra_permissions_add') }}</span>
+                    </button>
+                @empty
+                    <p class="px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        {{ __('users.extra_permissions_no_results') }}
+                    </p>
+                @endforelse
+            </div>
+
+            @error('directPermissionIds') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+            @error('directPermissionIds.*') <div class="text-red-500 text-xs mt-1">{{ $message }}</div> @enderror
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <flux:input wire:model.defer="password"
                 label="{{ $editMode ? __('users.new_password') : __('users.password') }}"

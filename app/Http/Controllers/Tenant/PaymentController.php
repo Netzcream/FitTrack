@@ -236,3 +236,4 @@ class PaymentController extends Controller
                 ->with('error', 'El pago fue rechazado. Por favor intenta nuevamente.');
         }
     }
+}

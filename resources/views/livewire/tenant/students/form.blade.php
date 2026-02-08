@@ -228,14 +228,6 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900/50">
-                    <flux:checkbox wire:model.defer="is_user_enabled" size="sm" />
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-900 dark:text-neutral-100">{{ __('students.user_enabled') }}</div>
-                        <div class="text-xs text-gray-600 dark:text-neutral-400">Permite al alumno acceder a su perfil y planes</div>
-                    </div>
-                </div>
-
                 <flux:textarea wire:model.defer="goal" :label="__('students.goal')" rows="3"
                     placeholder="{{ __('students.goal_placeholder') }}" />
 

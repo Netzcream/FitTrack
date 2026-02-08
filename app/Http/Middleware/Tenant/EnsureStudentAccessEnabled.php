@@ -13,10 +13,11 @@ class EnsureStudentAccessEnabled
     {
         $student = $request->user()?->student;
 
-        if (!$student || !$student->is_user_enabled || $student->status !== 'active') {
+        if (! $student || $student->status !== 'active') {
             Auth::logout();
+
             return redirect()->route('tenant.login')->withErrors([
-                'email' => __('Tu acceso como alumno no está habilitado. Contactá a tu entrenador.'),
+                'email' => __('Tu acceso como alumno no esta activo. Contacta a tu entrenador.'),
             ]);
         }
 

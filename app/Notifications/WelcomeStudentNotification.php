@@ -4,11 +4,10 @@ namespace App\Notifications;
 
 use App\Models\Tenant\Student;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class WelcomeStudentNotification extends Notification implements ShouldQueue
+class WelcomeStudentNotification extends Notification
 {
     use Queueable;
 
@@ -16,7 +15,8 @@ class WelcomeStudentNotification extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public function __construct(
-        public Student $student
+        public Student $student,
+        public string $registrationUrl
     ) {
     }
 
@@ -27,7 +27,7 @@ class WelcomeStudentNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail'];
     }
 
     /**
@@ -36,17 +36,12 @@ class WelcomeStudentNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('¡Bienvenido a FitTrack!')
-            ->greeting('¡Hola ' . $this->student->first_name . '!')
-            ->line('Tu cuenta ha sido creada exitosamente en FitTrack.')
-            ->line('Ahora puedes acceder a tu panel de estudiante donde podrás:')
-            ->line('✓ Ver tus planes de entrenamiento')
-            ->line('✓ Registrar tu progreso')
-            ->line('✓ Comunicarte con tu entrenador')
-            ->line('✓ Hacer seguimiento de tus objetivos')
-            ->action('Acceder a mi cuenta', url('/login'))
-            ->line('Si tienes alguna duda, no dudes en contactar con tu entrenador.')
-            ->salutation('¡Bienvenido al equipo!');
+            ->subject('Completa tu registro en FitTrack')
+            ->greeting('Hola ' . $this->student->first_name . '!')
+            ->line('Tu entrenador creo tu cuenta en FitTrack.')
+            ->line('Para activar tu acceso, primero debes definir tu clave.')
+            ->action('Definir mi clave', $this->registrationUrl)
+            ->line('Luego podras ingresar y ver tus planes de entrenamiento, progreso y mensajes.');
     }
 
     /**
@@ -57,13 +52,12 @@ class WelcomeStudentNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Cuenta creada exitosamente',
-            'message' => 'Tu cuenta de FitTrack ha sido creada. ¡Bienvenido!',
+            'title' => 'Cuenta creada',
+            'message' => 'Tu cuenta fue creada y se envio un email para completar el registro.',
             'student_id' => $this->student->id,
             'student_name' => $this->student->full_name,
             'type' => 'student_created',
             'icon' => 'user-plus',
-            'action_url' => route('tenant.dashboard'),
         ];
     }
 }

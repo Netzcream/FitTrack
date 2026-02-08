@@ -3,10 +3,12 @@
 namespace App\Livewire\Tenant\Dashboard;
 
 use Livewire\Component;
+use App\Events\Tenant\StudentCreated;
 use App\Models\Tenant\Student;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
 
@@ -24,7 +26,7 @@ class Panel extends Component
             'first_name' => ['required', 'string', 'max:80'],
             'last_name'  => ['required', 'string', 'max:80'],
             'phone'      => ['nullable', 'string', 'max:30'],
-            'email'      => ['nullable', 'email', 'max:120'],
+            'email'      => ['required', 'email', 'max:120'],
         ];
     }
 
@@ -45,14 +47,26 @@ class Panel extends Component
         }
 
         $student = Student::create([
-            'user_id'             => $user->id,
+            'user_id' => $user->id,
             'first_name' => $data['first_name'],
-            'last_name'  => $data['last_name'],
-            'phone'      => $data['phone'] ?? null,
-            'email'      => $data['email'] ?? null,
-            'status'     => 'prospect',
-            'is_user_enabled' => '0'
+            'last_name' => $data['last_name'],
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'],
+            'status' => 'prospect',
+            'is_user_enabled' => true,
         ]);
+
+        $token = Password::broker()->createToken($user);
+        $registrationUrl = route('tenant.password.reset', [
+            'token' => $token,
+            'email' => $user->email,
+        ]);
+
+        StudentCreated::dispatch(
+            student: $student,
+            createdBy: Auth::id() ? (string) Auth::id() : null,
+            registrationUrl: $registrationUrl
+        );
 
 
 
@@ -202,3 +216,4 @@ class Panel extends Component
         ));
     }
 }
+

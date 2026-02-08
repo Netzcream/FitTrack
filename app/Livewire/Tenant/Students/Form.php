@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Tenant\Students;
 
+use App\Events\Tenant\StudentCreated;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
@@ -12,6 +13,8 @@ use App\Models\Tenant\StudentWeightEntry;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
 #[Layout('components.layouts.tenant')]
@@ -34,7 +37,6 @@ class Form extends Component
     public ?int $commercial_plan_id = null;
     public ?string $billing_frequency = 'monthly';
     public ?string $account_status = 'on_time';
-    public bool $is_user_enabled = true;
     public ?string $goal = null;
 
     public array $plans = [];
@@ -96,7 +98,6 @@ class Form extends Component
                 'commercial_plan_id',
                 'billing_frequency',
                 'account_status',
-                'is_user_enabled',
                 'goal',
             ]));
 
@@ -229,7 +230,6 @@ class Form extends Component
             'commercial_plan_id' => ['nullable', 'integer', 'exists:commercial_plans,id'],
             'billing_frequency'  => ['required', 'string', 'in:monthly,quarterly,yearly'],
             'account_status'     => ['required', 'string', 'in:on_time,due,review'],
-            'is_user_enabled'    => ['boolean'],
             'goal'               => ['nullable', 'string', 'max:500'],
             'avatar'             => ['nullable', 'image', 'max:2048'],
 
@@ -247,7 +247,8 @@ class Form extends Component
 
     public function save(): void
     {
-        $validated = $this->validate();
+        $this->validate();
+        $isNewStudent = ! $this->editMode;
 
         $user = $this->ensureUser();
 
@@ -262,7 +263,7 @@ class Form extends Component
             'commercial_plan_id' => $this->commercial_plan_id,
             'billing_frequency' => $this->billing_frequency,
             'account_status' => $this->account_status,
-            'is_user_enabled' => $this->is_user_enabled,
+            'is_user_enabled' => true,
             'goal' => $this->goal,
         ]);
 
@@ -280,6 +281,20 @@ class Form extends Component
 
         $student->data = $cleanedData;
         $student->save();
+
+        if ($isNewStudent) {
+            $token = Password::broker()->createToken($user);
+            $registrationUrl = route('tenant.password.reset', [
+                'token' => $token,
+                'email' => $user->email,
+            ]);
+
+            StudentCreated::dispatch(
+                student: $student,
+                createdBy: Auth::id() ? (string) Auth::id() : null,
+                registrationUrl: $registrationUrl
+            );
+        }
 
         if ($this->avatar instanceof TemporaryUploadedFile) {
             $student->clearMediaCollection('avatar');

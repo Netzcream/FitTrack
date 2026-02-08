@@ -5,8 +5,6 @@ namespace Database\Seeders\Tenant;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 class RoleAndPermissionSeeder extends Seeder
 {
@@ -16,10 +14,10 @@ class RoleAndPermissionSeeder extends Seeder
     public function run(): void
     {
         // --------------------------------------------
-        // 1️⃣ Permisos base (ordenados por área funcional)
+        // 1) Permisos base (ordenados por area funcional)
         // --------------------------------------------
         $permissions = [
-            // Administración general
+            // Administracion general
             'gestionar usuarios',
             'gestionar roles',
             'gestionar contactos',
@@ -34,7 +32,7 @@ class RoleAndPermissionSeeder extends Seeder
             'editar alumnos',
             'eliminar alumnos',
 
-            // Comunicación
+            // Comunicacion
             'enviar mensajes',
         ];
 
@@ -43,7 +41,7 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // --------------------------------------------
-        // 2️⃣ Roles del tenant y sus permisos
+        // 2) Roles del tenant y sus permisos
         // --------------------------------------------
         $roles = [
             'Admin' => [
@@ -60,8 +58,6 @@ class RoleAndPermissionSeeder extends Seeder
             ],
 
             'Asistente' => [
-                'gestionar entrenamientos',
-                'gestionar ejercicios',
                 'gestionar contactos',
                 'ver alumnos',
                 'editar alumnos',
@@ -71,8 +67,10 @@ class RoleAndPermissionSeeder extends Seeder
             'Entrenador' => [
                 'gestionar entrenamientos',
                 'gestionar ejercicios',
+                'gestionar contactos',
                 'ver alumnos',
                 'editar alumnos',
+                'enviar mensajes',
             ],
 
             'Alumno' => [
@@ -86,37 +84,7 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // --------------------------------------------
-        // 3️⃣ Usuarios de ejemplo (opcionales por tenant)
-        // --------------------------------------------
-        $users = [
-            [
-                'name' => 'Administrador',
-                'email' => 'admin@fittrack.com.ar',
-                'role' => 'Admin',
-            ],
-            [
-                'name' => 'Asistente',
-                'email' => 'asistente@fittrack.com.ar',
-                'role' => 'Asistente',
-            ],
-        ];
-
-        foreach ($users as $u) {
-            $user = User::firstOrCreate(
-                ['email' => $u['email']],
-                [
-                    'name' => $u['name'],
-                    'password' => Hash::make('4y8Zi_9f&7Nx'),
-                ]
-            );
-
-            if (! $user->hasRole($u['role'])) {
-                $user->assignRole($u['role']);
-            }
-        }
-
-        // --------------------------------------------
-        // ✅ Resumen en consola (opcional)
+        // Resumen en consola (opcional)
         // --------------------------------------------
         $this->command->info('Roles y permisos creados para el tenant:');
         foreach ($roles as $role => $perms) {

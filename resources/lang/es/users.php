@@ -33,4 +33,14 @@ return [
 
     'create_button' => 'Crear usuario',
     'update_button' => 'Actualizar usuario',
+    'created' => 'Usuario creado',
+    'updated' => 'Usuario actualizado',
+    'extra_permissions' => 'Permisos extra',
+    'extra_permissions_help' => 'Asigna permisos directos que no vienen dados por el rol seleccionado.',
+    'extra_permissions_empty' => 'No hay permisos extra asignados.',
+    'extra_permissions_search' => 'Buscar permiso',
+    'extra_permissions_search_placeholder' => 'Escribe para buscar permisos...',
+    'extra_permissions_add' => 'Agregar',
+    'extra_permissions_remove' => 'Quitar permiso',
+    'extra_permissions_no_results' => 'No hay permisos disponibles para agregar.',
 ];

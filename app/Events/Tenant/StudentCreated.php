@@ -13,7 +13,8 @@ class StudentCreated
 
     public function __construct(
         public Student $student,
-        public ?string $createdBy = null
+        public ?string $createdBy = null,
+        public ?string $registrationUrl = null
     ) {
     }
 }
