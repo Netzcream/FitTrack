@@ -36,7 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'validate.api'     => \App\Http\Middleware\Api\ValidateApiRequest::class,
         ]);
 
-        // Aplicar middleware global para API
+        // Aplicar middleware global para API (branding + validación de token)
+        $middleware->api(\App\Http\Middleware\Api\AddBrandingToResponse::class);
         $middleware->api(\App\Http\Middleware\Api\ValidateApiRequest::class);
         $middleware->trustProxies(
             at: '*',

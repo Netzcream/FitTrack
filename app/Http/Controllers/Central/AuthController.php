@@ -52,9 +52,12 @@ class AuthController extends Controller
                 Log::info('User found', ['tenant_id' => $t->id, 'user_id' => $u->id]);
                 break;
             }
+
+            tenancy()->end();
         }
 
         if (!$tenant || !$user) {
+            tenancy()->end();
             Log::error('User not found in any tenant', ['email' => $request->email]);
             return response()->json(['error' => 'Usuario no encontrado'], 404);
         }

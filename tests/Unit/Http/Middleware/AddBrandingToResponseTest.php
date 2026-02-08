@@ -1,0 +1,43 @@
+<?php
+
+namespace Tests\Unit\Http\Middleware;
+
+use App\Http\Middleware\Api\AddBrandingToResponse;
+use Illuminate\Http\Request;
+use Tests\TestCase;
+
+class AddBrandingToResponseTest extends TestCase
+{
+    public function test_it_adds_branding_and_trainer_data_to_json_response(): void
+    {
+        $middleware = new AddBrandingToResponse();
+        $request = Request::create('/api/test', 'GET');
+
+        $response = $middleware->handle($request, function () {
+            return response()->json([
+                'data' => ['ok' => true],
+            ]);
+        });
+
+        $payload = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('branding', $payload);
+        $this->assertArrayHasKey('trainer', $payload);
+        $this->assertArrayHasKey('contact', $payload['trainer']);
+        $this->assertArrayHasKey('primary_color', $payload['trainer']);
+    }
+
+    public function test_it_does_not_modify_non_json_response(): void
+    {
+        $middleware = new AddBrandingToResponse();
+        $request = Request::create('/api/test', 'GET');
+
+        $response = $middleware->handle($request, function () {
+            return response('ok', 200, [
+                'Content-Type' => 'text/plain',
+            ]);
+        });
+
+        $this->assertSame('ok', $response->getContent());
+    }
+}

@@ -42,11 +42,21 @@ class AddBrandingToResponse
         try {
             $content = json_decode($response->getContent(), true);
 
-            // Agregar branding a la respuesta
-            $content['branding'] = BrandingService::getBrandingData();
+            if (!is_array($content)) {
+                return $response;
+            }
 
-            $response->setContent(json_encode($content));
-        } catch (\Exception $e) {
+            // Agregar branding/trainer en un bloque separado del payload principal
+            $content['branding'] = BrandingService::getBrandingData();
+            $content['trainer'] = BrandingService::getTrainerData();
+
+            $encoded = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($encoded === false) {
+                return $response;
+            }
+
+            $response->setContent($encoded);
+        } catch (\Throwable $e) {
             // Si hay error, retornar response sin modificar
             return $response;
         }
@@ -66,6 +76,7 @@ class AddBrandingToResponse
         }
 
         // Verificar si es JSON
-        return str_contains($response->headers->get('Content-Type') ?? '', 'application/json');
+        $contentType = $response->headers->get('Content-Type') ?? '';
+        return str_contains($contentType, 'application/json') || str_contains($contentType, '+json');
     }
 }

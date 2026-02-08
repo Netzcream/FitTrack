@@ -41,6 +41,47 @@ class BrandingService
     }
 
     /**
+     * Obtener bloque de datos del entrenador para la app mobile.
+     * Se envía separado de `data` para evitar romper payloads existentes.
+     */
+    public static function getTrainerData(): array
+    {
+        $tenant = Tenancy::getTenant();
+
+        if (!$tenant) {
+            return self::getDefaultTrainerData();
+        }
+
+        $trainerEmail = self::getTrainerEmail();
+        $brandName = self::getBrandName();
+
+        return [
+            'name' => self::getTrainerName(),
+            'email' => $trainerEmail,
+            'brand_name' => $brandName,
+            'primary_color' => self::getPrimaryColor(),
+            'secondary_color' => self::getSecondaryColor(),
+            'accent_color' => self::getAccentColor(),
+            'logo_url' => self::getLogoUrl(),
+            'logo_light_url' => self::getLogoLightUrl(),
+            'contact' => [
+                'email' => $trainerEmail,
+                'support_email' => self::getContactEmail(),
+                'whatsapp' => self::getLandingWhatsapp(),
+                'instagram' => self::getLandingInstagram(),
+                'facebook' => self::getLandingFacebook(),
+                'youtube' => self::getLandingYoutube(),
+                'twitter' => self::getLandingTwitter(),
+                'tiktok' => self::getLandingTiktok(),
+            ],
+            'tenant' => [
+                'id' => (string) $tenant->id,
+                'name' => $tenant->name ?? $brandName,
+            ],
+        ];
+    }
+
+    /**
      * Obtener nombre de la marca/tenant
      */
     public static function getBrandName(): ?string
@@ -64,6 +105,14 @@ class BrandingService
     public static function getTrainerName(): ?string
     {
         return tenant_config('trainer_name') ?? null;
+    }
+
+    /**
+     * Obtener email de contacto general del tenant
+     */
+    public static function getContactEmail(): ?string
+    {
+        return tenant_config('contact_email') ?? null;
     }
 
     /**
@@ -108,6 +157,54 @@ class BrandingService
     }
 
     /**
+     * Obtener WhatsApp de contacto
+     */
+    public static function getLandingWhatsapp(): ?string
+    {
+        return tenant_config('landing_whatsapp') ?? null;
+    }
+
+    /**
+     * Obtener usuario de Instagram
+     */
+    public static function getLandingInstagram(): ?string
+    {
+        return tenant_config('landing_instagram') ?? null;
+    }
+
+    /**
+     * Obtener usuario/página de Facebook
+     */
+    public static function getLandingFacebook(): ?string
+    {
+        return tenant_config('landing_facebook') ?? null;
+    }
+
+    /**
+     * Obtener canal de YouTube
+     */
+    public static function getLandingYoutube(): ?string
+    {
+        return tenant_config('landing_youtube') ?? null;
+    }
+
+    /**
+     * Obtener usuario de Twitter/X
+     */
+    public static function getLandingTwitter(): ?string
+    {
+        return tenant_config('landing_twitter') ?? null;
+    }
+
+    /**
+     * Obtener usuario de TikTok
+     */
+    public static function getLandingTiktok(): ?string
+    {
+        return tenant_config('landing_tiktok') ?? null;
+    }
+
+    /**
      * Branding por defecto si no hay tenant activo
      */
     private static function getDefaultBranding(): array
@@ -121,6 +218,37 @@ class BrandingService
             'primary_color' => '#3B82F6',
             'secondary_color' => '#10B981',
             'accent_color' => '#F59E0B',
+        ];
+    }
+
+    /**
+     * Bloque trainer por defecto si no hay tenant activo
+     */
+    private static function getDefaultTrainerData(): array
+    {
+        return [
+            'name' => null,
+            'email' => null,
+            'brand_name' => 'FitTrack',
+            'primary_color' => '#3B82F6',
+            'secondary_color' => '#10B981',
+            'accent_color' => '#F59E0B',
+            'logo_url' => null,
+            'logo_light_url' => null,
+            'contact' => [
+                'email' => null,
+                'support_email' => 'services@fittrack.com.ar',
+                'whatsapp' => null,
+                'instagram' => null,
+                'facebook' => null,
+                'youtube' => null,
+                'twitter' => null,
+                'tiktok' => null,
+            ],
+            'tenant' => [
+                'id' => null,
+                'name' => 'FitTrack',
+            ],
         ];
     }
 }

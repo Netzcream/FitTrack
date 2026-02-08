@@ -37,7 +37,7 @@ Route::post('/auth/logout', [\App\Http\Controllers\Central\AuthController::class
 |--------------------------------------------------------------------------
 | Aceptan X-Tenant-ID para inicializar el contexto del tenant
 */
-Route::middleware(['validate.api', \App\Http\Middleware\Api\ApiTenancy::class, \App\Http\Middleware\Api\AddBrandingToResponse::class])->group(function () {
+Route::middleware([\App\Http\Middleware\Api\ApiTenancy::class])->group(function () {
 
     // Home/Dashboard del estudiante
     Route::get('/home', [\App\Http\Controllers\Api\ProgressApiController::class, 'home']);
@@ -92,4 +92,3 @@ Route::middleware(['validate.api', \App\Http\Middleware\Api\ApiTenancy::class, \
     });
 
 });
-
