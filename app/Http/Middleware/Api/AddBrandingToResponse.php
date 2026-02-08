@@ -39,27 +39,22 @@ class AddBrandingToResponse
             return $response;
         }
 
-        try {
-            $content = json_decode($response->getContent(), true);
+        $content = json_decode($response->getContent(), true);
 
-            if (!is_array($content)) {
-                return $response;
-            }
-
-            // Agregar branding/trainer en un bloque separado del payload principal
-            $content['branding'] = BrandingService::getBrandingData();
-            $content['trainer'] = BrandingService::getTrainerData();
-
-            $encoded = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            if ($encoded === false) {
-                return $response;
-            }
-
-            $response->setContent($encoded);
-        } catch (\Throwable $e) {
-            // Si hay error, retornar response sin modificar
+        if (!is_array($content)) {
             return $response;
         }
+
+        // Agregar branding/trainer en un bloque separado del payload principal
+        $content['branding'] = BrandingService::getSafeBrandingData();
+        $content['trainer'] = BrandingService::getSafeTrainerData();
+
+        $encoded = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            return $response;
+        }
+
+        $response->setContent($encoded);
 
         return $response;
     }

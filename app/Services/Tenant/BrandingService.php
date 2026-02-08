@@ -18,6 +18,30 @@ use Stancl\Tenancy\Facades\Tenancy;
 class BrandingService
 {
     /**
+     * Obtener branding de forma segura (siempre retorna estructura válida)
+     */
+    public static function getSafeBrandingData(): array
+    {
+        try {
+            return self::getBrandingData();
+        } catch (\Throwable $e) {
+            return self::getDefaultBranding();
+        }
+    }
+
+    /**
+     * Obtener trainer de forma segura (siempre retorna estructura válida)
+     */
+    public static function getSafeTrainerData(): array
+    {
+        try {
+            return self::getTrainerData();
+        } catch (\Throwable $e) {
+            return self::getDefaultTrainerData();
+        }
+    }
+
+    /**
      * Obtener datos de branding completos
      */
     public static function getBrandingData(): array
