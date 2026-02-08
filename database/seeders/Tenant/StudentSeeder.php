@@ -2,7 +2,6 @@
 
 namespace Database\Seeders\Tenant;
 
-use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Student;
@@ -13,7 +12,6 @@ class StudentSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = FakerFactory::create('es_AR');
         $studentRole = Role::firstOrCreate(['name' => 'Alumno']);
 
         $students = [
@@ -84,23 +82,44 @@ class StudentSeeder extends Seeder
                     'is_user_enabled'     => true,
                     'billing_frequency'   => 'monthly',
                     'account_status'      => 'on_time',
-                    'data'                => [
-                        'birth_date' => $faker->date('Y-m-d', '-20 years'),
-                        'gender'     => $faker->randomElement(['male', 'female']),
-                        'height_cm'  => $faker->numberBetween(160, 190),
-                        'weight_kg'  => $faker->numberBetween(60, 95),
-                        'injuries'   => $faker->boolean(20) ? 'Lesion leve de hombro' : null,
-                        'notifications' => [
-                            'session_reminder' => true,
-                            'new_plan' => true,
-                        ],
-                        'emergency_contact' => [
-                            'name'  => $faker->name(),
-                            'phone' => '+54 9 11 ' . $faker->numerify('#### ####'),
-                        ],
-                    ],
+                    'data'                => $this->buildStudentData($s),
                 ]
             );
         }
+    }
+
+    private function buildStudentData(array $student): array
+    {
+        $seed = abs(crc32($student['email']));
+        $contactNames = [
+            'Ana Perez',
+            'Carlos Rodriguez',
+            'Marta Lopez',
+            'Diego Fernandez',
+            'Laura Gomez',
+        ];
+
+        return [
+            'birth_date' => now()
+                ->subYears(20 + ($seed % 16))
+                ->subDays(($seed >> 5) % 365)
+                ->format('Y-m-d'),
+            'gender' => $seed % 2 === 0 ? 'male' : 'female',
+            'height_cm' => 160 + ($seed % 31),
+            'weight_kg' => 60 + (($seed >> 8) % 36),
+            'injuries' => $seed % 5 === 0 ? 'Lesion leve de hombro' : null,
+            'notifications' => [
+                'session_reminder' => true,
+                'new_plan' => true,
+            ],
+            'emergency_contact' => [
+                'name' => $contactNames[$seed % count($contactNames)],
+                'phone' => sprintf(
+                    '+54 9 11 %04d %04d',
+                    1000 + ($seed % 9000),
+                    1000 + (($seed >> 12) % 9000)
+                ),
+            ],
+        ];
     }
 }
