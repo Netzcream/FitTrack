@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Tenant;
 
+use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Student;
@@ -12,6 +13,7 @@ class StudentSeeder extends Seeder
 {
     public function run(): void
     {
+        $faker = FakerFactory::create('es_AR');
         $studentRole = Role::firstOrCreate(['name' => 'Alumno']);
 
         $students = [
@@ -83,18 +85,18 @@ class StudentSeeder extends Seeder
                     'billing_frequency'   => 'monthly',
                     'account_status'      => 'on_time',
                     'data'                => [
-                        'birth_date' => fake()->date('Y-m-d', '-20 years'),
-                        'gender'     => fake()->randomElement(['male', 'female']),
-                        'height_cm'  => fake()->numberBetween(160, 190),
-                        'weight_kg'  => fake()->numberBetween(60, 95),
-                        'injuries'   => fake()->boolean(20) ? 'Lesion leve de hombro' : null,
+                        'birth_date' => $faker->date('Y-m-d', '-20 years'),
+                        'gender'     => $faker->randomElement(['male', 'female']),
+                        'height_cm'  => $faker->numberBetween(160, 190),
+                        'weight_kg'  => $faker->numberBetween(60, 95),
+                        'injuries'   => $faker->boolean(20) ? 'Lesion leve de hombro' : null,
                         'notifications' => [
                             'session_reminder' => true,
                             'new_plan' => true,
                         ],
                         'emergency_contact' => [
-                            'name'  => fake()->name(),
-                            'phone' => '+54 9 11 ' . fake()->numerify('#### ####'),
+                            'name'  => $faker->name(),
+                            'phone' => '+54 9 11 ' . $faker->numerify('#### ####'),
                         ],
                     ],
                 ]
