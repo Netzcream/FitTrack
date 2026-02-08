@@ -1,10 +1,9 @@
 <footer role="contentinfo" aria-label="Pie de página"
         class="mt-auto py-8 text-center
-               bg-indigo-700 text-white
-               dark:bg-indigo-600">
+               bg-indigo-700 text-white">
 
   <div class="container mx-auto px-6">
-    <div class="mb-2 text-indigo-50 dark:text-indigo-100">
+    <div class="mb-2 text-indigo-50">
       {{ date('Y') }} FitTrack. Herramienta profesional para entrenadores. <br>
       <span class="text-xs">FitTrack es una marca ficticia creada a fines ilustrativos. Todos los contenidos, servicios y datos publicados en este sitio son de carácter demostrativo.</span>
     </div>
@@ -24,3 +23,4 @@
     </div>
   </div>
 </footer>
+

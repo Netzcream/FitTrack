@@ -1,20 +1,18 @@
 <x-central-layout>
     <section id="terminos"
-             class="flex-1 bg-gradient-to-b from-white to-gray-50 dark:from-slate-900 dark:to-slate-950
+             class="flex-1 bg-gradient-to-b from-white to-gray-50
                     py-14 sm:py-16 lg:py-20">
         <div class="max-w-4xl mx-auto px-6 sm:px-8">
-            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-slate-900 text-center mb-10">
                 Términos y Condiciones de Uso
             </h1>
 
             <div class="prose prose-neutral max-w-none
-                        dark:prose-invert
-                        prose-headings:text-slate-900 dark:prose-headings:text-slate-100
-                        prose-strong:text-slate-900 dark:prose-strong:text-slate-100
+                        prose-headings:text-slate-900
+                        prose-strong:text-slate-900
                         prose-a:text-indigo-700 hover:prose-a:text-indigo-600
-                        dark:prose-a:text-indigo-400 dark:hover:prose-a:text-indigo-300
-                        prose-li:marker:text-indigo-600 dark:prose-li:marker:text-indigo-400
-                        prose-hr:border-slate-200 dark:prose-hr:border-slate-700">
+                        prose-li:marker:text-indigo-600
+                        prose-hr:border-slate-200">
                 <h2>1. Aceptación de los términos</h2>
                 <p>Al registrarte, acceder o utilizar FitTrack, aceptás cumplir con estos Términos y Condiciones. Si no
                     estás de acuerdo, no debés usar la plataforma.</p>
@@ -68,3 +66,4 @@
         </div>
     </section>
 </x-central-layout>
+

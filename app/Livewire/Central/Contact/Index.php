@@ -31,6 +31,7 @@ class Index extends Component
     protected function updateUnreadCount(): void
     {
         $this->noLeidos = Contact::unread()->count();
+        $this->dispatch('contact-unread-count-updated');
     }
 
     // ---------------------------------------------------------------------

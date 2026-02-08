@@ -1,13 +1,13 @@
 <!-- Cómo funciona -->
-<section id="funciona" class="py-14 sm:py-16 bg-gray-50 dark:bg-slate-950">
+<section id="funciona" class="py-14 sm:py-16 bg-gray-50">
     <div class="max-w-6xl mx-auto px-6 sm:px-8">
-        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-slate-100 text-center mb-12">¿Cómo funciona
+        <h2 class="text-3xl font-extrabold text-slate-900 text-center mb-12">¿Cómo funciona
             FitTrack?</h2>
         <div class="grid md:grid-cols-3 gap-6 md:gap-8">
             <!-- Card 1 -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-100 dark:border-indigo-800">
-                <span class="text-3xl text-indigo-600 dark:text-indigo-400 mb-2">
+                class="bg-white rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-100">
+                <span class="text-3xl text-indigo-600 mb-2">
                     <svg class=" h-8 w-8" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                         xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 496.158 496.158" xml:space="preserve"
                         fill="#000000">
@@ -24,14 +24,14 @@
                     </svg>
 
                 </span>
-                <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Registrate gratis</h3>
-                <p class="text-slate-700 dark:text-slate-300 text-center">Creá tu cuenta, configurá tu perfil y subí tu
+                <h3 class="font-bold text-slate-900 mb-2">Registrate gratis</h3>
+                <p class="text-slate-700 text-center">Creá tu cuenta, configurá tu perfil y subí tu
                     logo/foto profesional.</p>
             </div>
             <!-- Card 2 -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-600 dark:border-indigo-500">
-                <span class="text-3xl text-indigo-600 dark:text-indigo-400 mb-2">
+                class="bg-white rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-600">
+                <span class="text-3xl text-indigo-600 mb-2">
                     <svg class="h-8 w-8" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                         xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 496.158 496.158" xml:space="preserve"
                         fill="#000000">
@@ -47,14 +47,14 @@
                         </g>
                     </svg>
                 </span>
-                <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Cargá tus alumnos</h3>
-                <p class="text-slate-700 dark:text-slate-300 text-center">Sumá alumnos manualmente o invitalos con un
+                <h3 class="font-bold text-slate-900 mb-2">Cargá tus alumnos</h3>
+                <p class="text-slate-700 text-center">Sumá alumnos manualmente o invitalos con un
                     enlace único.</p>
             </div>
             <!-- Card 3 -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-100 dark:border-indigo-800">
-                <span class="text-3xl text-indigo-600 dark:text-indigo-400 mb-2"> <svg
+                class="bg-white rounded-xl p-6 shadow flex flex-col items-center border-t-4 border-indigo-100">
+                <span class="text-3xl text-indigo-600 mb-2"> <svg
                         class=" h-8 w-8" version="1.1" id="Layer_1"
                         xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                         viewBox="0 0 496.158 496.158" xml:space="preserve" fill="#000000">
@@ -69,11 +69,12 @@
                             </path>
                         </g>
                     </svg></span>
-                <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Digitalizá tu trabajo</h3>
-                <p class="text-slate-700 dark:text-slate-300 text-center">Creá rutinas, asigná pagos, llevá
+                <h3 class="font-bold text-slate-900 mb-2">Digitalizá tu trabajo</h3>
+                <p class="text-slate-700 text-center">Creá rutinas, asigná pagos, llevá
                     estadísticas
                     y mejorá tu servicio día a día.</p>
             </div>
         </div>
     </div>
 </section>
+
