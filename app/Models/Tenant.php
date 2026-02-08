@@ -48,21 +48,15 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             return false;
         }
 
-        $tenant = static::query()->whereHas('domains', fn($q) => $q->where('domain', $domain))->first();
-
-        if (!$tenant || !$tenant->ssl_provisioned_at) {
+        $info = static::getSslCertificateInfo($domain);
+        if (!$info) {
             return false;
         }
 
-        $info = static::getSslCertificateInfo($domain);
-        if (!$info) return false;
-
         $now = time();
-        $cn = $info['subject']['CN'] ?? '';
-
         return ($now >= ($info['validFrom_time_t'] ?? 0))
             && ($now <= ($info['validTo_time_t'] ?? 0))
-            && static::certMatchesDomain($domain, $cn);
+            && static::certMatchesDomain($domain, $info);
     }
 
     public static function sslExpirationDateFor(string $domain): ?\DateTime
@@ -88,6 +82,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         $ctx = stream_context_create([
             'ssl' => [
+                'capture_peer_cert' => true,
                 'capture_peer_cert_chain' => true,
                 'verify_peer' => false,
                 'verify_peer_name' => false,
@@ -102,6 +97,19 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         }
 
         $params = stream_context_get_params($fp);
+        fclose($fp);
+
+        $peerCertificate = $params['options']['ssl']['peer_certificate'] ?? null;
+        if (is_resource($peerCertificate) || $peerCertificate instanceof \OpenSSLCertificate) {
+            $parsed = openssl_x509_parse($peerCertificate);
+            if (!$parsed) {
+                Log::warning("Error al parsear el certificado peer de {$domain}");
+            }
+            if ($parsed) {
+                return $parsed;
+            }
+        }
+
         $chain = $params['options']['ssl']['peer_certificate_chain'] ?? null;
 
         if (is_array($chain) && count($chain) > 0) {
@@ -116,17 +124,51 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return null;
     }
 
-    protected static function certMatchesDomain(string $domain, string $cn): bool
+    protected static function certMatchesDomain(string $domain, array $certInfo): bool
     {
-        $cn = trim(str_replace('CN=', '', $cn));
+        $domain = strtolower(trim($domain));
+        $patterns = [];
 
-        if ($domain === $cn) {
+        $cn = strtolower(trim((string)($certInfo['subject']['CN'] ?? '')));
+        if ($cn !== '') {
+            $patterns[] = $cn;
+        }
+
+        $san = (string)($certInfo['extensions']['subjectAltName'] ?? '');
+        if ($san !== '') {
+            $entries = array_map('trim', explode(',', $san));
+            foreach ($entries as $entry) {
+                if (str_starts_with($entry, 'DNS:')) {
+                    $patterns[] = strtolower(trim(substr($entry, 4)));
+                }
+            }
+        }
+
+        foreach (array_unique($patterns) as $pattern) {
+            if (static::domainMatchesPattern($domain, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected static function domainMatchesPattern(string $domain, string $pattern): bool
+    {
+        if ($domain === $pattern) {
             return true;
         }
 
-        // wildcard como *.fittrack.com.ar
-        if (str_starts_with($cn, '*.') && str_ends_with($domain, substr($cn, 1))) {
-            return true;
+        // wildcard like *.fittrack.com.ar
+        if (str_starts_with($pattern, '*.')) {
+            $suffix = substr($pattern, 1); // ".fittrack.com.ar"
+            if (!str_ends_with($domain, $suffix)) {
+                return false;
+            }
+
+            // Match only one left-most label
+            $base = substr($pattern, 2); // "fittrack.com.ar"
+            return substr_count($domain, '.') === substr_count($base, '.') + 1;
         }
 
         return false;
