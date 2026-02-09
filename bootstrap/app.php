@@ -9,6 +9,7 @@ use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use Illuminate\Http\Request;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withEvents(discover: false)
@@ -48,5 +49,15 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->dontReport([
+            TenantCouldNotBeIdentifiedOnDomainException::class,
+        ]);
+
+        $exceptions->render(function (TenantCouldNotBeIdentifiedOnDomainException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Not Found'], 404);
+            }
+
+            return response('Not Found', 404);
+        });
     })->create();
