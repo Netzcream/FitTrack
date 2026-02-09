@@ -8,11 +8,11 @@
 {{-- Header --}}
 @slot('header')
     @component('mail::header', ['url' => $brandUrl])
-        @if($logoUrl)
-            <img src="{{ $logoUrl }}" height="50" alt="{{ $tenantName }}">
-        @else
-            {{ $tenantName }}
-        @endif
+@if($logoUrl)
+<img src="{{ $logoUrl }}" height="50" alt="{{ $tenantName }}">
+@else
+{{ $tenantName }}
+@endif
     @endcomponent
 @endslot
 
