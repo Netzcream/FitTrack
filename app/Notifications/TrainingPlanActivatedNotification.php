@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\URL;
 
 class TrainingPlanActivatedNotification extends Notification implements ShouldQueue
 {
@@ -44,7 +45,7 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         $tenantName = $branding['tenant_name'] ?? 'FitTrack';
 
         $planUrl = $this->tenantUrl(route('tenant.student.dashboard', [], false));
-        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
+        $pdfUrl = $this->resolvePublicPdfUrl();
 
         return (new MailMessage)
             ->from($this->resolveFromAddress(), $tenantName)
@@ -77,7 +78,7 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
     public function toArray(object $notifiable): array
     {
         $planUrl = $this->tenantUrl(route('tenant.student.dashboard', [], false));
-        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
+        $pdfUrl = $this->resolvePublicPdfUrl();
 
         return [
             'title' => $this->activationType === 'automatic' ? 'Plan activado automaticamente' : 'Nuevo plan asignado',
@@ -190,5 +191,17 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         }
 
         return $this->assignment->starts_at->diffInDays($this->assignment->ends_at);
+    }
+
+    private function resolvePublicPdfUrl(): string
+    {
+        $relativePath = URL::signedRoute(
+            'tenant.plan-download-public',
+            ['assignment' => $this->assignment->uuid],
+            null,
+            false
+        );
+
+        return $this->tenantUrl($relativePath);
     }
 }

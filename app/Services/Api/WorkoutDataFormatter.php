@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Models\Tenant as CentralTenant;
 use App\Models\Tenant\Workout;
 use BackedEnum;
+use Illuminate\Support\Facades\URL;
 
 class WorkoutDataFormatter
 {
@@ -108,7 +109,12 @@ class WorkoutDataFormatter
         }
 
         try {
-            $relativePath = route('tenant.student.download-plan', $assignmentUuid, false);
+            $relativePath = URL::signedRoute(
+                'tenant.plan-download-public',
+                ['assignment' => $assignmentUuid],
+                null,
+                false
+            );
         } catch (\Throwable $exception) {
             return null;
         }

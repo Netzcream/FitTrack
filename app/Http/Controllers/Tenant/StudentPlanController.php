@@ -83,6 +83,20 @@ class StudentPlanController extends Controller
         }
         // Trainers can download any student's plan (no additional check needed)
 
+        return $this->buildAssignmentPdfResponse($assignment);
+    }
+
+    /**
+     * Public signed URL download (sin sesión).
+     */
+    public function downloadAssignmentPublic(StudentPlanAssignment $assignment): Response
+    {
+        return $this->buildAssignmentPdfResponse($assignment);
+    }
+
+    private function buildAssignmentPdfResponse(StudentPlanAssignment $assignment): Response
+    {
+
         $grouped = $assignment->exercises_by_day;
 
         // Cargar los ejercicios completos con sus imágenes

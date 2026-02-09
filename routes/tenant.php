@@ -103,6 +103,11 @@ Route::middleware([
         Route::post('/webhooks/mercadopago', [\App\Http\Controllers\Tenant\MercadoPagoWebhookController::class, 'handle'])
             ->name('webhooks.mercadopago');
 
+        // Enlace público firmado para descarga de PDF (sin login)
+        Route::get('/public/plan/{assignment}/download', [\App\Http\Controllers\Tenant\StudentPlanController::class, 'downloadAssignmentPublic'])
+            ->middleware('signed:relative')
+            ->name('plan-download-public');
+
         Route::middleware(['tenant.auth', 'role:Admin|Asistente|Entrenador'])->group(function () {
             Route::get('/dashboard', function () {
                 return view('tenant.dashboard');

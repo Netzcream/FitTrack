@@ -10,6 +10,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\URL;
 
 class SessionReminderNotification extends Notification implements ShouldQueue
 {
@@ -36,7 +37,7 @@ class SessionReminderNotification extends Notification implements ShouldQueue
         $tenantName = $branding['tenant_name'] ?? 'FitTrack';
         $studentName = $this->assignment->student?->first_name ?? 'Alumno';
         $workoutUrl = $this->tenantUrl(route('tenant.student.workout-today', [], false));
-        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
+        $pdfUrl = $this->resolvePublicPdfUrl();
 
         return (new MailMessage)
             ->from($this->resolveFromAddress(), $tenantName)
@@ -62,7 +63,7 @@ class SessionReminderNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         $workoutUrl = $this->tenantUrl(route('tenant.student.workout-today', [], false));
-        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
+        $pdfUrl = $this->resolvePublicPdfUrl();
 
         return [
             'title' => 'Recordatorio de sesion',
@@ -175,5 +176,17 @@ class SessionReminderNotification extends Notification implements ShouldQueue
         }
 
         return 'notifications@fittrack.com.ar';
+    }
+
+    private function resolvePublicPdfUrl(): string
+    {
+        $relativePath = URL::signedRoute(
+            'tenant.plan-download-public',
+            ['assignment' => $this->assignment->uuid],
+            null,
+            false
+        );
+
+        return $this->tenantUrl($relativePath);
     }
 }
