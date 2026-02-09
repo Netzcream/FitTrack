@@ -28,7 +28,6 @@
     <div style="font-size: 16px; line-height: 1.6; color: #4a5568;">
         Tu entrenador creo tu cuenta en {{ $tenantName }}.
     </div>
-
     <div style="font-size: 16px; line-height: 1.6; color: #4a5568; margin-top: 10px;">
         Para activar tu acceso, primero debes definir tu clave.
     </div>
