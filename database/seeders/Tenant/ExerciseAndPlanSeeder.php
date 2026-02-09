@@ -51,11 +51,20 @@ class ExerciseAndPlanSeeder extends Seeder
         $exerciseModels = collect();
 
         foreach ($exercises as $e) {
+            $existingExercise = Exercise::withTrashed()
+                ->where('name', $e['name'])
+                ->first();
+
+            // Respetar bajas lógicas: no re-crear ni reactivar.
+            if ($existingExercise?->trashed()) {
+                continue;
+            }
+
             $exerciseModels->push(
                 Exercise::updateOrCreate(
                     ['name' => $e['name']],
                     [
-                        'uuid'       => Str::uuid(),
+                        'uuid'       => $existingExercise?->uuid ?? Str::uuid(),
                         'category'   => $e['category'],
                         'level'      => $e['level'],
                         'equipment'  => $e['equipment'],
@@ -121,10 +130,19 @@ class ExerciseAndPlanSeeder extends Seeder
         ];
 
         foreach ($plans as $p) {
+            $existingPlan = TrainingPlan::withTrashed()
+                ->where('name', $p['name'])
+                ->first();
+
+            // Respetar bajas lógicas: no re-crear ni reactivar.
+            if ($existingPlan?->trashed()) {
+                continue;
+            }
+
             $plan = TrainingPlan::updateOrCreate(
                 ['name' => $p['name']],
                 [
-                    'uuid'        => Str::uuid(),
+                    'uuid'        => $existingPlan?->uuid ?? Str::uuid(),
                     'goal'        => $p['goal'],
                     'duration'    => $p['duration'],
                     'description' => $p['description'],
@@ -158,6 +176,11 @@ class ExerciseAndPlanSeeder extends Seeder
         // -------------------------------
         // 💪 3️⃣ Workouts de ejemplo (usando nueva estructura JSON)
         // -------------------------------
+        // Solo para tenants nuevos: si ya hay workouts, no agregar datos de ejemplo.
+        if (Workout::query()->exists()) {
+            return;
+        }
+
         $students = Student::limit(3)->get();
 
         if ($students->isNotEmpty()) {

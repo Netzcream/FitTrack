@@ -58,6 +58,15 @@ class StudentSeeder extends Seeder
         ];
 
         foreach ($students as $s) {
+            $existingStudent = Student::withTrashed()
+                ->where('email', $s['email'])
+                ->first();
+
+            // Respetar bajas lógicas: no re-crear ni reactivar.
+            if ($existingStudent?->trashed()) {
+                continue;
+            }
+
             $user = User::firstOrCreate(
                 ['email' => $s['email']],
                 [
@@ -65,6 +74,7 @@ class StudentSeeder extends Seeder
                     'password' => Str::random(20),
                 ]
             );
+
             if (! $user->hasRole($studentRole)) {
                 $user->assignRole($studentRole);
             }
@@ -72,7 +82,7 @@ class StudentSeeder extends Seeder
             Student::updateOrCreate(
                 ['email' => $s['email']],
                 [
-                    'uuid'                => Str::orderedUuid(),
+                    'uuid'                => $existingStudent?->uuid ?? Str::orderedUuid(),
                     'user_id'             => $user->id,
                     'status'              => $s['status'],
                     'first_name'          => $s['first_name'],
