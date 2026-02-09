@@ -57,7 +57,8 @@ class WorkoutDataFormatter
             }
 
             return [
-                'id' => $ex['id'] ?? null,
+                'id' => $ex['id'] ?? $ex['exercise_id'] ?? null,
+                'exercise_id' => $ex['exercise_id'] ?? $ex['id'] ?? null,
                 'name' => $ex['name'] ?? '',
                 'description' => $ex['description'] ?? null,
                 'category' => $ex['category'] ?? null,
@@ -66,7 +67,7 @@ class WorkoutDataFormatter
                 'image_url' => $ex['image_url'] ?? null,
                 'images' => $ex['images'] ?? [],
                 'pdf_url' => $ex['pdf_url'] ?? null,
-                'completed' => $ex['completed'] ?? false,
+                'completed' => (bool) ($ex['completed'] ?? false),
                 'sets' => $ex['sets'] ?? [],
             ];
         })->toArray();
@@ -203,7 +204,7 @@ class WorkoutDataFormatter
             return $workout->duration_minutes;
         }
 
-        if (is_array($rawExercisesData)) {
+        if (is_array($rawExercisesData) && !array_is_list($rawExercisesData)) {
             $fromPayload = $rawExercisesData['duration_minutes'] ?? 0;
             return (int) $fromPayload;
         }
@@ -213,7 +214,7 @@ class WorkoutDataFormatter
 
     private function resolveCaloriesBurned(mixed $rawExercisesData): int
     {
-        if (!is_array($rawExercisesData)) {
+        if (!is_array($rawExercisesData) || array_is_list($rawExercisesData)) {
             return 0;
         }
 

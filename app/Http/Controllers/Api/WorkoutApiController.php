@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\Tenant\Student;
-use App\Models\Tenant\Workout;
 use App\Enums\WorkoutStatus;
+use App\Events\Tenant\ExerciseCompleted;
+use App\Http\Controllers\Controller;
+use App\Models\Tenant\Exercise;
+use App\Models\Tenant\ExerciseCompletionLog;
+use App\Models\Tenant\Student;
+use App\Models\Tenant\StudentGamificationProfile;
+use App\Models\Tenant\StudentWeightEntry;
+use App\Models\Tenant\Workout;
 use App\Services\Api\WorkoutDataFormatter;
 use App\Services\WorkoutOrchestrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class WorkoutApiController extends Controller
@@ -25,7 +31,7 @@ class WorkoutApiController extends Controller
      */
     public function index(Request $request)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
@@ -58,17 +64,14 @@ class WorkoutApiController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        // Buscar el workout y verificar que pertenezca al estudiante
-        $workout = Workout::where('id', $id)
-            ->where('student_id', $student->id)
-            ->with(['planAssignment'])
-            ->first();
+        // Acepta ID numerico o UUID
+        $workout = $this->findWorkoutForStudent($student, $id)?->loadMissing('planAssignment');
 
         if (!$workout) {
             return response()->json(['error' => 'Workout not found'], 404);
@@ -86,7 +89,7 @@ class WorkoutApiController extends Controller
      */
     public function today(Request $request)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
@@ -123,15 +126,13 @@ class WorkoutApiController extends Controller
      */
     public function start(Request $request, $id)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        $workout = Workout::where('id', $id)
-            ->where('student_id', $student->id)
-            ->first();
+        $workout = $this->findWorkoutForStudent($student, $id);
 
         if (!$workout) {
             return response()->json(['error' => 'Workout not found'], 404);
@@ -159,31 +160,33 @@ class WorkoutApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        $workout = Workout::where('id', $id)
-            ->where('student_id', $student->id)
-            ->first();
+        $workout = $this->findWorkoutForStudent($student, $id);
 
         if (!$workout) {
             return response()->json(['error' => 'Workout not found'], 404);
         }
 
-        // Validar que sea un array de ejercicios
+        // Puede sincronizar ejercicios, progreso en vivo o ambos.
         $validator = Validator::make($request->all(), [
-            'exercises' => 'required|array',
-            'exercises.*.id' => 'required',
-            'exercises.*.name' => 'string',
-            'exercises.*.completed' => 'boolean',
-            'exercises.*.sets' => 'array',
-            'exercises.*.sets.*.reps' => 'integer|min:0',
-            'exercises.*.sets.*.weight' => 'numeric|min:0',
-            'exercises.*.sets.*.duration_seconds' => 'integer|min:0',
-            'exercises.*.sets.*.completed' => 'boolean',
+            'exercises' => 'sometimes|array',
+            'exercises.*' => 'array',
+            'exercises.*.id' => 'nullable',
+            'exercises.*.exercise_id' => 'nullable|integer|min:1',
+            'exercises.*.name' => 'sometimes|string',
+            'exercises.*.completed' => 'sometimes|boolean',
+            'exercises.*.sets' => 'sometimes|array',
+            'exercises.*.sets.*.reps' => 'sometimes|integer|min:0',
+            'exercises.*.sets.*.weight' => 'sometimes|numeric|min:0',
+            'exercises.*.sets.*.duration_seconds' => 'sometimes|integer|min:0',
+            'exercises.*.sets.*.completed' => 'sometimes|boolean',
+            'elapsed_minutes' => 'sometimes|integer|min:0|max:1440',
+            'effort' => 'sometimes|integer|min:1|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -193,17 +196,134 @@ class WorkoutApiController extends Controller
             ], 422);
         }
 
-        // Enriquecer con datos existentes (preservar fields como description, etc)
-        $enrichedExercises = collect($request->exercises)->map(function ($updated) use ($workout) {
-            $existing = collect($workout->exercises_data)->firstWhere('id', $updated['id']) ?? [];
-            return array_merge($existing, $updated);
-        })->toArray();
+        if (!$request->hasAny(['exercises', 'elapsed_minutes', 'effort'])) {
+            return response()->json([
+                'error' => 'Invalid data',
+                'details' => [
+                    'payload' => ['Provide at least one of: exercises, elapsed_minutes, effort']
+                ]
+            ], 422);
+        }
 
-        $workout->updateExercisesData($enrichedExercises);
+        $workoutUpdated = false;
+        $liveProgressUpdated = false;
+        $gamificationEvents = [];
+
+        // 1) Sincronizar ejercicios y otorgar XP si aplica.
+        if ($request->has('exercises')) {
+            $incomingExercises = collect($request->input('exercises', []))
+                ->filter(fn ($row) => is_array($row))
+                ->values();
+
+            $invalidRows = $incomingExercises
+                ->filter(function (array $row): bool {
+                    return !array_key_exists('id', $row) && !array_key_exists('exercise_id', $row);
+                })
+                ->keys()
+                ->map(fn (int $index) => $index)
+                ->all();
+
+            if (!empty($invalidRows)) {
+                return response()->json([
+                    'error' => 'Invalid exercise data',
+                    'details' => [
+                        'exercises' => [
+                            'Each exercise must include id or exercise_id. Invalid rows: ' . implode(', ', $invalidRows),
+                        ],
+                    ],
+                ], 422);
+            }
+
+            $existingExercises = collect($workout->exercises_data ?? [])->values();
+            $consumedIncomingIndexes = [];
+            $changedToCompleted = [];
+
+            // Merge preserving existing metadata (description, images, etc.)
+            $mergedExercises = $existingExercises
+                ->map(function ($existingExercise) use ($incomingExercises, &$consumedIncomingIndexes, &$changedToCompleted) {
+                    $existingExercise = is_array($existingExercise) ? $existingExercise : [];
+
+                    $matchIndex = $incomingExercises->search(function ($incomingExercise, int $index) use ($existingExercise, $consumedIncomingIndexes): bool {
+                        if (in_array($index, $consumedIncomingIndexes, true)) {
+                            return false;
+                        }
+
+                        if (!is_array($incomingExercise)) {
+                            return false;
+                        }
+
+                        return $this->exercisesMatch($existingExercise, $incomingExercise);
+                    });
+
+                    if ($matchIndex === false) {
+                        return $existingExercise;
+                    }
+
+                    $consumedIncomingIndexes[] = $matchIndex;
+                    $incomingExercise = $incomingExercises->get($matchIndex, []);
+                    $merged = array_merge($existingExercise, $incomingExercise);
+
+                    $wasCompleted = (bool) ($existingExercise['completed'] ?? false);
+                    $isCompleted = (bool) ($merged['completed'] ?? false);
+
+                    if (!$wasCompleted && $isCompleted) {
+                        $changedToCompleted[] = $merged;
+                    }
+
+                    return $merged;
+                })
+                ->values();
+
+            // Append incoming rows that were not matched.
+            $incomingExercises->each(function ($incomingExercise, int $index) use (&$mergedExercises, $consumedIncomingIndexes, &$changedToCompleted): void {
+                if (in_array($index, $consumedIncomingIndexes, true) || !is_array($incomingExercise)) {
+                    return;
+                }
+
+                $mergedExercises->push($incomingExercise);
+
+                if ((bool) ($incomingExercise['completed'] ?? false)) {
+                    $changedToCompleted[] = $incomingExercise;
+                }
+            });
+
+            $workout->updateExercisesData($mergedExercises->toArray());
+            $workoutUpdated = true;
+
+            if (!empty($changedToCompleted)) {
+                $gamificationEvents = $this->processCompletedExercises($student, $workout, $changedToCompleted);
+            }
+        }
+
+        // 2) Persistir progreso en vivo (timer + esfuerzo percibido).
+        if ($request->has('elapsed_minutes') || $request->has('effort')) {
+            $meta = $workout->meta ?? [];
+
+            if ($request->has('elapsed_minutes')) {
+                $meta['live_elapsed_minutes'] = (int) $request->input('elapsed_minutes');
+            }
+
+            if ($request->has('effort')) {
+                $meta['live_effort'] = (int) $request->input('effort');
+            }
+
+            $workout->update(['meta' => $meta]);
+            $liveProgressUpdated = true;
+        }
+
+        $workout->refresh();
 
         return response()->json([
-            'message' => 'Exercises updated',
-            'data' => $this->workoutDataFormatter->format($workout)
+            'message' => 'Workout updated',
+            'data' => $this->workoutDataFormatter->format($workout),
+            'gamification' => [
+                'profile' => $this->formatGamificationProfile($student),
+                'events' => $gamificationEvents,
+            ],
+            'sync' => [
+                'exercises_updated' => $workoutUpdated,
+                'live_progress_updated' => $liveProgressUpdated,
+            ],
         ]);
     }
 
@@ -214,15 +334,13 @@ class WorkoutApiController extends Controller
      */
     public function complete(Request $request, $id)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        $workout = Workout::where('id', $id)
-            ->where('student_id', $student->id)
-            ->first();
+        $workout = $this->findWorkoutForStudent($student, $id);
 
         if (!$workout) {
             return response()->json(['error' => 'Workout not found'], 404);
@@ -234,10 +352,13 @@ class WorkoutApiController extends Controller
             'rating' => 'sometimes|integer|min:1|max:5',
             'notes' => 'sometimes|string|max:1000',
             'survey' => 'sometimes|array',
+            'survey.effort' => 'sometimes|integer|min:1|max:10',
             'survey.fatigue' => 'integer|min:1|max:5',
             'survey.rpe' => 'integer|min:6|max:20',
             'survey.pain' => 'integer|min:0|max:10',
             'survey.mood' => 'string|max:50',
+            'current_weight' => 'sometimes|numeric|min:20|max:300',
+            'current_weight_kg' => 'sometimes|numeric|min:20|max:300',
         ]);
 
         if ($validator->fails()) {
@@ -254,9 +375,42 @@ class WorkoutApiController extends Controller
             survey: $request->survey ?? []
         );
 
+        $weightEntry = null;
+        $currentWeight = $request->input('current_weight', $request->input('current_weight_kg'));
+
+        if ($currentWeight !== null && $currentWeight !== '') {
+            try {
+                $weightEntry = StudentWeightEntry::create([
+                    'student_id' => $student->id,
+                    'weight_kg' => $currentWeight,
+                    'source' => 'workout_completion',
+                    'recorded_at' => now(),
+                    'notes' => 'Recorded when completing workout via API',
+                ]);
+            } catch (\Throwable $exception) {
+                Log::error('Failed to store workout completion weight', [
+                    'student_id' => $student->id,
+                    'workout_id' => $workout->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        $weightPayload = null;
+        if ($weightEntry) {
+            $weightPayload = [
+                'id' => $weightEntry->id,
+                'uuid' => $weightEntry->uuid,
+                'weight_kg' => (float) $weightEntry->weight_kg,
+                'recorded_at' => $weightEntry->recorded_at?->toIso8601String(),
+                'source' => $weightEntry->source,
+            ];
+        }
+
         return response()->json([
             'message' => 'Workout completed',
-            'data' => $this->workoutDataFormatter->format($workout)
+            'data' => $this->workoutDataFormatter->format($workout),
+            'weight_entry' => $weightPayload,
         ]);
     }
 
@@ -267,15 +421,13 @@ class WorkoutApiController extends Controller
      */
     public function skip(Request $request, $id)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
         }
 
-        $workout = Workout::where('id', $id)
-            ->where('student_id', $student->id)
-            ->first();
+        $workout = $this->findWorkoutForStudent($student, $id);
 
         if (!$workout) {
             return response()->json(['error' => 'Workout not found'], 404);
@@ -304,7 +456,7 @@ class WorkoutApiController extends Controller
      */
     public function stats(Request $request)
     {
-        $student = Student::where('email', $request->user()->email)->first();
+        $student = $this->findStudentFromRequest($request);
 
         if (!$student) {
             return response()->json(['error' => 'Student not found'], 404);
@@ -337,6 +489,224 @@ class WorkoutApiController extends Controller
                     ->sum('duration_minutes'),
             ]
         ]);
+    }
+
+    private function findStudentFromRequest(Request $request): ?Student
+    {
+        $user = $request->user();
+        if (!$user?->email) {
+            return null;
+        }
+
+        return Student::where('email', $user->email)->first();
+    }
+
+    private function findWorkoutForStudent(Student $student, string|int $identifier): ?Workout
+    {
+        $identifier = (string) $identifier;
+
+        return Workout::query()
+            ->where('student_id', $student->id)
+            ->where(function ($query) use ($identifier) {
+                if (ctype_digit($identifier)) {
+                    $query->orWhere('id', (int) $identifier);
+                }
+
+                $query->orWhere('uuid', $identifier);
+            })
+            ->first();
+    }
+
+    private function exercisesMatch(array $existingExercise, array $incomingExercise): bool
+    {
+        $existingExerciseId = $this->getNumericExerciseId($existingExercise);
+        $incomingExerciseId = $this->getNumericExerciseId($incomingExercise);
+
+        if ($existingExerciseId !== null && $incomingExerciseId !== null) {
+            return $existingExerciseId === $incomingExerciseId;
+        }
+
+        if (isset($existingExercise['id'], $incomingExercise['id'])) {
+            return (string) $existingExercise['id'] === (string) $incomingExercise['id'];
+        }
+
+        if (isset($existingExercise['name'], $incomingExercise['name'])) {
+            return trim((string) $existingExercise['name']) !== ''
+                && strcasecmp(trim((string) $existingExercise['name']), trim((string) $incomingExercise['name'])) === 0;
+        }
+
+        return false;
+    }
+
+    private function getNumericExerciseId(array $exerciseData): ?int
+    {
+        $candidate = $exerciseData['exercise_id'] ?? $exerciseData['id'] ?? null;
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        if (is_int($candidate)) {
+            return $candidate;
+        }
+
+        if (is_string($candidate) && ctype_digit($candidate)) {
+            return (int) $candidate;
+        }
+
+        return null;
+    }
+
+    /**
+     * Process exercises that transitioned to completed and trigger XP events.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function processCompletedExercises(Student $student, Workout $workout, array $completedExercises): array
+    {
+        $events = [];
+
+        // Reduce accidental duplicate toggles in the same payload.
+        $uniqueExercises = collect($completedExercises)
+            ->filter(fn ($exercise) => is_array($exercise))
+            ->unique(function (array $exercise): string {
+                $numericId = $this->getNumericExerciseId($exercise);
+
+                if ($numericId !== null) {
+                    return 'exercise:' . $numericId;
+                }
+
+                return 'raw:' . md5(json_encode($exercise));
+            })
+            ->values();
+
+        /** @var array<int, mixed> $exercisePayload */
+        foreach ($uniqueExercises as $exercisePayload) {
+            if (!is_array($exercisePayload)) {
+                continue;
+            }
+
+            $exerciseId = $this->getNumericExerciseId($exercisePayload);
+
+            if ($exerciseId === null) {
+                $events[] = [
+                    'awarded' => false,
+                    'reason' => 'exercise_identifier_missing',
+                ];
+                continue;
+            }
+
+            $exercise = Exercise::find($exerciseId);
+
+            if (!$exercise) {
+                $events[] = [
+                    'exercise_id' => $exerciseId,
+                    'awarded' => false,
+                    'reason' => 'exercise_not_found',
+                ];
+                continue;
+            }
+
+            $alreadyCompletedToday = ExerciseCompletionLog::query()
+                ->where('student_id', $student->id)
+                ->where('exercise_id', $exercise->id)
+                ->whereDate('completed_date', now()->toDateString())
+                ->exists();
+
+            if ($alreadyCompletedToday) {
+                $events[] = [
+                    'exercise_id' => $exercise->id,
+                    'exercise_name' => $exercise->name,
+                    'awarded' => false,
+                    'reason' => 'already_completed_today',
+                ];
+                continue;
+            }
+
+            $profileBefore = $this->formatGamificationProfile($student);
+
+            event(new ExerciseCompleted($student, $exercise, $workout));
+
+            $student->refresh();
+            $profileAfter = $this->formatGamificationProfile($student);
+
+            $xpGained = ExerciseCompletionLog::getXpForExerciseLevel($exercise->level ?? 'beginner');
+
+            $events[] = [
+                'exercise_id' => $exercise->id,
+                'exercise_name' => $exercise->name,
+                'exercise_level' => $exercise->level,
+                'awarded' => true,
+                'xp_gained' => $xpGained,
+                'level_before' => $profileBefore['current_level'],
+                'level_after' => $profileAfter['current_level'],
+                'tier_before' => $profileBefore['current_tier'],
+                'tier_after' => $profileAfter['current_tier'],
+                'leveled_up' => $profileAfter['current_level'] > $profileBefore['current_level'],
+                'tier_changed' => $profileAfter['current_tier'] !== $profileBefore['current_tier'],
+            ];
+        }
+
+        return $events;
+    }
+
+    private function ensureGamificationProfile(Student $student): void
+    {
+        $student->gamificationProfile()->firstOrCreate(
+            ['student_id' => $student->id],
+            [
+                'total_xp' => 0,
+                'current_level' => 0,
+                'current_tier' => 0,
+                'active_badge' => 'not_rated',
+            ]
+        );
+    }
+
+    /**
+     * @return array<string, int|string|bool|null>
+     */
+    private function formatGamificationProfile(Student $student): array
+    {
+        $this->ensureGamificationProfile($student);
+
+        $student->loadMissing('gamificationProfile');
+        $profile = $student->gamificationProfile;
+
+        if (!$profile) {
+            return [
+                'has_profile' => false,
+                'total_xp' => 0,
+                'current_level' => 0,
+                'current_tier' => 0,
+                'tier_name' => 'Not Rated',
+                'active_badge' => 'not_rated',
+                'level_progress_percent' => 0,
+                'xp_for_current_level' => 0,
+                'xp_for_next_level' => 100,
+                'xp_inside_level' => 0,
+                'xp_required_inside_level' => 100,
+                'total_exercises_completed' => 0,
+            ];
+        }
+
+        $xpForCurrentLevel = StudentGamificationProfile::calculateXpRequiredForLevel((int) $profile->current_level);
+        $xpForNextLevel = (int) $profile->xp_for_next_level;
+
+        return [
+            'has_profile' => true,
+            'total_xp' => (int) $profile->total_xp,
+            'current_level' => (int) $profile->current_level,
+            'current_tier' => (int) $profile->current_tier,
+            'tier_name' => $profile->tier_name,
+            'active_badge' => $profile->active_badge,
+            'level_progress_percent' => (int) $profile->level_progress_percent,
+            'xp_for_current_level' => $xpForCurrentLevel,
+            'xp_for_next_level' => $xpForNextLevel,
+            'xp_inside_level' => max(0, (int) $profile->total_xp - $xpForCurrentLevel),
+            'xp_required_inside_level' => max(0, $xpForNextLevel - $xpForCurrentLevel),
+            'total_exercises_completed' => (int) $profile->total_exercises_completed,
+        ];
     }
 
 }

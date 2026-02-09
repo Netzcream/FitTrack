@@ -2,9 +2,10 @@
 
 namespace App\Services\Tenant;
 
-use App\Models\Tenant\Student;
-use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\Invoice;
+use App\Models\Tenant\Student;
+use App\Models\Tenant\StudentGamificationProfile;
+use App\Models\Tenant\StudentPlanAssignment;
 use App\Services\Api\WorkoutDataFormatter;
 use App\Services\WorkoutOrchestrationService;
 use Illuminate\Support\Facades\DB;
@@ -22,16 +23,20 @@ class StudentHomeDashboardService
     }
 
     /**
-     * Obtener todos los datos del home del estudiante en una sola consulta
+     * Obtener todos los datos del home del estudiante en una sola consulta.
      */
     public function getStudentHomeData(Student $student): array
     {
+        $this->ensureGamificationProfile($student);
+        $gamification = $this->formatGamificationProfile($student);
+
         // Resolver plan activo
         $assignment = $this->orchestration->resolveActivePlan($student);
 
         if (!$assignment) {
             return [
-                'student' => $this->getStudentMetrics($student),
+                'student' => $this->getStudentMetrics($student, $gamification),
+                'gamification' => $gamification,
                 'active_plan' => null,
                 'today_workout' => null,
                 'active_workout' => null,
@@ -39,7 +44,7 @@ class StudentHomeDashboardService
                 'trainings_this_month' => 0,
                 'goal_this_month' => 12,
                 'has_pending_payment' => false,
-                'no_active_plan_message' => 'No tenés un plan activo. Contactá a tu entrenador.',
+                'no_active_plan_message' => 'No tenes un plan activo. Contacta a tu entrenador.',
                 'plan_history' => [],
             ];
         }
@@ -73,7 +78,8 @@ class StudentHomeDashboardService
         $planHistory = $this->getPlanHistory($student);
 
         return [
-            'student' => $this->getStudentMetrics($student),
+            'student' => $this->getStudentMetrics($student, $gamification),
+            'gamification' => $gamification,
             'active_plan' => $this->getActivePlanData($assignment),
             'today_workout' => $todayWorkout ? $this->getWorkoutData($todayWorkout) : null,
             'active_workout' => $activeWorkout ? $this->getWorkoutData($activeWorkout) : null,
@@ -87,24 +93,36 @@ class StudentHomeDashboardService
     }
 
     /**
-     * Métricas del estudiante
+     * Metricas del estudiante.
+     *
+     * @param array<string, int|string|bool|null> $gamification
+     * @return array<string, mixed>
      */
-    private function getStudentMetrics(Student $student): array
+    private function getStudentMetrics(Student $student, array $gamification): array
     {
+        $displayName = trim((string) ($student->full_name ?? ''));
+        if ($displayName === '') {
+            $displayName = (string) ($student->email ?? '');
+        }
+
         return [
             'id' => $student->uuid,
-            'name' => $student->name,
+            'name' => $displayName,
+            'full_name' => $displayName,
+            'first_name' => $student->first_name,
+            'last_name' => $student->last_name,
             'email' => $student->email,
             'phone' => $student->phone,
             'weight_kg' => $student->weight_kg,
             'height_cm' => $student->height_cm,
             'imc' => $student->imc,
             'avatar_url' => $student->getFirstMediaUrl('avatar'),
+            'gamification' => $gamification,
         ];
     }
 
     /**
-     * Datos del plan activo
+     * Datos del plan activo.
      */
     private function getActivePlanData(StudentPlanAssignment $assignment): array
     {
@@ -129,7 +147,7 @@ class StudentHomeDashboardService
     }
 
     /**
-     * Datos del entrenamiento
+     * Datos del entrenamiento.
      */
     private function getWorkoutData($workout): array
     {
@@ -141,7 +159,7 @@ class StudentHomeDashboardService
     }
 
     /**
-     * Entrenamientos completados este mes
+     * Entrenamientos completados este mes.
      */
     private function resolveTrainingsThisMonth(Student $student): int
     {
@@ -158,7 +176,7 @@ class StudentHomeDashboardService
     }
 
     /**
-     * Historial de planes
+     * Historial de planes.
      */
     private function getPlanHistory(Student $student): array
     {
@@ -178,5 +196,64 @@ class StudentHomeDashboardService
                     'days_count' => $assignment->exercises_by_day->count(),
                 ];
             })->toArray();
+    }
+
+    private function ensureGamificationProfile(Student $student): void
+    {
+        $student->gamificationProfile()->firstOrCreate(
+            ['student_id' => $student->id],
+            [
+                'total_xp' => 0,
+                'current_level' => 0,
+                'current_tier' => 0,
+                'active_badge' => 'not_rated',
+            ]
+        );
+    }
+
+    /**
+     * @return array<string, int|string|bool|null>
+     */
+    private function formatGamificationProfile(Student $student): array
+    {
+        $student->loadMissing('gamificationProfile');
+        $profile = $student->gamificationProfile;
+
+        if (!$profile) {
+            return [
+                'has_profile' => false,
+                'total_xp' => 0,
+                'current_level' => 0,
+                'current_tier' => 0,
+                'tier_name' => 'Not Rated',
+                'active_badge' => 'not_rated',
+                'level_progress_percent' => 0,
+                'xp_for_current_level' => 0,
+                'xp_for_next_level' => 100,
+                'xp_inside_level' => 0,
+                'xp_required_inside_level' => 100,
+                'total_exercises_completed' => 0,
+                'last_exercise_completed_at' => null,
+            ];
+        }
+
+        $xpForCurrentLevel = StudentGamificationProfile::calculateXpRequiredForLevel((int) $profile->current_level);
+        $xpForNextLevel = (int) $profile->xp_for_next_level;
+
+        return [
+            'has_profile' => true,
+            'total_xp' => (int) $profile->total_xp,
+            'current_level' => (int) $profile->current_level,
+            'current_tier' => (int) $profile->current_tier,
+            'tier_name' => $profile->tier_name,
+            'active_badge' => $profile->active_badge,
+            'level_progress_percent' => (int) $profile->level_progress_percent,
+            'xp_for_current_level' => $xpForCurrentLevel,
+            'xp_for_next_level' => $xpForNextLevel,
+            'xp_inside_level' => max(0, (int) $profile->total_xp - $xpForCurrentLevel),
+            'xp_required_inside_level' => max(0, $xpForNextLevel - $xpForCurrentLevel),
+            'total_exercises_completed' => (int) $profile->total_exercises_completed,
+            'last_exercise_completed_at' => $profile->last_exercise_completed_at?->toDateString(),
+        ];
     }
 }
