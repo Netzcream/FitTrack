@@ -230,14 +230,27 @@ class Workout extends Model
         }
 
         return collect($this->exercises_data)->map(function ($exercise) {
+            $sets = is_array($exercise['sets'] ?? null) ? $exercise['sets'] : [];
+            $setsTotal = count($sets);
+            $completedSets = collect($sets)->filter(function ($set) {
+                return is_array($set) && (bool) ($set['completed'] ?? false);
+            })->count();
+            $setsCompletionPercentage = $setsTotal > 0
+                ? round(($completedSets / $setsTotal) * 100, 1)
+                : 0.0;
+
             return [
-                'id' => $exercise['id'] ?? null,
+                'id' => $exercise['id'] ?? ($exercise['exercise_id'] ?? null),
+                'exercise_id' => $exercise['exercise_id'] ?? ($exercise['id'] ?? null),
                 'name' => $exercise['name'] ?? 'Unknown',
-                'completed' => $exercise['completed'] ?? false,
-                'series' => $exercise['series'] ?? 0,
-                'completed_series' => collect($exercise['sets'] ?? [])->filter(function ($set) {
-                    return $set['completed'] ?? false;
-                })->count(),
+                'completed' => (bool) ($exercise['completed'] ?? false),
+                // Backward-compatible aliases.
+                'series' => $setsTotal,
+                'completed_series' => $completedSets,
+                'sets_total' => $setsTotal,
+                'sets_completed' => $completedSets,
+                'sets_remaining' => max(0, $setsTotal - $completedSets),
+                'sets_completion_percentage' => $setsCompletionPercentage,
             ];
         })->toArray();
     }

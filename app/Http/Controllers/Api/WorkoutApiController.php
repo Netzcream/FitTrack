@@ -53,7 +53,8 @@ class WorkoutApiController extends Controller
         return response()->json([
             'data' => $workouts->map(function ($workout) {
                 return $this->workoutDataFormatter->format($workout);
-            })
+            }),
+            'context' => $this->buildWorkoutContextPayload($student),
         ]);
     }
 
@@ -78,7 +79,8 @@ class WorkoutApiController extends Controller
         }
 
         return response()->json([
-            'data' => $this->workoutDataFormatter->format($workout)
+            'data' => $this->workoutDataFormatter->format($workout),
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -115,7 +117,8 @@ class WorkoutApiController extends Controller
         }
 
         return response()->json([
-            'data' => $this->workoutDataFormatter->format($workout)
+            'data' => $this->workoutDataFormatter->format($workout),
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -149,7 +152,8 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Workout started',
-            'data' => $this->workoutDataFormatter->format($workout)
+            'data' => $this->workoutDataFormatter->format($workout),
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -186,6 +190,7 @@ class WorkoutApiController extends Controller
             'exercises.*.sets.*.duration_seconds' => 'sometimes|integer|min:0',
             'exercises.*.sets.*.completed' => 'sometimes|boolean',
             'elapsed_minutes' => 'sometimes|integer|min:0|max:1440',
+            'elapsed_seconds' => 'sometimes|integer|min:0|max:86400',
             'effort' => 'sometimes|integer|min:1|max:10',
         ]);
 
@@ -196,11 +201,11 @@ class WorkoutApiController extends Controller
             ], 422);
         }
 
-        if (!$request->hasAny(['exercises', 'elapsed_minutes', 'effort'])) {
+        if (!$request->hasAny(['exercises', 'elapsed_minutes', 'elapsed_seconds', 'effort'])) {
             return response()->json([
                 'error' => 'Invalid data',
                 'details' => [
-                    'payload' => ['Provide at least one of: exercises, elapsed_minutes, effort']
+                    'payload' => ['Provide at least one of: exercises, elapsed_minutes, elapsed_seconds, effort']
                 ]
             ], 422);
         }
@@ -296,16 +301,30 @@ class WorkoutApiController extends Controller
         }
 
         // 2) Persistir progreso en vivo (timer + esfuerzo percibido).
-        if ($request->has('elapsed_minutes') || $request->has('effort')) {
+        if ($request->has('elapsed_minutes') || $request->has('elapsed_seconds') || $request->has('effort')) {
             $meta = $workout->meta ?? [];
 
             if ($request->has('elapsed_minutes')) {
                 $meta['live_elapsed_minutes'] = (int) $request->input('elapsed_minutes');
+                if (!$request->has('elapsed_seconds')) {
+                    $meta['live_elapsed_seconds'] = (int) $request->input('elapsed_minutes') * 60;
+                }
+            }
+
+            if ($request->has('elapsed_seconds')) {
+                $elapsedSeconds = (int) $request->input('elapsed_seconds');
+                $meta['live_elapsed_seconds'] = $elapsedSeconds;
+
+                if (!$request->has('elapsed_minutes')) {
+                    $meta['live_elapsed_minutes'] = (int) floor($elapsedSeconds / 60);
+                }
             }
 
             if ($request->has('effort')) {
                 $meta['live_effort'] = (int) $request->input('effort');
             }
+
+            $meta['live_last_sync_at'] = now()->toIso8601String();
 
             $workout->update(['meta' => $meta]);
             $liveProgressUpdated = true;
@@ -324,6 +343,7 @@ class WorkoutApiController extends Controller
                 'exercises_updated' => $workoutUpdated,
                 'live_progress_updated' => $liveProgressUpdated,
             ],
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -411,6 +431,7 @@ class WorkoutApiController extends Controller
             'message' => 'Workout completed',
             'data' => $this->workoutDataFormatter->format($workout),
             'weight_entry' => $weightPayload,
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -445,7 +466,8 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Workout skipped',
-            'data' => $this->workoutDataFormatter->format($workout)
+            'data' => $this->workoutDataFormatter->format($workout),
+            'context' => $this->buildWorkoutContextPayload($student, $workout),
         ]);
     }
 
@@ -487,7 +509,8 @@ class WorkoutApiController extends Controller
                 'total_duration_minutes' => $student->workouts()
                     ->where('status', WorkoutStatus::COMPLETED)
                     ->sum('duration_minutes'),
-            ]
+            ],
+            'context' => $this->buildWorkoutContextPayload($student),
         ]);
     }
 
@@ -687,6 +710,7 @@ class WorkoutApiController extends Controller
                 'xp_inside_level' => 0,
                 'xp_required_inside_level' => 100,
                 'total_exercises_completed' => 0,
+                'last_exercise_completed_at' => null,
             ];
         }
 
@@ -706,7 +730,70 @@ class WorkoutApiController extends Controller
             'xp_inside_level' => max(0, (int) $profile->total_xp - $xpForCurrentLevel),
             'xp_required_inside_level' => max(0, $xpForNextLevel - $xpForCurrentLevel),
             'total_exercises_completed' => (int) $profile->total_exercises_completed,
+            'last_exercise_completed_at' => $profile->last_exercise_completed_at?->toDateString(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildWorkoutContextPayload(Student $student, ?Workout $workout = null): array
+    {
+        $student->loadMissing('gamificationProfile');
+
+        $assignment = $workout?->planAssignment;
+        if (!$assignment) {
+            $assignment = $this->orchestration->resolveActivePlan($student);
+        }
+
+        $activeWorkout = $student->workouts()
+            ->where('status', WorkoutStatus::IN_PROGRESS)
+            ->latest('updated_at')
+            ->first();
+
+        return [
+            'student' => [
+                'id' => $student->id,
+                'uuid' => $student->uuid,
+                'email' => $student->email,
+                'first_name' => $student->first_name,
+                'last_name' => $student->last_name,
+                'full_name' => trim((string) $student->full_name),
+                'status' => $student->status,
+            ],
+            'gamification' => $this->formatGamificationProfile($student),
+            'active_plan' => $assignment ? [
+                'id' => $assignment->id,
+                'uuid' => $assignment->uuid,
+                'name' => $assignment->plan?->name ?? $assignment->name,
+                'status' => $this->normalizeStatus($assignment->status),
+                'starts_at' => $assignment->starts_at?->toIso8601String(),
+                'ends_at' => $assignment->ends_at?->toIso8601String(),
+                'is_current' => (bool) $assignment->is_current,
+            ] : null,
+            'active_workout' => $activeWorkout ? [
+                'id' => $activeWorkout->id,
+                'uuid' => $activeWorkout->uuid,
+                'status' => $this->normalizeStatus($activeWorkout->status),
+                'plan_day' => $activeWorkout->plan_day,
+                'cycle_index' => $activeWorkout->cycle_index,
+            ] : null,
+            'requested_workout_id' => $workout?->id,
+            'requested_workout_uuid' => $workout?->uuid,
+        ];
+    }
+
+    private function normalizeStatus(mixed $status): ?string
+    {
+        if ($status instanceof \BackedEnum) {
+            return (string) $status->value;
+        }
+
+        if (is_string($status)) {
+            return $status;
+        }
+
+        return null;
     }
 
 }

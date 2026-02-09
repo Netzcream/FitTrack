@@ -34,6 +34,7 @@ class WorkoutApiParityTest extends TestCase
                     ],
                 ],
                 'elapsed_minutes' => 14,
+                'elapsed_seconds' => 845,
                 'effort' => 7,
             ]);
 
@@ -44,6 +45,39 @@ class WorkoutApiParityTest extends TestCase
         $response->assertJsonPath('gamification.events.0.xp_gained', 10);
         $response->assertJsonPath('sync.exercises_updated', true);
         $response->assertJsonPath('sync.live_progress_updated', true);
+        $response->assertJsonPath('context.student.uuid', $context['student']->uuid);
+        $response->assertJsonPath('context.active_plan.uuid', $context['assignment']->uuid);
+        $response->assertJsonPath('data.exercises.0.xp_base_value', 10);
+        $response->assertJsonPath('data.exercises.0.xp.base_value', 10);
+        $response->assertJsonPath('data.exercises.0.xp_to_award_if_complete_now', 0);
+        $response->assertJsonPath('data.exercises.0.xp.to_award_if_complete_now', 0);
+        $response->assertJsonPath('data.exercises_data.0.xp.base_value', 10);
+        $response->assertJsonPath('data.exercises_data.0.xp_to_award_if_complete_now', 0);
+        $response->assertJsonPath('data.progress.completed_exercises', 1);
+        $response->assertJsonPath('data.progress.total_sets', 1);
+        $response->assertJsonPath('data.progress.completed_sets', 1);
+        $response->assertJsonPath('data.progress.remaining_sets', 0);
+        $response->assertJsonPath('data.progress.session_state', 'active');
+        $response->assertJsonPath('data.exercise_progress.0.sets_total', 1);
+        $response->assertJsonPath('data.exercise_progress.0.sets_completed', 1);
+        $response->assertJsonPath('data.exercise_progress.0.xp_to_award_if_complete_now', 0);
+        $response->assertJsonPath('data.live.elapsed_minutes', 14);
+        $response->assertJsonPath('data.live.elapsed_seconds', 845);
+        $response->assertJsonPath('data.live.effort', 7);
+        $response->assertJsonPath('data.physical_activity.timer.elapsed_seconds', 845);
+        $response->assertJsonPath('data.physical_activity.effort.value', 7);
+        $response->assertJsonPath('data.physical_activity.exercise_progress.all_completed', true);
+        $response->assertJsonPath('data.xp_summary.available_to_earn_now_total', 0);
+        $response->assertJsonPath('data.xp_summary.already_awarded_today_total', 10);
+        $response->assertJsonPath('data.assignment.uuid', $context['assignment']->uuid);
+        $response->assertJsonStructure([
+            'data' => [
+                'live' => ['last_sync_at'],
+                'physical_activity' => [
+                    'timer' => ['last_sync_at'],
+                ],
+            ],
+        ]);
 
         tenancy()->initialize($context['tenant']);
         try {
@@ -60,7 +94,9 @@ class WorkoutApiParityTest extends TestCase
 
             $workout = Workout::findOrFail($context['workout']->id);
             $this->assertSame(14, (int) data_get($workout->meta, 'live_elapsed_minutes'));
+            $this->assertSame(845, (int) data_get($workout->meta, 'live_elapsed_seconds'));
             $this->assertSame(7, (int) data_get($workout->meta, 'live_effort'));
+            $this->assertNotNull(data_get($workout->meta, 'live_last_sync_at'));
         } finally {
             tenancy()->end();
         }
@@ -90,6 +126,7 @@ class WorkoutApiParityTest extends TestCase
         $response->assertJsonPath('data.status', WorkoutStatus::COMPLETED->value);
         $response->assertJsonPath('weight_entry.weight_kg', 79.4);
         $response->assertJsonPath('weight_entry.source', 'workout_completion');
+        $response->assertJsonPath('context.requested_workout_uuid', $context['workout']->uuid);
 
         tenancy()->initialize($context['tenant']);
         try {
@@ -120,6 +157,61 @@ class WorkoutApiParityTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.gamification.has_profile', true);
         $response->assertJsonPath('data.student.gamification.has_profile', true);
+        $response->assertJsonPath('data.has_pending_payment', false);
+        $response->assertJsonPath('data.pending_payment', null);
+        $response->assertJsonPath('data.home_state.has_active_plan', true);
+        $response->assertJsonPath('data.home_state.has_workout_today', true);
+        $response->assertJsonPath('data.today_workout.exercises.0.xp_base_value', 10);
+        $response->assertJsonPath('data.today_workout.exercises.0.xp_to_award_if_complete_now', 10);
+        $response->assertJsonPath('data.today_workout.exercises_data.0.xp_to_award_if_complete_now', 10);
+        $response->assertJsonPath('data.today_workout.progress.total_sets', 1);
+        $response->assertJsonPath('data.today_workout.physical_activity.exercise_progress.all_completed', false);
+    }
+
+    public function test_show_workout_includes_live_progress_and_per_exercise_xp_contract(): void
+    {
+        $context = $this->createWorkoutContext(WorkoutStatus::IN_PROGRESS);
+        $headers = $this->apiHeaders($context['token'], $context['tenant']->id);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $workout = Workout::findOrFail($context['workout']->id);
+            $workout->update([
+                'meta' => [
+                    'live_elapsed_minutes' => 5,
+                    'live_elapsed_seconds' => 305,
+                    'live_effort' => 6,
+                    'live_last_sync_at' => now()->toIso8601String(),
+                ],
+            ]);
+        } finally {
+            tenancy()->end();
+        }
+
+        $response = $this
+            ->withHeaders($headers)
+            ->getJson('/api/workouts/' . $context['workout']->id);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.exercises.0.xp_base_value', 10);
+        $response->assertJsonPath('data.exercises.0.xp_to_award_if_complete_now', 10);
+        $response->assertJsonPath('data.exercises_data.0.xp.base_value', 10);
+        $response->assertJsonPath('data.exercises_data.0.xp_to_award_if_complete_now', 10);
+        $response->assertJsonPath('data.exercise_progress.0.xp_to_award_if_complete_now', 10);
+        $response->assertJsonPath('data.progress.total_exercises', 1);
+        $response->assertJsonPath('data.progress.completed_exercises', 0);
+        $response->assertJsonPath('data.progress.total_sets', 1);
+        $response->assertJsonPath('data.progress.completed_sets', 0);
+        $response->assertJsonPath('data.live.elapsed_minutes', 5);
+        $response->assertJsonPath('data.live.elapsed_seconds', 305);
+        $response->assertJsonPath('data.live.effort', 6);
+        $response->assertJsonPath('data.physical_activity.timer.elapsed_minutes', 5);
+        $response->assertJsonPath('data.physical_activity.timer.elapsed_seconds', 305);
+        $response->assertJsonPath('data.physical_activity.effort.value', 6);
+        $response->assertJsonPath('data.physical_activity.set_progress.total', 1);
+        $response->assertJsonPath('data.physical_activity.set_progress.completed', 0);
+        $response->assertJsonPath('data.xp_summary.base_total_if_all_exercises_rewarded', 10);
+        $response->assertJsonPath('data.xp_summary.available_to_earn_now_total', 10);
     }
 
     /**
@@ -129,6 +221,7 @@ class WorkoutApiParityTest extends TestCase
      *   user: User,
      *   student: Student,
      *   exercise: Exercise,
+     *   assignment: StudentPlanAssignment,
      *   workout: Workout
      * }
      */
@@ -232,6 +325,7 @@ class WorkoutApiParityTest extends TestCase
             'user' => $user,
             'student' => $student,
             'exercise' => $exercise,
+            'assignment' => $assignment,
             'workout' => $workout,
         ];
     }

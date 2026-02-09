@@ -29,6 +29,7 @@ class StudentHomeDashboardService
     {
         $this->ensureGamificationProfile($student);
         $gamification = $this->formatGamificationProfile($student);
+        $pendingPayment = $this->getPendingPaymentSummary($student);
 
         // Resolver plan activo
         $assignment = $this->orchestration->resolveActivePlan($student);
@@ -43,9 +44,16 @@ class StudentHomeDashboardService
                 'progress_data' => [],
                 'trainings_this_month' => 0,
                 'goal_this_month' => 12,
-                'has_pending_payment' => false,
+                'has_pending_payment' => $pendingPayment !== null,
+                'pending_payment' => $pendingPayment,
                 'no_active_plan_message' => 'No tenes un plan activo. Contacta a tu entrenador.',
                 'plan_history' => [],
+                'home_state' => [
+                    'has_active_plan' => false,
+                    'has_workout_today' => false,
+                    'workout_status' => null,
+                    'should_show_goal_banner' => false,
+                ],
             ];
         }
 
@@ -68,11 +76,7 @@ class StudentHomeDashboardService
         $goalThisMonth = data_get($student->data, 'training.monthly_goal', 12);
 
         // Verificar si hay invoices pendientes
-        $hasPendingPayment = false;
-        if (class_exists(Invoice::class)) {
-            $invoiceService = new InvoiceService();
-            $hasPendingPayment = !empty($invoiceService->getNextPendingForStudent($student));
-        }
+        $hasPendingPayment = $pendingPayment !== null;
 
         // Cargar historial de planes
         $planHistory = $this->getPlanHistory($student);
@@ -87,8 +91,15 @@ class StudentHomeDashboardService
             'trainings_this_month' => $trainingsThisMonth,
             'goal_this_month' => $goalThisMonth,
             'has_pending_payment' => $hasPendingPayment,
+            'pending_payment' => $pendingPayment,
             'no_active_plan_message' => null,
             'plan_history' => $planHistory,
+            'home_state' => [
+                'has_active_plan' => true,
+                'has_workout_today' => $todayWorkout !== null,
+                'workout_status' => $todayWorkout ? $this->normalizeStatus($todayWorkout->status) : null,
+                'should_show_goal_banner' => $goalThisMonth > 0 && $trainingsThisMonth >= $goalThisMonth,
+            ],
         ];
     }
 
@@ -107,16 +118,20 @@ class StudentHomeDashboardService
 
         return [
             'id' => $student->uuid,
+            'uuid' => $student->uuid,
             'name' => $displayName,
             'full_name' => $displayName,
             'first_name' => $student->first_name,
             'last_name' => $student->last_name,
             'email' => $student->email,
             'phone' => $student->phone,
+            'status' => $student->status,
+            'goal' => $student->goal,
             'weight_kg' => $student->weight_kg,
             'height_cm' => $student->height_cm,
             'imc' => $student->imc,
             'avatar_url' => $student->getFirstMediaUrl('avatar'),
+            'monthly_goal' => (int) data_get($student->data, 'training.monthly_goal', 12),
             'gamification' => $gamification,
         ];
     }
@@ -134,6 +149,8 @@ class StudentHomeDashboardService
         return [
             'uuid' => $assignment->uuid,
             'plan_name' => $assignment->plan?->name ?? $assignment->name,
+            'name' => $assignment->name,
+            'status' => $this->normalizeStatus($assignment->status),
             'description' => $assignment->plan?->description,
             'starts_at' => $assignment->starts_at->toIso8601String(),
             'ends_at' => $assignment->ends_at->toIso8601String(),
@@ -188,9 +205,10 @@ class StudentHomeDashboardService
                 return [
                     'uuid' => $assignment->uuid,
                     'plan_name' => $assignment->plan?->name ?? $assignment->name,
+                    'name' => $assignment->name,
                     'starts_at' => $assignment->starts_at->toIso8601String(),
                     'ends_at' => $assignment->ends_at->toIso8601String(),
-                    'status' => $assignment->status,
+                    'status' => $this->normalizeStatus($assignment->status),
                     'is_current' => $assignment->is_current,
                     'exercises_count' => $assignment->exercises_by_day->flatten(1)->count(),
                     'days_count' => $assignment->exercises_by_day->count(),
@@ -255,5 +273,51 @@ class StudentHomeDashboardService
             'total_exercises_completed' => (int) $profile->total_exercises_completed,
             'last_exercise_completed_at' => $profile->last_exercise_completed_at?->toDateString(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function getPendingPaymentSummary(Student $student): ?array
+    {
+        if (!class_exists(Invoice::class)) {
+            return null;
+        }
+
+        $invoiceService = new InvoiceService();
+        $invoice = $invoiceService->getNextPendingForStudent($student);
+
+        if (!$invoice) {
+            return null;
+        }
+
+        $daysUntilDue = $invoice->due_date ? now()->diffInDays($invoice->due_date, false) : null;
+        $showAlert = $invoice->is_overdue || ($daysUntilDue !== null && $daysUntilDue < 5);
+
+        return [
+            'id' => $invoice->id,
+            'uuid' => $invoice->uuid,
+            'status' => $invoice->status,
+            'amount' => (float) $invoice->amount,
+            'formatted_amount' => $invoice->formatted_amount,
+            'due_date' => $invoice->due_date?->toIso8601String(),
+            'is_overdue' => (bool) $invoice->is_overdue,
+            'days_until_due' => $daysUntilDue,
+            'show_alert' => $showAlert,
+            'payment_state_label' => $invoice->is_overdue ? 'overdue' : 'pending',
+        ];
+    }
+
+    private function normalizeStatus(mixed $status): ?string
+    {
+        if ($status instanceof \BackedEnum) {
+            return (string) $status->value;
+        }
+
+        if (is_string($status)) {
+            return $status;
+        }
+
+        return null;
     }
 }
