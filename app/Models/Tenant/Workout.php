@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Enums\WorkoutStatus;
 use App\Traits\HasUuid;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class Workout extends Model
 {
     use HasUuid;
+
+    protected static array $legacyUuidOldColumnCache = [];
 
     protected $table = 'workouts';
 
@@ -48,6 +52,37 @@ class Workout extends Model
         'duration_minutes' => 'integer',
         'status' => WorkoutStatus::class,
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $workout): void {
+            if (!self::hasLegacyUuidOldColumn($workout)) {
+                return;
+            }
+
+            $uuid = $workout->uuid ?: (string) Str::orderedUuid();
+
+            $workout->uuid = $uuid;
+            $workout->setAttribute('uuid_old', $uuid);
+        });
+    }
+
+    protected static function hasLegacyUuidOldColumn(self $workout): bool
+    {
+        $connection = $workout->getConnection();
+        $cacheKey = implode(':', [
+            $connection->getName(),
+            $connection->getDatabaseName(),
+            $workout->getTable(),
+        ]);
+
+        if (!array_key_exists($cacheKey, self::$legacyUuidOldColumnCache)) {
+            self::$legacyUuidOldColumnCache[$cacheKey] = Schema::connection($connection->getName())
+                ->hasColumn($workout->getTable(), 'uuid_old');
+        }
+
+        return self::$legacyUuidOldColumnCache[$cacheKey];
+    }
 
 
 

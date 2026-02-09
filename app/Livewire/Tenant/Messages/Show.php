@@ -60,20 +60,18 @@ class Show extends Component
     public function render()
     {
         $messagingService = app(MessagingService::class);
-
-        /** @var User $user */
-        $user = Auth::user();
+        $tenantParticipantId = MessagingService::TENANT_PARTICIPANT_ID;
 
         $messages = $messagingService->getMessages($this->conversationId, 50);
 
         // Find first unread message ID BEFORE marking as read
-        $firstUnreadMessageId = $this->getFirstUnreadMessageId($user->id, ParticipantType::TENANT);
+        $firstUnreadMessageId = $this->getFirstUnreadMessageId($tenantParticipantId, ParticipantType::TENANT);
 
         // Mark as read while viewing
         $messagingService->markAsRead(
             $this->conversationId,
             ParticipantType::TENANT,
-            $user->id
+            $tenantParticipantId
         );
 
         return view('livewire.tenant.messages.show', [
@@ -82,7 +80,7 @@ class Show extends Component
         ]);
     }
 
-    private function getFirstUnreadMessageId(int $participantId, ParticipantType $participantType): ?int
+    private function getFirstUnreadMessageId(string|int $participantId, ParticipantType $participantType): ?int
     {
         $participant = \App\Models\Tenant\ConversationParticipant::where('conversation_id', $this->conversationId)
             ->where('participant_type', $participantType)

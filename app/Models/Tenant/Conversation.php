@@ -79,7 +79,7 @@ class Conversation extends Model
         return $query->where('student_id', $studentId);
     }
 
-    public function scopeWithUnreadCount($query, string $participantType, int $participantId)
+    public function scopeWithUnreadCount($query, string $participantType, string|int $participantId)
     {
         return $query->withCount(['messages as unread_count' => function ($q) use ($participantType, $participantId) {
             $q->whereRaw('(messages.created_at > COALESCE((
@@ -109,7 +109,7 @@ class Conversation extends Model
         return $message;
     }
 
-    public function getUnreadCountForParticipant(string $participantType, int $participantId): int
+    public function getUnreadCountForParticipant(string $participantType, string|int $participantId): int
     {
         $lastReadAt = $this->participants()
             ->where('participant_type', $participantType)

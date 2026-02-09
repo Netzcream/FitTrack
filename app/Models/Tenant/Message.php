@@ -39,13 +39,13 @@ class Message extends Model
 
     /* -------------------------- Scopes -------------------------- */
 
-    public function scopeFromSender($query, string $type, int $id)
+    public function scopeFromSender($query, string $type, string|int $id)
     {
         return $query->where('sender_type', $type)
             ->where('sender_id', $id);
     }
 
-    public function scopeUnreadBy($query, string $participantType, int $participantId)
+    public function scopeUnreadBy($query, string $participantType, string|int $participantId)
     {
         return $query->where('created_at', '>', function ($subQuery) use ($participantType, $participantId) {
             $subQuery->select('last_read_at')

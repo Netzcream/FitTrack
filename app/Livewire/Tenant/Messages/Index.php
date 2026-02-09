@@ -7,7 +7,6 @@ use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use App\Services\Tenant\MessagingService;
 use App\Enums\ParticipantType;
-use Illuminate\Support\Facades\Auth;
 
 #[Layout('components.layouts.tenant', [
     'title' => 'Mensajes',
@@ -48,13 +47,12 @@ class Index extends Component
     public function render()
     {
         $messagingService = app(MessagingService::class);
-        /** @var User $user */
-        $user = Auth::user();
+        $tenantId = (string) tenant('id');
 
         /** @var \Illuminate\Pagination\LengthAwarePaginator $conversations */
         $conversations = $messagingService->getConversations(
             ParticipantType::TENANT,
-            $user->id,
+            $tenantId,
             15
         );
 

@@ -3,9 +3,8 @@
 namespace App\Livewire\Tenant;
 
 use Livewire\Component;
-use App\Models\Tenant\Conversation;
 use App\Enums\ParticipantType;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Tenant\MessagingService;
 
 class ConversationBadgeNavItem extends Component
 {
@@ -19,19 +18,14 @@ class ConversationBadgeNavItem extends Component
     #[\Livewire\Attributes\Computed]
     public function getUnreadCount()
     {
-        $user = Auth::user();
-        if (!$user) {
+        $tenantId = tenant('id');
+        if (!$tenantId) {
             return 0;
         }
 
-        return Conversation::query()
-            ->whereHas('participants', function ($query) use ($user) {
-                $query->where('participant_id', $user->id)
-                      ->where('participant_type', ParticipantType::TENANT->value);
-            })
-            ->withUnreadCount(ParticipantType::TENANT->value, $user->id)
-            ->get()
-            ->sum('unread_count');
+        $messagingService = app(MessagingService::class);
+
+        return $messagingService->getUnreadCount(ParticipantType::TENANT, (string) $tenantId);
     }
 
     private function updateCount()

@@ -34,7 +34,7 @@ class Messages extends Component
                 $query->where('participant_id', $student->id)
                     ->where('participant_type', ParticipantType::STUDENT->value);
             })
-            ->withUnreadCount($student->id, ParticipantType::STUDENT)
+            ->withUnreadCount(ParticipantType::STUDENT->value, $student->id)
             ->get()
             ->sum('unread_count');
     }

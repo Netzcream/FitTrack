@@ -21,11 +21,11 @@ class MessagingController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        $tenantId = (string) tenant('id');
 
         $conversations = $this->messagingService->getConversations(
             ParticipantType::TENANT,
-            $user->id,
+            $tenantId,
             $request->input('per_page', 15)
         );
 
@@ -117,7 +117,7 @@ class MessagingController extends Controller
         $this->messagingService->markAsRead(
             $id,
             ParticipantType::TENANT,
-            $request->user()->id
+            (string) tenant('id')
         );
 
         return response()->json(['message' => 'Marked as read']);
@@ -140,7 +140,7 @@ class MessagingController extends Controller
         $this->messagingService->toggleMute(
             $id,
             ParticipantType::TENANT,
-            $request->user()->id,
+            (string) tenant('id'),
             $request->mute
         );
 
@@ -155,7 +155,7 @@ class MessagingController extends Controller
     {
         $count = $this->messagingService->getUnreadCount(
             ParticipantType::TENANT,
-            $request->user()->id
+            (string) tenant('id')
         );
 
         return response()->json(['count' => $count]);

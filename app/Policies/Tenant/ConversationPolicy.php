@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Tenant\Conversation;
 use App\Models\Tenant\Student;
 use App\Enums\ConversationType;
-use App\Enums\ParticipantType;
 
 class ConversationPolicy
 {
@@ -16,15 +15,7 @@ class ConversationPolicy
     public function view(User $user, Conversation $conversation): bool
     {
         // Only tenant_student conversations in tenant context
-        if ($conversation->type !== ConversationType::TENANT_STUDENT) {
-            return false;
-        }
-
-        // Check if user (tenant admin/trainer) is a participant
-        return $conversation->participants()
-            ->where('participant_type', ParticipantType::TENANT)
-            ->where('participant_id', $user->id)
-            ->exists();
+        return $conversation->type === ConversationType::TENANT_STUDENT;
     }
 
     /**

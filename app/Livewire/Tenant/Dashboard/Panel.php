@@ -105,9 +105,10 @@ class Panel extends Component
         // Soporte (Central <-> Entrenador)
         $unreadSupport = $tenantId ? $centralMessaging->getUnreadCount(\App\Enums\ParticipantType::TENANT, $tenantId) : 0;
 
-        // Mensajes de Alumnos (Entrenador <-> Alumnos) para el usuario autenticado
-        $userId = Auth::id();
-        $unreadStudentMessages = $userId ? $tenantMessaging->getUnreadCount(\App\Enums\ParticipantType::TENANT, (int)$userId) : 0;
+        // Mensajes de Alumnos (Tenant <-> Alumnos)
+        $unreadStudentMessages = $tenantId
+            ? $tenantMessaging->getUnreadCount(\App\Enums\ParticipantType::TENANT, (string) $tenantId)
+            : 0;
 
         // Contactos desde la web (reales): entradas creadas hoy
         $webContactsPending = \App\Models\Contact::whereDate('created_at', Carbon::today())->count();

@@ -2,30 +2,23 @@
 
 namespace App\Services\Tenant;
 
-use App\Models\User;
+use App\Enums\ConversationType;
+use App\Enums\ParticipantType;
 use App\Models\Tenant\Conversation;
 use App\Models\Tenant\ConversationParticipant;
 use App\Models\Tenant\Message;
-use App\Enums\ConversationType;
-use App\Enums\ParticipantType;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class MessagingService
 {
+    public const TENANT_PARTICIPANT_ID = 0;
+
     /**
      * Find or create a conversation between Tenant and a Student
      */
     public function findOrCreateConversation(int $studentId, ?string $subject = null): Conversation
     {
         return DB::transaction(function () use ($studentId, $subject) {
-            /** @var User|null $user */
-            $user = Auth::user();
-
-            // Check if conversation already exists
             $conversation = Conversation::where('type', ConversationType::TENANT_STUDENT)
                 ->where('student_id', $studentId)
                 ->first();
@@ -38,7 +31,8 @@ class MessagingService
                 ]);
             }
 
-            $this->ensureConversationParticipants($conversation, $studentId, $user);
+            $this->ensureStudentParticipant($conversation->id, $studentId);
+            $this->ensureTenantParticipant($conversation->id);
 
             return $conversation->fresh(['participants', 'student']);
         });
@@ -58,19 +52,8 @@ class MessagingService
             $conversation = Conversation::findOrFail($conversationId);
 
             if ($conversation->type === ConversationType::TENANT_STUDENT && $conversation->student_id) {
-                $this->ensureConversationParticipants(
-                    $conversation,
-                    (int) $conversation->student_id,
-                    Auth::user()
-                );
-            }
-
-            if ($senderType === ParticipantType::TENANT) {
-                ConversationParticipant::firstOrCreate([
-                    'conversation_id' => $conversation->id,
-                    'participant_type' => ParticipantType::TENANT,
-                    'participant_id' => (string) $senderId,
-                ]);
+                $this->ensureStudentParticipant($conversation->id, (int) $conversation->student_id);
+                $this->ensureTenantParticipant($conversation->id);
             }
 
             $message = $conversation->addMessage(
@@ -81,7 +64,11 @@ class MessagingService
             );
 
             // Mark as read for sender (their own messages don't count as unread)
-            $this->markAsRead($conversationId, $senderType, $senderId);
+            if ($senderType === ParticipantType::TENANT) {
+                $this->markAsRead($conversationId, $senderType, self::TENANT_PARTICIPANT_ID);
+            } else {
+                $this->markAsRead($conversationId, $senderType, $senderId);
+            }
 
             // Fire event for notifications
             event(new \App\Events\Tenant\MessageSent($message));
@@ -93,11 +80,13 @@ class MessagingService
     /**
      * Mark conversation as read for a participant
      */
-    public function markAsRead(int $conversationId, ParticipantType $participantType, int $participantId): void
+    public function markAsRead(int $conversationId, ParticipantType $participantType, string|int $participantId): void
     {
+        $participantId = $this->normalizeParticipantId($participantType, $participantId);
+
         ConversationParticipant::where('conversation_id', $conversationId)
             ->where('participant_type', $participantType)
-            ->where('participant_id', $participantId)
+            ->where('participant_id', (string) $participantId)
             ->update(['last_read_at' => now()]);
     }
 
@@ -106,20 +95,17 @@ class MessagingService
      */
     public function getConversations(
         ParticipantType $participantType,
-        int $participantId,
+        string|int $participantId,
         int $perPage = 15
     ) {
-        if ($participantType === ParticipantType::TENANT) {
-            /** @var User|null $actor */
-            $actor = Auth::user();
+        $participantId = $this->normalizeParticipantId($participantType, $participantId);
 
-            if ($actor && (int) $actor->id === $participantId) {
-                $this->repairBrokenStudentConversationsForTenant($actor);
-            }
+        if ($participantType === ParticipantType::TENANT) {
+            $this->backfillTenantParticipantForStudentConversations();
         }
 
         $conversationIds = ConversationParticipant::where('participant_type', $participantType)
-            ->where('participant_id', $participantId)
+            ->where('participant_id', (string) $participantId)
             ->pluck('conversation_id');
 
         return Conversation::whereIn('id', $conversationIds)
@@ -142,10 +128,16 @@ class MessagingService
     /**
      * Get unread messages count for a participant
      */
-    public function getUnreadCount(ParticipantType $participantType, int $participantId): int
+    public function getUnreadCount(ParticipantType $participantType, string|int $participantId): int
     {
+        $participantId = $this->normalizeParticipantId($participantType, $participantId);
+
+        if ($participantType === ParticipantType::TENANT) {
+            $this->backfillTenantParticipantForStudentConversations();
+        }
+
         $conversationIds = ConversationParticipant::where('participant_type', $participantType)
-            ->where('participant_id', $participantId)
+            ->where('participant_id', (string) $participantId)
             ->pluck('conversation_id');
 
         return Message::whereIn('conversation_id', $conversationIds)
@@ -155,18 +147,24 @@ class MessagingService
                 WHERE conversation_id = messages.conversation_id
                 AND participant_type = ?
                 AND participant_id = ?
-            ), "1970-01-01 00:00:00"))', [$participantType->value, $participantId])
+            ), "1970-01-01 00:00:00"))', [$participantType->value, (string) $participantId])
             ->count();
     }
 
     /**
      * Mute/unmute a conversation
      */
-    public function toggleMute(int $conversationId, ParticipantType $participantType, int $participantId, bool $mute): void
-    {
+    public function toggleMute(
+        int $conversationId,
+        ParticipantType $participantType,
+        string|int $participantId,
+        bool $mute
+    ): void {
+        $participantId = $this->normalizeParticipantId($participantType, $participantId);
+
         $participant = ConversationParticipant::where('conversation_id', $conversationId)
             ->where('participant_type', $participantType)
-            ->where('participant_id', $participantId)
+            ->where('participant_id', (string) $participantId)
             ->firstOrFail();
 
         if ($mute) {
@@ -198,158 +196,58 @@ class MessagingService
             return null;
         }
 
-        /** @var User|null $user */
-        $user = Auth::user();
-        $this->ensureConversationParticipants($conversation, $studentId, $user);
+        $this->ensureStudentParticipant($conversation->id, $studentId);
+        $this->ensureTenantParticipant($conversation->id);
 
         return $conversation;
     }
 
-    private function ensureConversationParticipants(Conversation $conversation, int $studentId, ?User $actor): void
+    private function ensureStudentParticipant(int $conversationId, int $studentId): void
     {
         ConversationParticipant::firstOrCreate([
-            'conversation_id' => $conversation->id,
+            'conversation_id' => $conversationId,
             'participant_type' => ParticipantType::STUDENT,
             'participant_id' => (string) $studentId,
         ]);
-
-        $tenantParticipantIds = $this->resolveTenantParticipantIds($conversation, $actor);
-
-        foreach ($tenantParticipantIds as $tenantParticipantId) {
-            ConversationParticipant::firstOrCreate([
-                'conversation_id' => $conversation->id,
-                'participant_type' => ParticipantType::TENANT,
-                'participant_id' => $tenantParticipantId,
-            ]);
-        }
-
-        if (empty($tenantParticipantIds)) {
-            Log::warning('Conversation without tenant participant', [
-                'conversation_id' => $conversation->id,
-                'student_id' => $studentId,
-                'actor_id' => $actor?->id,
-            ]);
-        }
     }
 
-    private function resolveTenantParticipantIds(Conversation $conversation, ?User $actor): array
+    private function ensureTenantParticipant(int $conversationId): void
     {
-        if ($actor && !$actor->hasRole('Alumno')) {
-            return [(string) $actor->id];
-        }
-
-        $candidateIds = $this->resolveExistingTenantParticipantIds($conversation);
-
-        if ($candidateIds->isEmpty()) {
-            $candidateIds = $candidateIds->merge($this->resolveConfiguredTrainerParticipantIds());
-        }
-
-        if ($candidateIds->isEmpty()) {
-            $candidateIds = $candidateIds->merge($this->resolveStaffParticipantIds());
-        }
-
-        if ($candidateIds->isEmpty()) {
-            $fallback = User::query()
-                ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'Alumno'))
-                ->when($actor?->id, fn (Builder $q) => $q->where('id', '!=', $actor->id))
-                ->orderBy('id')
-                ->value('id');
-
-            if ($fallback) {
-                $candidateIds->push((string) $fallback);
-            }
-        }
-
-        return $candidateIds
-            ->map(fn ($id) => (string) $id)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        ConversationParticipant::firstOrCreate([
+            'conversation_id' => $conversationId,
+            'participant_type' => ParticipantType::TENANT,
+            'participant_id' => (string) self::TENANT_PARTICIPANT_ID,
+        ]);
     }
 
-    private function resolveConfiguredTrainerParticipantIds(): Collection
+    private function normalizeParticipantId(ParticipantType $participantType, string|int $participantId): string|int
     {
-        $configuredEmail = trim((string) (tenant_config('trainer_email') ?? tenant_config('contact_email') ?? ''));
-
-        if ($configuredEmail === '') {
-            return collect();
+        if ($participantType === ParticipantType::TENANT) {
+            return self::TENANT_PARTICIPANT_ID;
         }
 
-        $trainerId = User::query()
-            ->where('email', $configuredEmail)
-            ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'Alumno'))
-            ->value('id');
-
-        return $trainerId ? collect([(string) $trainerId]) : collect();
+        return $participantId;
     }
 
-    private function resolveStaffParticipantIds(): Collection
+    private function backfillTenantParticipantForStudentConversations(): void
     {
-        $rolePriority = ['Entrenador', 'trainer', 'Admin', 'admin', 'Asistente', 'assistant'];
-
-        foreach ($rolePriority as $roleName) {
-            $staffId = User::query()
-                ->whereHas('roles', fn (Builder $q) => $q->where('name', $roleName))
-                ->orderBy('id')
-                ->value('id');
-
-            if ($staffId) {
-                return collect([(string) $staffId]);
-            }
-        }
-
-        return collect();
-    }
-
-    private function resolveExistingTenantParticipantIds(Conversation $conversation): Collection
-    {
-        $existingIds = $conversation->participants()
-            ->where('participant_type', ParticipantType::TENANT)
-            ->pluck('participant_id')
-            ->all();
-
-        if (empty($existingIds)) {
-            return collect();
-        }
-
-        return User::query()
-            ->whereIn('id', $existingIds)
-            ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'Alumno'))
-            ->pluck('id')
-            ->map(fn ($id) => (string) $id);
-    }
-
-    private function repairBrokenStudentConversationsForTenant(User $actor): void
-    {
-        $candidateConversations = Conversation::query()
-            ->where('type', ConversationType::TENANT_STUDENT)
-            ->whereNotNull('student_id')
-            ->whereDoesntHave('participants', function (Builder $q) use ($actor) {
-                $q->where('participant_type', ParticipantType::TENANT)
-                    ->where('participant_id', (string) $actor->id);
-            })
-            ->with('participants')
-            ->get();
-
-        foreach ($candidateConversations as $conversation) {
-            $existingTenantIds = $conversation->participants
-                ->where('participant_type', ParticipantType::TENANT)
-                ->pluck('participant_id')
-                ->all();
-
-            if (!empty($existingTenantIds)) {
-                $hasValidStaffParticipant = User::query()
-                    ->whereIn('id', $existingTenantIds)
-                    ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'Alumno'))
-                    ->exists();
-
-                if ($hasValidStaffParticipant) {
-                    continue;
-                }
-            }
-
-            $this->ensureConversationParticipants($conversation, (int) $conversation->student_id, $actor);
-        }
+        DB::connection('tenant')->statement(
+            'INSERT IGNORE INTO conversation_participants (conversation_id, participant_type, participant_id, last_read_at, muted_at)
+             SELECT c.id, ?, ?, NULL, NULL
+             FROM conversations c
+             LEFT JOIN conversation_participants cp
+               ON cp.conversation_id = c.id
+              AND cp.participant_type = ?
+              AND cp.participant_id = ?
+             WHERE c.type = ?
+               AND cp.id IS NULL',
+            [
+                ParticipantType::TENANT->value,
+                (string) self::TENANT_PARTICIPANT_ID,
+                ParticipantType::TENANT->value,
+                (string) self::TENANT_PARTICIPANT_ID,
+                ConversationType::TENANT_STUDENT->value,
+            ]
+        );
     }
 }
