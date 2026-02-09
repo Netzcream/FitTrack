@@ -2,6 +2,7 @@
 
 namespace App\Services\Tenant;
 
+use App\Models\Tenant as CentralTenant;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\Invoice;
@@ -134,16 +135,128 @@ class StudentHomeDashboardService
             return [];
         }
 
+        $rawExercisesData = $workout->exercises_data;
+        $pdfUrl = $this->resolveWorkoutPdfUrl($workout);
+        $exercisesData = $this->attachPdfUrlToExercises($rawExercisesData, $pdfUrl);
+
         return [
             'uuid' => $workout->uuid,
             'date' => $workout->created_at->toDateString(),
             'status' => $workout->status,
             'is_in_progress' => $workout->is_in_progress,
             'completed_at' => $workout->completed_at?->toIso8601String(),
-            'duration_minutes' => $workout->exercises_data['duration_minutes'] ?? 0,
-            'calories_burned' => $workout->exercises_data['calories_burned'] ?? 0,
-            'exercises_data' => $workout->exercises_data,
+            'duration_minutes' => $rawExercisesData['duration_minutes'] ?? 0,
+            'calories_burned' => $rawExercisesData['calories_burned'] ?? 0,
+            'pdf_url' => $pdfUrl,
+            'exercises_data' => $exercisesData,
         ];
+    }
+
+    /**
+     * Agrega la URL del PDF del plan en cada ejercicio del workout.
+     */
+    private function attachPdfUrlToExercises(mixed $exercisesData, ?string $pdfUrl): mixed
+    {
+        if ($pdfUrl === null || !is_array($exercisesData) || !array_is_list($exercisesData)) {
+            return $exercisesData;
+        }
+
+        return collect($exercisesData)
+            ->map(function ($exercise) use ($pdfUrl) {
+                if (!is_array($exercise)) {
+                    return $exercise;
+                }
+
+                if (empty($exercise['pdf_url'])) {
+                    $exercise['pdf_url'] = $pdfUrl;
+                }
+
+                return $exercise;
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Construye la URL absoluta para descargar el PDF del plan asociado al workout.
+     */
+    private function resolveWorkoutPdfUrl($workout): ?string
+    {
+        $assignmentUuid = $workout->planAssignment?->uuid;
+
+        if (!is_string($assignmentUuid) || trim($assignmentUuid) === '') {
+            return null;
+        }
+
+        try {
+            $relativePath = route('tenant.student.download-plan', $assignmentUuid, false);
+        } catch (\Throwable $exception) {
+            return null;
+        }
+
+        return $this->tenantUrl($relativePath);
+    }
+
+    private function tenantUrl(string $path): string
+    {
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . ltrim($path, '/');
+        }
+
+        return rtrim($this->resolveTenantBaseUrl(), '/') . $path;
+    }
+
+    private function resolveTenantBaseUrl(): string
+    {
+        $tenant = tenant();
+
+        if ($tenant instanceof CentralTenant) {
+            try {
+                $domain = $tenant->domains()->orderBy('id')->value('domain');
+                if (is_string($domain) && trim($domain) !== '') {
+                    $domain = trim($domain);
+
+                    if (str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')) {
+                        return rtrim($domain, '/');
+                    }
+
+                    return $this->resolveScheme() . '://' . ltrim($domain, '/');
+                }
+            } catch (\Throwable $exception) {
+                // fallback a app.url
+            }
+        }
+
+        $appUrl = trim((string) config('app.url', 'https://fittrack.com.ar'));
+        if ($appUrl === '') {
+            return 'https://fittrack.com.ar';
+        }
+
+        return rtrim($appUrl, '/');
+    }
+
+    private function resolveScheme(): string
+    {
+        try {
+            if (app()->bound('request')) {
+                $request = request();
+                if ($request && method_exists($request, 'getScheme')) {
+                    $scheme = $request->getScheme();
+                    if (in_array($scheme, ['http', 'https'], true)) {
+                        return $scheme;
+                    }
+                }
+            }
+        } catch (\Throwable $exception) {
+            // fallback below
+        }
+
+        $scheme = parse_url((string) config('app.url', ''), PHP_URL_SCHEME);
+        if (is_string($scheme) && in_array($scheme, ['http', 'https'], true)) {
+            return $scheme;
+        }
+
+        return app()->environment('local') ? 'http' : 'https';
     }
 
     /**
