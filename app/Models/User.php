@@ -3,10 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Tenant\Student;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -62,6 +64,32 @@ class User extends Authenticatable
 
     public function student()
     {
-        return $this->hasOne(\App\Models\Tenant\Student::class, 'email', 'email');
+        return $this->hasOne(Student::class, 'email', 'email');
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $user): void {
+            // In central context the tenant tables don't exist.
+            if (! Schema::hasTable('students')) {
+                return;
+            }
+
+            $student = Student::withTrashed()
+                ->where('user_id', $user->id)
+                // Fallback for legacy rows not linked by user_id.
+                ->orWhere('email', $user->email)
+                ->first();
+
+            if (! $student) {
+                return;
+            }
+
+            if (Schema::hasTable('student_plan_assignments')) {
+                $student->planAssignments()->delete();
+            }
+
+            $student->forceDelete();
+        });
     }
 }

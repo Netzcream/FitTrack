@@ -202,7 +202,8 @@
 
                 {{-- Delete modal --}}
                 <x-slot name="modal">
-                    <flux:modal name="confirm-delete-student" class="min-w-[22rem]">
+                    <flux:modal name="confirm-delete-student" class="min-w-[22rem]" x-data
+                        @student-deleted.window="$dispatch('modal-close', { name: 'confirm-delete-student' })">
                         <div class="space-y-6">
                             <div>
                                 <flux:heading size="lg">{{ __('common.delete_title') }}</flux:heading>

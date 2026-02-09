@@ -8,6 +8,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\CommercialPlan;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 #[Layout('components.layouts.tenant')]
 class Index extends Component
@@ -59,11 +61,37 @@ class Index extends Component
 
     public function delete(): void
     {
-        if ($this->deleteUuid) {
-            Student::where('uuid', $this->deleteUuid)->delete();
-            $this->deleteUuid = null;
-            $this->dispatch('student-deleted');
+        if (! $this->deleteUuid) {
+            return;
         }
+
+        $student = Student::where('uuid', $this->deleteUuid)->first();
+
+        if (! $student) {
+            $this->deleteUuid = null;
+            return;
+        }
+
+        DB::transaction(function () use ($student): void {
+            $user = $student->user;
+
+            if (! $user && $student->email) {
+                $user = User::where('email', $student->email)->first();
+            }
+
+            if ($user) {
+                // User deletion also removes linked student and assignments.
+                $user->delete();
+                return;
+            }
+
+            // Fallback for orphan students without linked user.
+            $student->planAssignments()->delete();
+            $student->delete();
+        });
+
+        $this->deleteUuid = null;
+        $this->dispatch('student-deleted');
     }
 
     public function selectStudent(string $uuid): void
