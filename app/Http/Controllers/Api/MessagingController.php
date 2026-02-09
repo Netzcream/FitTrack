@@ -35,7 +35,7 @@ class MessagingController extends Controller
             $conversation = $this->messagingService->findOrCreateConversation($student->id);
         }
 
-        Gate::authorize('viewAsStudent', [$conversation, $student]);
+        Gate::forUser($request->user())->authorize('viewAsStudent', [$conversation, $student]);
 
         $messages = $this->messagingService->getMessages(
             $conversation->id,
@@ -66,7 +66,7 @@ class MessagingController extends Controller
             $conversation = $this->messagingService->findOrCreateConversation($student->id);
         }
 
-        Gate::authorize('sendMessageAsStudent', [$conversation, $student]);
+        Gate::forUser($request->user())->authorize('sendMessageAsStudent', [$conversation, $student]);
 
         $request->validate([
             'body' => 'required|string',
@@ -106,7 +106,7 @@ class MessagingController extends Controller
             return response()->json(['error' => 'Conversation not found'], 404);
         }
 
-        Gate::authorize('markAsReadAsStudent', [$conversation, $student]);
+        Gate::forUser($request->user())->authorize('markAsReadAsStudent', [$conversation, $student]);
 
         $this->messagingService->markAsRead(
             $conversation->id,
@@ -155,7 +155,7 @@ class MessagingController extends Controller
             return response()->json(['error' => 'Conversation not found'], 404);
         }
 
-        Gate::authorize('toggleMuteAsStudent', [$conversation, $student]);
+        Gate::forUser($request->user())->authorize('toggleMuteAsStudent', [$conversation, $student]);
 
         $request->validate([
             'mute' => 'required|boolean',

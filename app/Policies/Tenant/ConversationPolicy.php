@@ -21,14 +21,15 @@ class ConversationPolicy
     /**
      * Determine if the student can view the conversation
      */
-    public function viewAsStudent(?Student $student, Conversation $conversation): bool
+    public function viewAsStudent(User $user, Conversation $conversation, ?Student $student = null): bool
     {
         if (!$student) {
             return false;
         }
 
         // Student can only view their own conversation
-        return $conversation->student_id === $student->id
+        return $user->email === $student->email
+            && (int) $conversation->student_id === (int) $student->id
             && $conversation->type === ConversationType::TENANT_STUDENT;
     }
 
@@ -43,9 +44,9 @@ class ConversationPolicy
     /**
      * Determine if the student can send messages
      */
-    public function sendMessageAsStudent(?Student $student, Conversation $conversation): bool
+    public function sendMessageAsStudent(User $user, Conversation $conversation, ?Student $student = null): bool
     {
-        return $this->viewAsStudent($student, $conversation);
+        return $this->viewAsStudent($user, $conversation, $student);
     }
 
     /**
@@ -59,9 +60,9 @@ class ConversationPolicy
     /**
      * Determine if the student can mark as read
      */
-    public function markAsReadAsStudent(?Student $student, Conversation $conversation): bool
+    public function markAsReadAsStudent(User $user, Conversation $conversation, ?Student $student = null): bool
     {
-        return $this->viewAsStudent($student, $conversation);
+        return $this->viewAsStudent($user, $conversation, $student);
     }
 
     /**
@@ -84,9 +85,9 @@ class ConversationPolicy
     /**
      * Determine if the student can mute/unmute
      */
-    public function toggleMuteAsStudent(?Student $student, Conversation $conversation): bool
+    public function toggleMuteAsStudent(User $user, Conversation $conversation, ?Student $student = null): bool
     {
-        return $this->viewAsStudent($student, $conversation);
+        return $this->viewAsStudent($user, $conversation, $student);
     }
 
     /**
@@ -101,8 +102,8 @@ class ConversationPolicy
     /**
      * Determine if the student can create a conversation (they get auto-created)
      */
-    public function createAsStudent(?Student $student): bool
+    public function createAsStudent(User $user, ?Student $student = null): bool
     {
-        return $student !== null;
+        return $student !== null && $user->email === $student->email;
     }
 }
