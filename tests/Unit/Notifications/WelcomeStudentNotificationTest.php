@@ -33,13 +33,27 @@ class WelcomeStudentNotificationTest extends TestCase
         ]);
 
         $registrationUrl = 'https://gym.example.com/reset-password/test-token?email=juan@example.com';
-        $notification = new WelcomeStudentNotification($student, $registrationUrl);
+        $notification = new WelcomeStudentNotification($student, $registrationUrl, [
+            'tenant_name' => 'Gym Titan',
+            'logo_url' => 'https://gym.example.com/logo.png',
+            'brand_url' => 'https://gym.example.com',
+            'color_base' => '#112233',
+            'color_dark' => '#0f172a',
+            'color_light' => '#f8fafc',
+        ]);
 
         $mailMessage = $notification->toMail(new \stdClass());
 
-        $this->assertSame('Completa tu registro en FitTrack', $mailMessage->subject);
-        $this->assertSame('Hola Juan!', $mailMessage->greeting);
-        $this->assertSame('Definir mi clave', $mailMessage->actionText);
-        $this->assertSame($registrationUrl, $mailMessage->actionUrl);
+        $this->assertSame('Completa tu registro en Gym Titan', $mailMessage->subject);
+        $this->assertSame(['notifications@fittrack.com.ar', 'Gym Titan'], $mailMessage->from);
+        $this->assertSame('emails.tenant.student-welcome', $mailMessage->markdown);
+        $this->assertSame('Gym Titan', $mailMessage->viewData['tenantName']);
+        $this->assertSame('Juan', $mailMessage->viewData['studentFirstName']);
+        $this->assertSame($registrationUrl, $mailMessage->viewData['registrationUrl']);
+        $this->assertSame('https://gym.example.com/logo.png', $mailMessage->viewData['logoUrl']);
+        $this->assertSame('https://gym.example.com', $mailMessage->viewData['brandUrl']);
+        $this->assertSame('#112233', $mailMessage->viewData['colorBase']);
+        $this->assertSame('#0f172a', $mailMessage->viewData['colorDark']);
+        $this->assertSame('#f8fafc', $mailMessage->viewData['colorLight']);
     }
 }

@@ -65,7 +65,8 @@ class Panel extends Component
         StudentCreated::dispatch(
             $student,
             Auth::id() ? (string) Auth::id() : null,
-            $registrationUrl
+            $registrationUrl,
+            tenant('id') ? (string) tenant('id') : null
         );
 
 
