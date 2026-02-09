@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Tenant\StudentPlanAssignment;
 use App\Services\Tenant\BrandingService;
+use App\Models\Tenant;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -42,8 +43,8 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         $branding = $this->resolveMailBranding();
         $tenantName = $branding['tenant_name'] ?? 'FitTrack';
 
-        $planUrl = route('tenant.student.plan-detail', $this->assignment->uuid);
-        $pdfUrl = route('tenant.student.download-plan', $this->assignment->uuid);
+        $planUrl = $this->tenantUrl(route('tenant.student.dashboard', [], false));
+        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
 
         return (new MailMessage)
             ->from($this->resolveFromAddress(), $tenantName)
@@ -53,7 +54,7 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
             ->markdown('emails.tenant.plan-activated', [
                 'tenantName' => $tenantName,
                 'logoUrl' => $branding['logo_url'] ?? null,
-                'brandUrl' => $branding['brand_url'] ?? $this->resolveBrandUrlFromPlanUrl($planUrl),
+                'brandUrl' => $branding['brand_url'] ?? $this->tenantUrl('/'),
                 'colorBase' => $branding['color_base'] ?? '#263d83',
                 'colorDark' => $branding['color_dark'] ?? '#1d2d5e',
                 'colorLight' => $branding['color_light'] ?? '#f9fafb',
@@ -75,7 +76,8 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
      */
     public function toArray(object $notifiable): array
     {
-        $planUrl = route('tenant.student.plan-detail', $this->assignment->uuid);
+        $planUrl = $this->tenantUrl(route('tenant.student.dashboard', [], false));
+        $pdfUrl = $this->tenantUrl(route('tenant.student.download-plan', $this->assignment->uuid, false));
 
         return [
             'title' => $this->activationType === 'automatic' ? 'Plan activado automaticamente' : 'Nuevo plan asignado',
@@ -89,7 +91,7 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
             'type' => $this->activationType === 'automatic' ? 'plan_activated' : 'plan_assigned',
             'icon' => 'calendar-check',
             'action_url' => $planUrl,
-            'pdf_url' => route('tenant.student.download-plan', $this->assignment->uuid),
+            'pdf_url' => $pdfUrl,
         ];
     }
 
@@ -122,23 +124,52 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         }
     }
 
-    private function resolveBrandUrlFromPlanUrl(string $planUrl): string
+    private function tenantUrl(string $path): string
     {
-        $scheme = parse_url($planUrl, PHP_URL_SCHEME);
-        $host = parse_url($planUrl, PHP_URL_HOST);
-        $port = parse_url($planUrl, PHP_URL_PORT);
-
-        if (is_string($scheme) && $scheme !== '' && is_string($host) && $host !== '') {
-            $origin = $scheme . '://' . $host;
-
-            if (is_int($port)) {
-                $origin .= ':' . $port;
-            }
-
-            return $origin;
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . ltrim($path, '/');
         }
 
-        return 'https://fittrack.com.ar';
+        return rtrim($this->resolveTenantBaseUrl(), '/') . $path;
+    }
+
+    private function resolveTenantBaseUrl(): string
+    {
+        $tenant = tenant();
+
+        if ($tenant instanceof Tenant) {
+            try {
+                $domain = $tenant->domains()->orderBy('id')->value('domain');
+                if (is_string($domain) && trim($domain) !== '') {
+                    $domain = trim($domain);
+
+                    if (str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')) {
+                        return rtrim($domain, '/');
+                    }
+
+                    return $this->resolveScheme() . '://' . ltrim($domain, '/');
+                }
+            } catch (\Throwable $exception) {
+                // fallback below
+            }
+        }
+
+        $appUrl = trim((string) config('app.url', 'https://fittrack.com.ar'));
+        if ($appUrl === '') {
+            return 'https://fittrack.com.ar';
+        }
+
+        return rtrim($appUrl, '/');
+    }
+
+    private function resolveScheme(): string
+    {
+        $scheme = parse_url((string) config('app.url', ''), PHP_URL_SCHEME);
+        if (is_string($scheme) && in_array($scheme, ['http', 'https'], true)) {
+            return $scheme;
+        }
+
+        return app()->environment('local') ? 'http' : 'https';
     }
 
     private function resolveFromAddress(): string
