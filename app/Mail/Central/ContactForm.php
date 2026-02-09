@@ -28,11 +28,21 @@ class ContactForm extends Mailable
 
     public function build()
     {
+        $brandUrl = rtrim((string) config('app.url', 'https://fittrack.com.ar'), '/');
+        $appName = (string) config('app.name', 'FitTrack');
+        $fromAddress = (string) config('mail.from.address', env('MAIL_FROM_ADDRESS', 'notifications@fittrack.com.ar'));
+
         return $this->from(
-            env('MAIL_FROM_ADDRESS', 'notifications@fittrack.com.ar'),
-            tenant('name') ?? config('app.name')
+            $fromAddress,
+            $appName
         )
             ->subject('Nuevo mensaje desde formulario de contacto')
-            ->markdown('emails.central.contact-form');
+            ->markdown('emails.central.contact-form')
+            ->with([
+                'tenantName' => $appName,
+                'contactEmail' => $fromAddress,
+                'brandUrl' => $brandUrl,
+                'logoUrl' => $brandUrl . '/images/fittrack-icon-only.png',
+            ]);
     }
 }

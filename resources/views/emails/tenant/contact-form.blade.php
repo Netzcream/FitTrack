@@ -1,11 +1,17 @@
 @component('mail::layout')
+@php
+    $tenantName = $tenantName ?? (tenant('name') ?? config('app.name'));
+    $contactEmail = $contactEmail ?? config('mail.from.address', 'notifications@fittrack.com.ar');
+    $brandUrl = $brandUrl ?? (config('app.url') ?? env('APP_URL', 'https://fittrack.com.ar'));
+    $logoUrl = $logoUrl ?? null;
+@endphp
 {{-- Header --}}
 @slot('header')
-    @component('mail::header', ['url' => 'https://' . tenant('id') . '.' . env('APP_DOMAIN')])
-        @if(tenant('logo_url'))
-            <img src="{{ tenant('logo_url') }}" height="50" alt="{{ tenant('name') }}">
+    @component('mail::header', ['url' => $brandUrl])
+        @if($logoUrl)
+            <img src="{{ $logoUrl }}" height="50" alt="{{ $tenantName }}">
         @else
-            {{ tenant('name') ?? config('app.name') }}
+            {{ $tenantName }}
         @endif
     @endcomponent
 @endslot

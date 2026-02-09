@@ -95,13 +95,21 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $scheme = app()->environment('local') ? 'http' : 'https';
+        $scheme = $request->getScheme();
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            $appUrlScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
+            if (is_string($appUrlScheme) && in_array($appUrlScheme, ['http', 'https'], true)) {
+                $scheme = $appUrlScheme;
+            } else {
+                $scheme = app()->environment('local') ? 'http' : 'https';
+            }
+        }
 
         $response = [
             'tenant' => [
                 'id'     => $tenant->id,
                 'name'   => $tenant->name ?? $tenant->id,
-                'domain' => "{$scheme}://{$tenant->id}.fittrack.test",
+                'domain' => "{$scheme}://{$tenant->mainDomain()}",
             ],
             'user' => [
                 'id'    => $user->id,
