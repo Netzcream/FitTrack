@@ -101,6 +101,6 @@ sudo -u www-data php artisan optimize:clear
 sudo -u www-data php artisan config:clear
 sudo -u www-data php artisan migrate --force
 sudo -u www-data php artisan tenants:migrate --force
-sudo -u www-data php artisan tenants:seed --force
+sudo -u www-data php artisan tenants:seed --class=TenantUpdateSeeder --force
 sudo -u www-data php artisan queue:restart
 echo "✅ Deploy completado con éxito."
