@@ -7,7 +7,7 @@ return [
 
     'temporary_file_upload' => [
         'disk' => 'local',        // Example: 'local', 's3'              | Default: 'default'
-        'rules' => null,       // Example: ['file', 'mimes:png,jpg']  | Default: ['required', 'file', 'max:12288'] (12MB)
+        'rules' => ['required', 'file', 'max:20480'],       // 20MB para uploads temporales de Livewire
          'directory' => 'app\livewire-tmp',   // Example: 'tmp'                      | Default: 'livewire-tmp'
         'middleware' => ['throttle:60,1', 'universal','web', InitializeTenancyByDomain::class],  // Example: 'throttle:5,1'             | Default: 'throttle:60,1'
         'preview_mimes' => [   // Supported file types for temporary pre-signed file URLs...

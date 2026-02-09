@@ -22,6 +22,28 @@ class Appearance extends Component
     public $color_dark;
     public $color_light;
 
+    protected function rules(): array
+    {
+        return [
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'favicon' => 'nullable|image|mimes:jpeg,png,jpg,webp,ico|max:512',
+            'color_base' => 'nullable|string|max:20',
+            'color_dark' => 'nullable|string|max:20',
+            'color_light' => 'nullable|string|max:20',
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'logo.max' => 'El logo no puede superar los 20 MB.',
+            'logo.uploaded' => 'No se pudo subir el logo. Verificá que no supere 20 MB y que el servidor permita ese tamaño.',
+            'logo.image' => 'El logo debe ser una imagen válida (JPG, PNG o WEBP).',
+            'logo.mimes' => 'El logo debe ser un archivo JPG, PNG o WEBP.',
+            'favicon.uploaded' => 'No se pudo subir el favicon. Probá con un archivo más liviano.',
+        ];
+    }
+
     public function mount(): void
     {
         $tenant = tenant();
@@ -38,23 +60,29 @@ class Appearance extends Component
     {
         tenant()->config?->clearMediaCollection($collection);
         $this->{$collection . 'Url'} = null;
+        $this->resetValidation($collection);
         $this->dispatch('updated');
     }
 
     public function removePreview(string $collection): void
     {
         $this->reset($collection);
+        $this->resetValidation($collection);
+    }
+
+    public function updatedLogo(): void
+    {
+        $this->resetValidation('logo');
+    }
+
+    public function updatedFavicon(): void
+    {
+        $this->resetValidation('favicon');
     }
 
     public function save(): void
     {
-        $this->validate([
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'favicon' => 'nullable|image|mimes:jpeg,png,jpg,webp,ico|max:512',
-            'color_base' => 'nullable|string|max:20',
-            'color_dark' => 'nullable|string|max:20',
-            'color_light' => 'nullable|string|max:20',
-        ]);
+        $this->validate();
 
         $tenant = tenant();
 
