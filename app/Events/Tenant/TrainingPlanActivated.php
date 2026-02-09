@@ -13,7 +13,8 @@ class TrainingPlanActivated
 
     public function __construct(
         public StudentPlanAssignment $assignment,
-        public string $activationType // 'manual' o 'automatic'
+        public string $activationType, // 'manual' o 'automatic'
+        public ?string $tenantId = null
     ) {
     }
 }

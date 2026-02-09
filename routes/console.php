@@ -19,3 +19,6 @@ Schedule::command('invoices:generate-monthly')->dailyAt('00:10');
 
 // Actualizar invoices vencidos
 Schedule::command('invoices:update-overdue')->dailyAt('00:20');
+
+// Recordatorios de sesion (solo dias habiles)
+Schedule::command('notifications:session-reminders')->weekdays()->hourlyAt(0);

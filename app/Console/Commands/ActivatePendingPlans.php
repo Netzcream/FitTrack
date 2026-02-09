@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\Tenant\TrainingPlanActivated;
 use Illuminate\Console\Command;
 use App\Models\Tenant;
 use App\Models\Tenant\StudentPlanAssignment;
@@ -63,7 +64,7 @@ class ActivatePendingPlans extends Command
                 $this->line("<fg=cyan>Tenant: {$tenant->id}</>");
 
                 foreach ($pendingPlans as $plan) {
-                    DB::transaction(function () use ($plan, &$activated, &$cancelled) {
+                    DB::transaction(function () use ($plan, $tenant, &$activated, &$cancelled) {
                         // Cancelar cualquier plan activo del mismo estudiante
                         $activePlans = StudentPlanAssignment::query()
                             ->where('student_id', $plan->student_id)
@@ -86,6 +87,17 @@ class ActivatePendingPlans extends Command
                             'status' => PlanAssignmentStatus::ACTIVE,
                             'is_active' => true,
                         ]);
+
+                        $plan->loadMissing('student');
+
+                        DB::afterCommit(function () use ($plan, $tenant) {
+                            TrainingPlanActivated::dispatch(
+                                $plan,
+                                'automatic',
+                                (string) $tenant->id
+                            );
+                        });
+
                         $activated++;
                         $this->line("  <fg=green>✓</> Plan activado: {$plan->name} (ID: {$plan->id}) para estudiante ID: {$plan->student_id}");
                     });

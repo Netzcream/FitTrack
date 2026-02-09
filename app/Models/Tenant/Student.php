@@ -105,6 +105,16 @@ class Student extends Model implements HasMedia
         return $this->data['notifications'] ?? [];
     }
 
+    public function shouldReceiveNewPlanNotification(): bool
+    {
+        return (bool) data_get($this->data, 'notifications.new_plan', false);
+    }
+
+    public function shouldReceiveSessionReminderNotification(): bool
+    {
+        return (bool) data_get($this->data, 'notifications.session_reminder', false);
+    }
+
     public function getTrainingDataAttribute()
     {
         return $this->data['training_data'] ?? [];

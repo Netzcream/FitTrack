@@ -4,28 +4,24 @@ namespace App\Notifications;
 
 use App\Models\Tenant\StudentPlanAssignment;
 use App\Services\Tenant\BrandingService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TrainingPlanActivatedNotification extends Notification implements ShouldQueue
+class SessionReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(
         public StudentPlanAssignment $assignment,
-        public string $activationType,
+        public ?string $lastCompletedAtIso = null,
         public array $mailBranding = []
     ) {
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -33,64 +29,60 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
-        $wasAutomatic = $this->activationType === 'automatic';
         $branding = $this->resolveMailBranding();
         $tenantName = $branding['tenant_name'] ?? 'FitTrack';
-
-        $planUrl = route('tenant.student.plan-detail', $this->assignment->uuid);
+        $studentName = $this->assignment->student?->first_name ?? 'Alumno';
+        $workoutUrl = route('tenant.student.workout-today');
         $pdfUrl = route('tenant.student.download-plan', $this->assignment->uuid);
 
         return (new MailMessage)
             ->from($this->resolveFromAddress(), $tenantName)
-            ->subject($wasAutomatic
-                ? 'Tu nuevo plan ya esta activo en ' . $tenantName
-                : 'Nuevo plan asignado en ' . $tenantName)
-            ->markdown('emails.tenant.plan-activated', [
+            ->subject('Recordatorio de sesion - ' . $tenantName)
+            ->markdown('emails.tenant.session-reminder', [
                 'tenantName' => $tenantName,
                 'logoUrl' => $branding['logo_url'] ?? null,
-                'brandUrl' => $branding['brand_url'] ?? $this->resolveBrandUrlFromPlanUrl($planUrl),
+                'brandUrl' => $branding['brand_url'] ?? $this->resolveBrandUrlFromUrl($workoutUrl),
                 'colorBase' => $branding['color_base'] ?? '#263d83',
                 'colorDark' => $branding['color_dark'] ?? '#1d2d5e',
                 'colorLight' => $branding['color_light'] ?? '#f9fafb',
-                'studentFirstName' => $this->assignment->student?->first_name ?? 'Alumno',
+                'studentFirstName' => $studentName,
                 'planName' => $this->assignment->name,
-                'startsAt' => $this->assignment->starts_at?->format('d/m/Y'),
-                'endsAt' => $this->assignment->ends_at?->format('d/m/Y'),
-                'durationDays' => $this->resolveDurationDays(),
-                'wasAutomatic' => $wasAutomatic,
-                'planUrl' => $planUrl,
+                'workoutUrl' => $workoutUrl,
                 'pdfUrl' => $pdfUrl,
+                'lastCompletedAt' => $this->formattedLastCompletedAt(),
             ]);
     }
 
     /**
-     * Get the array representation of the notification.
-     *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        $planUrl = route('tenant.student.plan-detail', $this->assignment->uuid);
-
         return [
-            'title' => $this->activationType === 'automatic' ? 'Plan activado automaticamente' : 'Nuevo plan asignado',
-            'message' => 'El plan "' . $this->assignment->name . '" ya esta disponible para vos',
+            'title' => 'Recordatorio de sesion',
+            'message' => 'Te toca entrenar hoy. Plan: "' . $this->assignment->name . '"',
+            'type' => 'session_reminder',
             'assignment_id' => $this->assignment->id,
             'assignment_uuid' => $this->assignment->uuid,
-            'plan_name' => $this->assignment->name,
-            'starts_at' => $this->assignment->starts_at?->format('Y-m-d'),
-            'ends_at' => $this->assignment->ends_at?->format('Y-m-d'),
-            'activation_type' => $this->activationType,
-            'type' => $this->activationType === 'automatic' ? 'plan_activated' : 'plan_assigned',
-            'icon' => 'calendar-check',
-            'action_url' => $planUrl,
+            'action_url' => route('tenant.student.workout-today'),
             'pdf_url' => route('tenant.student.download-plan', $this->assignment->uuid),
+            'last_completed_at' => $this->lastCompletedAtIso,
         ];
+    }
+
+    private function formattedLastCompletedAt(): ?string
+    {
+        if (! is_string($this->lastCompletedAtIso) || trim($this->lastCompletedAtIso) === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($this->lastCompletedAtIso)->format('d/m/Y H:i');
+        } catch (\Throwable $exception) {
+            return null;
+        }
     }
 
     private function resolveMailBranding(): array
@@ -122,11 +114,11 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         }
     }
 
-    private function resolveBrandUrlFromPlanUrl(string $planUrl): string
+    private function resolveBrandUrlFromUrl(string $url): string
     {
-        $scheme = parse_url($planUrl, PHP_URL_SCHEME);
-        $host = parse_url($planUrl, PHP_URL_HOST);
-        $port = parse_url($planUrl, PHP_URL_PORT);
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $host = parse_url($url, PHP_URL_HOST);
+        $port = parse_url($url, PHP_URL_PORT);
 
         if (is_string($scheme) && $scheme !== '' && is_string($host) && $host !== '') {
             $origin = $scheme . '://' . $host;
@@ -150,14 +142,5 @@ class TrainingPlanActivatedNotification extends Notification implements ShouldQu
         }
 
         return 'notifications@fittrack.com.ar';
-    }
-
-    private function resolveDurationDays(): ?int
-    {
-        if (! $this->assignment->starts_at || ! $this->assignment->ends_at) {
-            return null;
-        }
-
-        return $this->assignment->starts_at->diffInDays($this->assignment->ends_at);
     }
 }

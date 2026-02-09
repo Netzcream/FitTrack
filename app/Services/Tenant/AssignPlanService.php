@@ -2,6 +2,7 @@
 
 namespace App\Services\Tenant;
 
+use App\Events\Tenant\TrainingPlanActivated;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\StudentPlanAssignment;
@@ -87,6 +88,15 @@ class AssignPlanService
             ]);
 
             $assignment->save();
+            $assignment->loadMissing('student');
+
+            DB::afterCommit(function () use ($assignment) {
+                TrainingPlanActivated::dispatch(
+                    $assignment,
+                    'manual',
+                    tenant('id') ? (string) tenant('id') : null
+                );
+            });
 
             return $assignment;
         });
