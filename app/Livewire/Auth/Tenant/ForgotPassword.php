@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth\Tenant;
 
+use App\Notifications\Tenant\ResetPasswordNotification;
 use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,7 +21,12 @@ class ForgotPassword extends Component
             'email' => ['required', 'string', 'email'],
         ]);
 
-        Password::sendResetLink($this->only('email'));
+        Password::sendResetLink(
+            $this->only('email'),
+            function ($user, string $token): void {
+                $user->notify(new ResetPasswordNotification($token));
+            }
+        );
 
         session()->flash('status', __('A reset link will be sent if the account exists.'));
     }
