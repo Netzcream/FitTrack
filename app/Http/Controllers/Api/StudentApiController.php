@@ -127,6 +127,8 @@ class StudentApiController extends Controller
      */
     private function formatStudentData(Student $student): array
     {
+        $avatarMedia = $student->getFirstMedia('avatar');
+
         return [
             'id'                  => $student->id,
             'uuid'                => $student->uuid,
@@ -134,6 +136,8 @@ class StudentApiController extends Controller
             'first_name'          => $student->first_name,
             'last_name'           => $student->last_name,
             'full_name'           => $student->full_name,
+            'avatar_url'          => $avatarMedia?->getUrl(),
+            'avatar_thumb_url'    => $avatarMedia?->getUrl('thumb'),
             'phone'               => $student->phone,
             'goal'                => $student->goal,
             'status'              => $student->status,
