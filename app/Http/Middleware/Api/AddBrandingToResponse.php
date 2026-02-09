@@ -46,8 +46,17 @@ class AddBrandingToResponse
         }
 
         // Agregar branding/trainer en un bloque separado del payload principal
-        $content['branding'] = BrandingService::getSafeBrandingData();
-        $content['trainer'] = BrandingService::getSafeTrainerData();
+        $branding = BrandingService::getSafeBrandingData();
+        $trainer = BrandingService::getSafeTrainerData();
+
+        $content['branding'] = $branding;
+        $content['trainer'] = $trainer;
+
+        // Compatibilidad mobile: si el cliente usa solo response.data.data
+        if (isset($content['data']) && $this->isAssociativeArray($content['data'])) {
+            $content['data']['_branding'] = $branding;
+            $content['data']['_trainer'] = $trainer;
+        }
 
         $encoded = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
@@ -73,5 +82,17 @@ class AddBrandingToResponse
         // Verificar si es JSON
         $contentType = $response->headers->get('Content-Type') ?? '';
         return str_contains($contentType, 'application/json') || str_contains($contentType, '+json');
+    }
+
+    /**
+     * Determina si un array es asociativo (objeto JSON), no lista numerica.
+     */
+    private function isAssociativeArray(mixed $value): bool
+    {
+        if (!is_array($value) || $value === []) {
+            return false;
+        }
+
+        return array_keys($value) !== range(0, count($value) - 1);
     }
 }
