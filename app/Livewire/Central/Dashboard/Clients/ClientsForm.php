@@ -34,7 +34,7 @@ class ClientsForm extends Component
 
     public string $name = '';
     public string $admin_email = '';
-    public string $admin_password = 'password1234';
+    public string $admin_password = '';
     public $status = null;
     public string $id = ''; // subdominio, readonly
     public bool $edit_mode = false;
@@ -71,6 +71,7 @@ class ClientsForm extends Component
             $this->slug = '';
             $this->slug_suggestion = null;
             $this->slug_manually_edited = false;
+            $this->admin_password = '';
         }
     }
 
@@ -180,7 +181,7 @@ class ClientsForm extends Component
 
     public function save()
     {
-        $this->validate();
+        $validated = $this->validate();
 
         if ($this->client) {
             $this->client->update([
@@ -208,7 +209,7 @@ class ClientsForm extends Component
             $tenant = Tenant::create([
                 'id' => $id,
                 'name' => $this->name,
-                'admin_email' => $this->admin_email,
+                'admin_email' => $validated['admin_email'],
                 'status' => $this->status,
                 'commercial_plan_id' => $this->commercial_plan_id,
             ]);
@@ -223,8 +224,8 @@ class ClientsForm extends Component
             $tenant->domains()->create([
                 'domain' => $subdomain,
             ]);
-            $adminPassword = $this->admin_password; // Guardar antes del closure
-            $adminMail = $this->admin_email;
+            $adminPassword = $validated['admin_password'];
+            $adminMail = $validated['admin_email'];
             $tenant->run(function () use ($adminMail, $adminPassword) {
                 $user = \App\Models\User::create([
                     'name' => 'Admin',
@@ -236,7 +237,7 @@ class ClientsForm extends Component
                     $user->assignRole('Admin');
                 }
             });
-            event(new \App\Events\TenantCreatedSuccessfully($tenant, $subdomain));
+            event(new \App\Events\TenantCreatedSuccessfully($tenant, $subdomain, $adminPassword));
             session()->flash('success', __('central.client_created'));
             $this->redirect(route('central.dashboard.clients.index', $tenant), navigate: true);
         }

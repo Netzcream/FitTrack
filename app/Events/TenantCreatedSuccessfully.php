@@ -19,7 +19,8 @@ class TenantCreatedSuccessfully /* implements ShouldQueue */
 
     public function __construct(
         public Tenant $tenant,
-        public string $domain
+        public string $domain,
+        public ?string $adminPassword = null
     ) {}
 
 

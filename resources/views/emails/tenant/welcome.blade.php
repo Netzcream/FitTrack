@@ -10,7 +10,9 @@ Ir al sitio
 Tus credenciales:
 
 - Usuario: **{{ $adminEmail }}**
+@if (!empty($password))
 - Contraseña: **{{ $password }}**
+@endif
 
 Podrás cambiarla desde tu perfil una vez que inicies sesión.
 

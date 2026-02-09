@@ -12,9 +12,9 @@ class TenantWelcomeMail extends Mailable
 
     public string $domain;
     public string $adminEmail;
-    public string $password;
+    public ?string $password;
 
-    public function __construct(string $domain, string $adminEmail, string $password)
+    public function __construct(string $domain, string $adminEmail, ?string $password)
     {
         $this->domain = $domain;
         $this->adminEmail = $adminEmail;

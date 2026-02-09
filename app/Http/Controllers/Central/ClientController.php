@@ -62,10 +62,12 @@ class ClientController extends Controller
                 },
             ],
             'admin_email' => ['required', 'email', 'max:255'],
+            'admin_password' => ['nullable', 'string', 'min:8', 'max:50'],
         ]);
 
 
         $id = Str::slug(Str::lower($request->name), '-');
+        $adminPassword = (string) ($request->input('admin_password') ?: Str::random(16));
         $tenant = Tenant::create([
             'id' => $id,
             'name' => $request->name,
@@ -76,17 +78,17 @@ class ClientController extends Controller
             'domain' => $subdomain,
         ]);
 
-        $tenant->run(function () use ($tenant) {
+        $tenant->run(function () use ($tenant, $adminPassword) {
             $user = User::create([
                 'name' => 'Admin',
                 'email' => $tenant->admin_email,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($adminPassword),
             ]);
             if (Role::where('name', 'Admin')->exists()) {
                 $user->assignRole('Admin');
             }
         });
-        event(new TenantCreatedSuccessfully($tenant, $subdomain));
+        event(new TenantCreatedSuccessfully($tenant, $subdomain, $adminPassword));
 
         return redirect()->route('central.dashboard.clients.index', $tenant)->with('success',__('central.client_created'));
     }

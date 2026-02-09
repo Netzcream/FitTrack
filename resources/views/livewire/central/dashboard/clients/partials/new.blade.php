@@ -28,7 +28,7 @@
 
 <div>
     <flux:label for="admin_email">{{ __('Mail del administrador') }}</flux:label>
-    <flux:input class="mt-2" id="admin_email" wire:model="admin_email" type="email"
+    <flux:input class="mt-2" id="admin_email" wire:model.defer="admin_email" type="email"
         placeholder="Ingrese mail del administrador" required maxlength="255" />
     @error('admin_email')
         <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -37,8 +37,8 @@
 
 <div>
     <flux:label for="admin_password">{{ __('Clave del administrador') }}</flux:label>
-    <flux:input class="mt-2" id="admin_password" wire:model="admin_password" type="text"
-        placeholder="Ingrese clave del administrador" required maxlength="255" />
+    <flux:input class="mt-2" id="admin_password" wire:model.defer="admin_password" type="password"
+        placeholder="Ingrese clave del administrador" required maxlength="255" autocomplete="new-password" />
     <p class="mt-2 text-sm text-gray-500 dark:text-neutral-400">
         {{ __('La clave será la que se utilice para ingresar como administrador del sitio.') }}
     </p>
