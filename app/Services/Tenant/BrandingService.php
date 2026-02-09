@@ -2,8 +2,6 @@
 
 namespace App\Services\Tenant;
 
-use Stancl\Tenancy\Facades\Tenancy;
-
 /**
  * Servicio para obtener branding/contacto del tenant actual para API mobile.
  *
@@ -485,7 +483,27 @@ class BrandingService
     private static function getCurrentTenant(): mixed
     {
         try {
-            return Tenancy::getTenant();
+            $fromHelper = tenant();
+            if ($fromHelper !== null) {
+                return $fromHelper;
+            }
+        } catch (\Throwable $e) {
+            // try other resolvers
+        }
+
+        try {
+            if (app()->bound('tenant')) {
+                $fromContainer = app('tenant');
+                if ($fromContainer !== null) {
+                    return $fromContainer;
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        try {
+            return tenancy()->tenant ?? null;
         } catch (\Throwable $e) {
             return null;
         }
