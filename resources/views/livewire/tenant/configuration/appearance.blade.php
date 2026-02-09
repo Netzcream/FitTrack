@@ -37,6 +37,15 @@
                     <div>
                         <x-preline.file-upload name="logo" :label="__('tenant.configuration.appearance.logo')" :preview="$logo" :uploadedUrl="$logoUrl"
                             width="160" height="96" radius="rounded-md" wire:key="logo-upload" />
+                        <p class="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+                            JPG, PNG o WEBP. Tamaño máximo: 20 MB.
+                        </p>
+                        @if ($serverUploadMaxKb < 20480 || $serverPostMaxKb < 20480)
+                            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                                Límite actual del servidor: upload_max_filesize {{ round($serverUploadMaxKb / 1024, 2) }} MB,
+                                post_max_size {{ round($serverPostMaxKb / 1024, 2) }} MB.
+                            </p>
+                        @endif
                     </div>
                     <div>
                         {{-- Favicon --}}

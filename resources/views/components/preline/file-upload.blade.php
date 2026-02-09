@@ -9,7 +9,7 @@
     'radius' => 'rounded-md', // e.g., 'rounded', 'rounded-lg', 'rounded-xl'
 ])
 
-<div class="space-y-2">
+<div class="space-y-2" x-data="{ hideUploadError: false }">
     @if ($label)
         <label for="{{ $name }}" class="block text-sm font-medium text-gray-700 dark:text-white">
             {{ $label }}
@@ -63,11 +63,13 @@
 
                 <div x-data class="relative inline-flex items-center gap-2">
                     {{-- Input oculto --}}
-                    <input id="{{ $name }}" type="file" wire:model="{{ $name }}"
-                        accept="{{ $accept }}" class="hidden" x-ref="fileInput" />
+                    <input id="{{ $name }}" type="file" wire:model="{{ $name }}" accept="{{ $accept }}"
+                        class="hidden" x-ref="fileInput" x-on:change="hideUploadError = true"
+                        x-on:livewire-upload-error="hideUploadError = false" />
 
                     {{-- Botón Flux que dispara el input --}}
-                    <flux:button size="sm" icon="upload" type="button" @click="$refs.fileInput.click()">
+                    <flux:button size="sm" icon="upload" type="button"
+                        @click="hideUploadError = true; $refs.fileInput.click()">
                         {{ __('site.upload_image') }}
                     </flux:button>
                 </div>
@@ -90,6 +92,6 @@
     </div>
 
     @error($name)
-        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+        <p x-show="!hideUploadError" class="text-sm text-red-600 mt-1">{{ $message }}</p>
     @enderror
 </div>

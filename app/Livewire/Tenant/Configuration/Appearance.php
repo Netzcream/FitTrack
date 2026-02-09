@@ -22,6 +22,9 @@ class Appearance extends Component
     public $color_dark;
     public $color_light;
 
+    public int $serverUploadMaxKb = 0;
+    public int $serverPostMaxKb = 0;
+
     protected function rules(): array
     {
         return [
@@ -54,6 +57,9 @@ class Appearance extends Component
         $this->color_base = Configuration::conf('color_base', '#263d83');
         $this->color_dark = Configuration::conf('color_dark', '#3b4f9e');
         $this->color_light = Configuration::conf('color_light', '#fafafa');
+
+        $this->serverUploadMaxKb = $this->toKilobytes((string) ini_get('upload_max_filesize'));
+        $this->serverPostMaxKb = $this->toKilobytes((string) ini_get('post_max_size'));
     }
 
     public function removeMedia(string $collection): void
@@ -122,5 +128,23 @@ class Appearance extends Component
     public function render()
     {
         return view('livewire.tenant.configuration.appearance');
+    }
+
+    private function toKilobytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $number = (float) $value;
+
+        return match ($unit) {
+            'g' => (int) ($number * 1024 * 1024),
+            'm' => (int) ($number * 1024),
+            'k' => (int) $number,
+            default => (int) ($number / 1024),
+        };
     }
 }

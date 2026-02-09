@@ -149,8 +149,19 @@ return [
     'timezone'               => 'El campo :attribute debe ser una zona horaria válida.',
     'ulid'                   => 'El campo :attribute debe ser un ULID válido.',
     'unique'                 => 'El campo :attribute ya ha sido registrado.',
-    'uploaded'               => 'Subir :attribute ha fallado.',
+    'uploaded'               => 'No se pudo subir :attribute. Puede superar el límite permitido por el servidor.',
     'uppercase'              => 'El campo :attribute debe estar en mayúscula.',
     'url'                    => 'El campo :attribute debe ser una URL válida.',
     'uuid'                   => 'El campo :attribute debe ser un UUID válido.',
+
+    'custom' => [
+        'logo' => [
+            'uploaded' => 'No se pudo subir el logo. Verificá que no supere 20 MB y que el servidor permita ese tamaño.',
+        ],
+    ],
+
+    'attributes' => [
+        'logo' => 'el logo',
+        'favicon' => 'el favicon',
+    ],
 ];
