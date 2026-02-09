@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Api;
 
+use App\Models\Tenant;
 use App\Services\Tenant\BrandingService;
 use Closure;
 use Illuminate\Http\Request;
@@ -45,17 +46,23 @@ class AddBrandingToResponse
             return $response;
         }
 
-        // Agregar branding/trainer en un bloque separado del payload principal
-        $branding = BrandingService::getSafeBrandingData();
-        $trainer = BrandingService::getSafeTrainerData();
+        [$initializedHere, $previousTenantId] = $this->initializeTenantContext($request, $content);
 
-        $content['branding'] = $branding;
-        $content['trainer'] = $trainer;
+        try {
+            // Agregar branding/trainer en un bloque separado del payload principal
+            $branding = BrandingService::getSafeBrandingData();
+            $trainer = BrandingService::getSafeTrainerData();
 
-        // Compatibilidad mobile: si el cliente usa solo response.data.data
-        if (isset($content['data']) && $this->isAssociativeArray($content['data'])) {
-            $content['data']['_branding'] = $branding;
-            $content['data']['_trainer'] = $trainer;
+            $content['branding'] = $branding;
+            $content['trainer'] = $trainer;
+
+            // Compatibilidad mobile: si el cliente usa solo response.data.data
+            if (isset($content['data']) && $this->isAssociativeArray($content['data'])) {
+                $content['data']['_branding'] = $branding;
+                $content['data']['_trainer'] = $trainer;
+            }
+        } finally {
+            $this->restoreTenantContext($initializedHere, $previousTenantId);
         }
 
         $encoded = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -94,5 +101,69 @@ class AddBrandingToResponse
         }
 
         return array_keys($value) !== range(0, count($value) - 1);
+    }
+
+    /**
+     * Garantiza contexto tenant para construir branding en cualquier endpoint API.
+     * Retorna [si_inicializo_contexto_aqui, tenant_id_previo]
+     */
+    private function initializeTenantContext(Request $request, array $content): array
+    {
+        $previousTenantId = tenant()?->id;
+        if ($previousTenantId !== null) {
+            return [false, (string) $previousTenantId];
+        }
+
+        $tenantId = $this->resolveTenantId($request, $content);
+        if ($tenantId === null) {
+            return [false, null];
+        }
+
+        $tenant = Tenant::find($tenantId);
+        if (!$tenant) {
+            return [false, null];
+        }
+
+        tenancy()->initialize($tenant);
+        return [true, null];
+    }
+
+    /**
+     * Restaura el contexto tenant si se inicializó dentro de este middleware.
+     */
+    private function restoreTenantContext(bool $initializedHere, ?string $previousTenantId): void
+    {
+        if (!$initializedHere) {
+            return;
+        }
+
+        tenancy()->end();
+
+        if ($previousTenantId === null) {
+            return;
+        }
+
+        $previousTenant = Tenant::find($previousTenantId);
+        if ($previousTenant) {
+            tenancy()->initialize($previousTenant);
+        }
+    }
+
+    /**
+     * Resolver tenant id desde header o desde payload de login.
+     */
+    private function resolveTenantId(Request $request, array $content): ?string
+    {
+        $fromHeader = trim((string) $request->header('X-Tenant-ID', ''));
+        if ($fromHeader !== '') {
+            return $fromHeader;
+        }
+
+        $fromPayload = data_get($content, 'tenant.id');
+        if (is_string($fromPayload) && trim($fromPayload) !== '') {
+            return trim($fromPayload);
+        }
+
+        return null;
     }
 }

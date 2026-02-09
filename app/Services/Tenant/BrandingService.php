@@ -148,15 +148,15 @@ class BrandingService
      */
     public static function getBrandName($tenant = null): string
     {
-        $configured = self::cleanString(tenant_config('brand_name'));
-        if ($configured !== null) {
-            return $configured;
-        }
-
         $tenant ??= self::getCurrentTenant();
         $tenantName = self::cleanString($tenant?->name ?? null);
         if ($tenantName !== null) {
             return $tenantName;
+        }
+
+        $configured = self::cleanString(tenant_config('brand_name'));
+        if ($configured !== null) {
+            return $configured;
         }
 
         $landingTitle = self::cleanString(tenant_config('landing_title'));
@@ -467,15 +467,15 @@ class BrandingService
         string $footerBackgroundColor
     ): array {
         return [
-            '--ftt-color-base' => $colorBase,
-            '--ftt-color-dark' => $colorDark,
-            '--ftt-color-light' => $colorLight,
-            '--ftt-color-base-transparent' => self::withAlpha($colorBase, '55'),
-            '--ftt-color-base-bright' => self::withAlpha($colorBase, 'CC'),
-            '--ftt-color-dark-transparent' => self::withAlpha($colorDark, '55'),
-            '--ftt-color-light-transparent' => self::withAlpha($colorLight, '55'),
-            '--ftt-color-text-footer' => $footerTextColor,
-            '--ftt-color-background-footer' => self::withAlpha($footerBackgroundColor, '55'),
+            'color_base' => $colorBase,
+            'color_dark' => $colorDark,
+            'color_light' => $colorLight,
+            'color_base_transparent' => self::withAlpha($colorBase, '55'),
+            'color_base_bright' => self::withAlpha($colorBase, 'CC'),
+            'color_dark_transparent' => self::withAlpha($colorDark, '55'),
+            'color_light_transparent' => self::withAlpha($colorLight, '55'),
+            'text_footer' => $footerTextColor,
+            'background_footer_transparent' => self::withAlpha($footerBackgroundColor, '55'),
         ];
     }
 
