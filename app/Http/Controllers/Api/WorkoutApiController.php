@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\Workout;
-use App\Models\Tenant\StudentPlanAssignment;
 use App\Enums\WorkoutStatus;
+use App\Services\Api\WorkoutDataFormatter;
 use App\Services\WorkoutOrchestrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Validator;
 class WorkoutApiController extends Controller
 {
     public function __construct(
-        protected WorkoutOrchestrationService $orchestration
+        protected WorkoutOrchestrationService $orchestration,
+        protected WorkoutDataFormatter $workoutDataFormatter
     ) {}
 
     /**
@@ -34,6 +35,7 @@ class WorkoutApiController extends Controller
         $status = $request->query('status'); // pending|in_progress|completed|skipped
 
         $query = $student->workouts()
+            ->with('planAssignment')
             ->orderByDesc('created_at');
 
         if ($status && in_array($status, ['pending', 'in_progress', 'completed', 'skipped'])) {
@@ -44,7 +46,7 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'data' => $workouts->map(function ($workout) {
-                return $this->formatWorkout($workout);
+                return $this->workoutDataFormatter->format($workout);
             })
         ]);
     }
@@ -73,7 +75,7 @@ class WorkoutApiController extends Controller
         }
 
         return response()->json([
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -110,7 +112,7 @@ class WorkoutApiController extends Controller
         }
 
         return response()->json([
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -146,7 +148,7 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Workout started',
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -201,7 +203,7 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Exercises updated',
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -254,7 +256,7 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Workout completed',
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -291,7 +293,7 @@ class WorkoutApiController extends Controller
 
         return response()->json([
             'message' => 'Workout skipped',
-            'data' => $this->formatWorkout($workout, detailed: true)
+            'data' => $this->workoutDataFormatter->format($workout)
         ]);
     }
 
@@ -337,46 +339,4 @@ class WorkoutApiController extends Controller
         ]);
     }
 
-    /**
-     * Formatear un workout para la respuesta
-     */
-    private function formatWorkout(Workout $workout, $detailed = false): array
-    {
-        $data = [
-            'id' => $workout->id,
-            'uuid' => $workout->uuid,
-            'plan_day' => $workout->plan_day,
-            'cycle_index' => $workout->cycle_index,
-            'status' => $workout->status->value,
-            'started_at' => $workout->started_at?->toIso8601String(),
-            'completed_at' => $workout->completed_at?->toIso8601String(),
-            'duration_minutes' => $workout->duration_minutes,
-            'rating' => $workout->rating,
-            'notes' => $workout->notes,
-            'is_completed' => $workout->is_completed,
-            'is_in_progress' => $workout->is_in_progress,
-            'created_at' => $workout->created_at?->toIso8601String(),
-        ];
-
-        if ($detailed) {
-            $data['exercises'] = collect($workout->exercises_data ?? [])->map(function ($ex) {
-                return [
-                    'id' => $ex['id'] ?? null,
-                    'name' => $ex['name'] ?? '',
-                    'description' => $ex['description'] ?? null,
-                    'category' => $ex['category'] ?? null,
-                    'level' => $ex['level'] ?? null,
-                    'equipment' => $ex['equipment'] ?? null,
-                    'image_url' => $ex['image_url'] ?? null,
-                    'images' => $ex['images'] ?? [],
-                    'completed' => $ex['completed'] ?? false,
-                    'sets' => $ex['sets'] ?? [],
-                ];
-            })->toArray();
-
-            $data['meta'] = $workout->meta;
-        }
-
-        return $data;
-    }
 }

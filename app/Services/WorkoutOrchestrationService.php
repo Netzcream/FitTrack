@@ -276,6 +276,7 @@ class WorkoutOrchestrationService
     public function getRecentCompletedWorkouts(Student $student, int $limit = 10)
     {
         return $student->workouts()
+            ->with('planAssignment')
             ->where('status', WorkoutStatus::COMPLETED)
             ->orderByDesc('completed_at')
             ->limit($limit)

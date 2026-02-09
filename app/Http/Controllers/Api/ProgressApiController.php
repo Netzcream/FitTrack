@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Student;
+use App\Services\Api\WorkoutDataFormatter;
 use App\Services\Tenant\ProgressDashboardService;
 use App\Services\Tenant\StudentHomeDashboardService;
 use App\Services\Tenant\StudentPaymentsDashboardService;
@@ -13,7 +14,8 @@ use Illuminate\Http\Request;
 class ProgressApiController extends Controller
 {
     public function __construct(
-        protected WorkoutOrchestrationService $orchestration
+        protected WorkoutOrchestrationService $orchestration,
+        protected WorkoutDataFormatter $workoutDataFormatter
     ) {}
 
     /**
@@ -119,18 +121,7 @@ class ProgressApiController extends Controller
         $workouts = $this->orchestration->getRecentCompletedWorkouts($student, $limit);
 
         return response()->json([
-            'data' => $workouts->map(function ($workout) {
-                return [
-                    'id' => $workout->id,
-                    'uuid' => $workout->uuid,
-                    'plan_day' => $workout->plan_day,
-                    'cycle_index' => $workout->cycle_index,
-                    'completed_at' => $workout->completed_at?->toIso8601String(),
-                    'duration_minutes' => $workout->duration_minutes,
-                    'rating' => $workout->rating,
-                    'notes' => $workout->notes,
-                ];
-            })
+            'data' => $workouts->map(fn ($workout) => $this->workoutDataFormatter->format($workout))
         ]);
     }
 }
