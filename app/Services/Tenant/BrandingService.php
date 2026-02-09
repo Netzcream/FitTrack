@@ -210,20 +210,17 @@ class BrandingService
      */
     public static function getLogoUrl($tenant = null): ?string
     {
+        $tenant ??= self::getCurrentTenant();
+
         $fromConfig = self::cleanString(tenant_config('logo_url'));
         if ($fromConfig !== null) {
-            return $fromConfig;
-        }
-
-        $tenant ??= self::getCurrentTenant();
-        if (!$tenant) {
-            return null;
+            return self::normalizeTenantMediaUrl($fromConfig, $tenant);
         }
 
         try {
             $fromMedia = self::cleanString($tenant->config?->getFirstMediaUrl('logo'));
             if ($fromMedia !== null) {
-                return $fromMedia;
+                return self::normalizeTenantMediaUrl($fromMedia, $tenant);
             }
         } catch (\Throwable $e) {
             // fallback below
@@ -237,24 +234,24 @@ class BrandingService
      */
     public static function getLogoLightUrl($tenant = null, ?string $fallbackLogoUrl = null): ?string
     {
+        $tenant ??= self::getCurrentTenant();
+
         $fromConfig = self::cleanString(tenant_config('logo_light_url'));
         if ($fromConfig !== null) {
-            return $fromConfig;
+            return self::normalizeTenantMediaUrl($fromConfig, $tenant);
         }
 
-        $tenant ??= self::getCurrentTenant();
-        if ($tenant) {
-            try {
-                $fromMedia = self::cleanString($tenant->config?->getFirstMediaUrl('logo_light'));
-                if ($fromMedia !== null) {
-                    return $fromMedia;
-                }
-            } catch (\Throwable $e) {
-                // fallback below
+        try {
+            $fromMedia = self::cleanString($tenant->config?->getFirstMediaUrl('logo_light'));
+            if ($fromMedia !== null) {
+                return self::normalizeTenantMediaUrl($fromMedia, $tenant);
             }
+        } catch (\Throwable $e) {
+            // fallback below
         }
 
-        return $fallbackLogoUrl ?? self::getLogoUrl($tenant);
+        $fallback = $fallbackLogoUrl ?? self::getLogoUrl($tenant);
+        return self::normalizeTenantMediaUrl($fallback, $tenant);
     }
 
     /**
@@ -549,6 +546,90 @@ class BrandingService
         }
 
         return $base . $alpha;
+    }
+
+    /**
+     * Si la URL apunta a tenancy/assets, forzar host de tenant.
+     */
+    private static function normalizeTenantMediaUrl(?string $url, mixed $tenant): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+
+        if (!$tenant) {
+            return $url;
+        }
+
+        $tenantBaseUrl = self::buildTenantBaseUrl($tenant);
+        if ($tenantBaseUrl === null) {
+            return $url;
+        }
+
+        if (str_starts_with($url, '/tenancy/assets/') || str_starts_with($url, 'tenancy/assets/')) {
+            return rtrim($tenantBaseUrl, '/') . '/' . ltrim($url, '/');
+        }
+
+        if (!str_contains($url, '/tenancy/assets/')) {
+            return $url;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+        if (!is_string($path) || trim($path) === '') {
+            return $url;
+        }
+
+        $path = ltrim($path, '/');
+        $position = strpos($path, 'tenancy/assets/');
+        if ($position === false) {
+            return $url;
+        }
+
+        $tenantAssetPath = substr($path, $position);
+        return rtrim($tenantBaseUrl, '/') . '/' . $tenantAssetPath;
+    }
+
+    private static function buildTenantBaseUrl(mixed $tenant): ?string
+    {
+        $domain = self::cleanString($tenant?->domains()->orderBy('id')->value('domain'));
+
+        if ($domain === null) {
+            $appDomain = self::cleanString(env('APP_DOMAIN'));
+            if ($appDomain !== null) {
+                $domain = (string) $tenant->id . '.' . $appDomain;
+            }
+        }
+
+        if ($domain === null) {
+            return null;
+        }
+
+        if (str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')) {
+            return rtrim($domain, '/');
+        }
+
+        return self::resolveScheme() . '://' . ltrim($domain, '/');
+    }
+
+    private static function resolveScheme(): string
+    {
+        try {
+            if (app()->bound('request')) {
+                $request = request();
+                if ($request && method_exists($request, 'getScheme')) {
+                    return $request->getScheme();
+                }
+            }
+        } catch (\Throwable $e) {
+            // fallback below
+        }
+
+        $appUrlScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
+        if (is_string($appUrlScheme) && in_array($appUrlScheme, ['http', 'https'], true)) {
+            return $appUrlScheme;
+        }
+
+        return app()->environment('local') ? 'http' : 'https';
     }
 
     /**
