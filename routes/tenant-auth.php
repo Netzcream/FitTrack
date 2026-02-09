@@ -3,10 +3,10 @@
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Livewire\Auth\ConfirmPassword;
-use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Tenant\Login;
+use App\Livewire\Auth\Tenant\ForgotPassword;
+use App\Livewire\Auth\Tenant\ResetPassword;
 use App\Livewire\Auth\Register;
-use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyEmail;
 use Illuminate\Support\Facades\Route;
 
