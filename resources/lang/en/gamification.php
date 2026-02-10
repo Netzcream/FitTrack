@@ -69,7 +69,6 @@ return [
     'xp_earned' => '+:xp XP earned',
     'awarded' => 'XP awarded',
     'already_awarded_in_session' => 'This exercise already granted XP in this session',
-    'already_completed_today' => 'You already completed this exercise today',
     'exercises_completed' => 'Exercises completed',
     'total_exercises' => 'Total exercises',
     'last_exercise' => 'Last exercise',
