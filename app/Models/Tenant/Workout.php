@@ -25,6 +25,7 @@ class Workout extends Model
 
     protected $fillable = [
         'uuid',
+        'session_instance_id',
         'student_id',
         'student_plan_assignment_id',
         'plan_day',
@@ -161,12 +162,36 @@ class Workout extends Model
      */
     public function startWorkout(): self
     {
+        $sessionInstanceId = $this->session_instance_id;
+        if (!is_string($sessionInstanceId) || trim($sessionInstanceId) === '') {
+            $sessionInstanceId = (string) Str::orderedUuid();
+        }
+
         $this->update([
             'status' => WorkoutStatus::IN_PROGRESS,
             'started_at' => now(),
+            'session_instance_id' => $sessionInstanceId,
         ]);
 
         return $this;
+    }
+
+    /**
+     * Garantiza un session_instance_id persistido para usar como run_id de sesión.
+     */
+    public function ensureSessionInstanceId(): string
+    {
+        if (is_string($this->session_instance_id) && trim($this->session_instance_id) !== '') {
+            return $this->session_instance_id;
+        }
+
+        $sessionInstanceId = (string) Str::orderedUuid();
+
+        $this->forceFill([
+            'session_instance_id' => $sessionInstanceId,
+        ])->save();
+
+        return $sessionInstanceId;
     }
 
     /**

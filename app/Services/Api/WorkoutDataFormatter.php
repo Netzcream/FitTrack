@@ -22,8 +22,8 @@ class WorkoutDataFormatter
         $rawExercisesData = $workout->exercises_data;
         $pdfUrl = $this->resolveWorkoutPdfUrl($workout);
         $exercisesData = $this->attachPdfUrlToExercises($rawExercisesData, $pdfUrl);
-        $todayXpLogs = $this->loadTodayExerciseXpLogs($workout, $exercisesData);
-        $normalizedExercises = $this->normalizeExercises($exercisesData, $todayXpLogs);
+        $sessionXpLogs = $this->loadSessionExerciseXpLogs($workout, $exercisesData);
+        $normalizedExercises = $this->normalizeExercises($exercisesData, $sessionXpLogs);
         $exercisesDataWithComputed = $this->attachComputedFieldsToRawExercises($exercisesData, $normalizedExercises);
 
         $totalExercises = count($normalizedExercises);
@@ -56,9 +56,9 @@ class WorkoutDataFormatter
         $normalizedStatus = $this->normalizeStatus($workout->status);
 
         $xpBaseTotal = (int) collect($normalizedExercises)->sum(fn (array $exercise) => (int) data_get($exercise, 'xp.base_value', 0));
-        $xpAwardedTodayTotal = (int) collect($normalizedExercises)->sum(fn (array $exercise) => (int) data_get($exercise, 'xp.awarded_today_value', 0));
+        $xpAwardedInSessionTotal = (int) collect($normalizedExercises)->sum(fn (array $exercise) => (int) data_get($exercise, 'xp.awarded_in_session_value', 0));
         $xpAvailableNowTotal = (int) collect($normalizedExercises)->sum(fn (array $exercise) => (int) data_get($exercise, 'xp.to_award_if_complete_now', 0));
-        $xpAwardedTodayExercises = (int) collect($normalizedExercises)->filter(fn (array $exercise) => (bool) data_get($exercise, 'xp.already_awarded_today', false))->count();
+        $xpAwardedInSessionExercises = (int) collect($normalizedExercises)->filter(fn (array $exercise) => (bool) data_get($exercise, 'xp.already_awarded_in_session', false))->count();
         $xpAvailableExercises = (int) collect($normalizedExercises)->filter(fn (array $exercise) => (int) data_get($exercise, 'xp.to_award_if_complete_now', 0) > 0)->count();
 
         $timerShouldRun = $normalizedStatus === 'in_progress' && !($totalExercises > 0 && $completedExercises === $totalExercises);
@@ -74,6 +74,7 @@ class WorkoutDataFormatter
         return [
             'id' => $workout->id,
             'uuid' => $workout->uuid,
+            'session_instance_id' => $workout->session_instance_id,
             'assignment_uuid' => $workout->planAssignment?->uuid,
             'date' => $workout->created_at?->toDateString(),
             'plan_day' => $workout->plan_day,
@@ -155,11 +156,11 @@ class WorkoutDataFormatter
             ],
             'xp_summary' => [
                 'base_total_if_all_exercises_rewarded' => $xpBaseTotal,
-                'already_awarded_today_total' => $xpAwardedTodayTotal,
+                'already_awarded_in_session_total' => $xpAwardedInSessionTotal,
                 'available_to_earn_now_total' => $xpAvailableNowTotal,
-                'exercises_with_xp_already_awarded_today' => $xpAwardedTodayExercises,
+                'exercises_with_xp_already_awarded_in_session' => $xpAwardedInSessionExercises,
                 'exercises_with_xp_available_now' => $xpAvailableExercises,
-                'anti_farming_rule' => 'same_exercise_once_per_day',
+                'anti_farming_rule' => 'same_exercise_once_per_session',
             ],
             'survey' => is_array($meta['survey'] ?? null) ? $meta['survey'] : [],
             'assignment' => $this->formatAssignmentSummary($workout, $pdfUrl),
@@ -193,8 +194,8 @@ class WorkoutDataFormatter
             return array_merge($rawExercise, [
                 'xp' => $computed['xp'] ?? null,
                 'xp_base_value' => $computed['xp_base_value'] ?? null,
-                'xp_awarded_today' => $computed['xp_awarded_today'] ?? null,
-                'xp_awarded_today_value' => $computed['xp_awarded_today_value'] ?? null,
+                'xp_awarded_in_session' => $computed['xp_awarded_in_session'] ?? null,
+                'xp_awarded_in_session_value' => $computed['xp_awarded_in_session_value'] ?? null,
                 'xp_to_award_if_complete_now' => $computed['xp_to_award_if_complete_now'] ?? null,
                 'progress_state' => $computed['progress_state'] ?? null,
                 'sets_total' => $computed['sets_total'] ?? null,
@@ -205,21 +206,21 @@ class WorkoutDataFormatter
         })->toArray();
     }
 
-    private function normalizeExercises(mixed $exercisesData, Collection $todayXpLogs): array
+    private function normalizeExercises(mixed $exercisesData, Collection $sessionXpLogs): array
     {
         if (!is_array($exercisesData) || !array_is_list($exercisesData)) {
             return [];
         }
 
-        return collect($exercisesData)->map(function ($ex) use ($todayXpLogs) {
-            return $this->normalizeExercise($ex, $todayXpLogs);
+        return collect($exercisesData)->map(function ($ex) use ($sessionXpLogs) {
+            return $this->normalizeExercise($ex, $sessionXpLogs);
         })->toArray();
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function normalizeExercise(mixed $ex, Collection $todayXpLogs): array
+    private function normalizeExercise(mixed $ex, Collection $sessionXpLogs): array
     {
         if (!is_array($ex)) {
             return [];
@@ -235,11 +236,11 @@ class WorkoutDataFormatter
         $exerciseLevel = (string) ($ex['level'] ?? 'beginner');
         $xpBase = ExerciseCompletionLog::getXpForExerciseLevel($exerciseLevel);
 
-        $todayLog = $exerciseId !== null ? $todayXpLogs->get($exerciseId) : null;
-        $alreadyAwardedToday = $todayLog !== null;
-        $awardedTodayValue = $alreadyAwardedToday ? (int) ($todayLog->xp_earned ?? $xpBase) : 0;
+        $sessionLog = $exerciseId !== null ? $sessionXpLogs->get($exerciseId) : null;
+        $alreadyAwardedInSession = $sessionLog !== null;
+        $awardedInSessionValue = $alreadyAwardedInSession ? (int) ($sessionLog->xp_earned ?? $xpBase) : 0;
         $isCompleted = (bool) ($ex['completed'] ?? false);
-        $xpToAwardIfCompleteNow = (!$alreadyAwardedToday && !$isCompleted) ? $xpBase : 0;
+        $xpToAwardIfCompleteNow = (!$alreadyAwardedInSession && !$isCompleted) ? $xpBase : 0;
 
         $exerciseProgressState = match (true) {
             $isCompleted => 'completed',
@@ -268,16 +269,16 @@ class WorkoutDataFormatter
             'sets_completion_percentage' => $setsCompletionPercentage,
             'progress_state' => $exerciseProgressState,
             'xp_base_value' => $xpBase,
-            'xp_awarded_today' => $alreadyAwardedToday,
-            'xp_awarded_today_value' => $awardedTodayValue,
+            'xp_awarded_in_session' => $alreadyAwardedInSession,
+            'xp_awarded_in_session_value' => $awardedInSessionValue,
             'xp_to_award_if_complete_now' => $xpToAwardIfCompleteNow,
             'xp' => [
                 'base_value' => $xpBase,
                 'exercise_level' => $exerciseLevel,
-                'already_awarded_today' => $alreadyAwardedToday,
-                'awarded_today_value' => $awardedTodayValue,
+                'already_awarded_in_session' => $alreadyAwardedInSession,
+                'awarded_in_session_value' => $awardedInSessionValue,
                 'to_award_if_complete_now' => $xpToAwardIfCompleteNow,
-                'anti_farming_rule' => 'same_exercise_once_per_day',
+                'anti_farming_rule' => 'same_exercise_once_per_session',
             ],
         ];
     }
@@ -312,12 +313,16 @@ class WorkoutDataFormatter
     }
 
     /**
-     * @param Collection<int, mixed> $todayXpLogs
      * @return Collection<int, mixed>
      */
-    private function loadTodayExerciseXpLogs(Workout $workout, mixed $exercisesData): Collection
+    private function loadSessionExerciseXpLogs(Workout $workout, mixed $exercisesData): Collection
     {
         if (!is_array($exercisesData) || !array_is_list($exercisesData) || !$workout->student_id) {
+            return collect();
+        }
+
+        $sessionInstanceId = is_string($workout->session_instance_id) ? trim($workout->session_instance_id) : '';
+        if ($sessionInstanceId === '') {
             return collect();
         }
 
@@ -341,9 +346,9 @@ class WorkoutDataFormatter
 
         return ExerciseCompletionLog::query()
             ->where('student_id', $workout->student_id)
+            ->where('session_instance_id', $sessionInstanceId)
             ->whereIn('exercise_id', $exerciseIds->all())
-            ->whereDate('completed_date', now()->toDateString())
-            ->get(['exercise_id', 'xp_earned', 'completed_date', 'created_at'])
+            ->get(['exercise_id', 'xp_earned', 'completed_date', 'created_at', 'session_instance_id'])
             ->keyBy('exercise_id');
     }
 

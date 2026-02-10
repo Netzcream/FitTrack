@@ -6,6 +6,7 @@ use App\Enums\PlanAssignmentStatus;
 use App\Enums\WorkoutStatus;
 use App\Models\Tenant;
 use App\Models\Tenant\Exercise;
+use App\Models\Tenant\ExerciseCompletionLog;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\TrainingPlan;
@@ -68,7 +69,7 @@ class WorkoutApiParityTest extends TestCase
         $response->assertJsonPath('data.physical_activity.effort.value', 7);
         $response->assertJsonPath('data.physical_activity.exercise_progress.all_completed', true);
         $response->assertJsonPath('data.xp_summary.available_to_earn_now_total', 0);
-        $response->assertJsonPath('data.xp_summary.already_awarded_today_total', 10);
+        $response->assertJsonPath('data.xp_summary.already_awarded_in_session_total', 10);
         $response->assertJsonPath('data.assignment.uuid', $context['assignment']->uuid);
         $response->assertJsonStructure([
             'data' => [
@@ -140,6 +141,149 @@ class WorkoutApiParityTest extends TestCase
                 'student_id' => $context['student']->id,
                 'source' => 'workout_completion',
             ]);
+        } finally {
+            tenancy()->end();
+        }
+    }
+
+    public function test_same_exercise_awards_xp_again_in_new_session_same_day(): void
+    {
+        $context = $this->createWorkoutContext(WorkoutStatus::IN_PROGRESS);
+        $headers = $this->apiHeaders($context['token'], $context['tenant']->id);
+
+        $payload = [
+            'exercises' => [
+                [
+                    'exercise_id' => $context['exercise']->id,
+                    'completed' => true,
+                    'sets' => [
+                        ['reps' => 10, 'completed' => true],
+                    ],
+                ],
+            ],
+        ];
+
+        $sessionAResponse = $this
+            ->withHeaders($headers)
+            ->patchJson('/api/workouts/' . $context['workout']->id, $payload);
+
+        $sessionAResponse->assertOk();
+        $sessionAResponse->assertJsonPath('gamification.events.0.reason', 'awarded');
+        $sessionAResponse->assertJsonPath('gamification.events.0.awarded_xp', 10);
+        $sessionAResponse->assertJsonPath('gamification.profile.total_xp', 10);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $workoutB = Workout::create([
+                'student_id' => $context['student']->id,
+                'student_plan_assignment_id' => $context['assignment']->id,
+                'plan_day' => 1,
+                'sequence_index' => 2,
+                'cycle_index' => 1,
+                'status' => WorkoutStatus::IN_PROGRESS,
+                'started_at' => now(),
+                'exercises_data' => [
+                    [
+                        'exercise_id' => $context['exercise']->id,
+                        'name' => $context['exercise']->name,
+                        'completed' => false,
+                        'sets' => [
+                            ['reps' => 10, 'completed' => false],
+                        ],
+                    ],
+                ],
+                'meta' => [],
+            ]);
+        } finally {
+            tenancy()->end();
+        }
+
+        $sessionBResponse = $this
+            ->withHeaders($headers)
+            ->patchJson('/api/workouts/' . $workoutB->id, $payload);
+
+        $sessionBResponse->assertOk();
+        $sessionBResponse->assertJsonPath('gamification.events.0.reason', 'awarded');
+        $sessionBResponse->assertJsonPath('gamification.events.0.awarded_xp', 10);
+        $sessionBResponse->assertJsonPath('gamification.profile.total_xp', 20);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $logs = ExerciseCompletionLog::query()
+                ->where('student_id', $context['student']->id)
+                ->where('exercise_id', $context['exercise']->id)
+                ->orderBy('id')
+                ->get();
+
+            $this->assertCount(2, $logs);
+            $this->assertNotSame($logs[0]->session_instance_id, $logs[1]->session_instance_id);
+        } finally {
+            tenancy()->end();
+        }
+    }
+
+    public function test_retry_in_same_session_returns_already_awarded_in_session(): void
+    {
+        $context = $this->createWorkoutContext(WorkoutStatus::IN_PROGRESS);
+        $headers = $this->apiHeaders($context['token'], $context['tenant']->id);
+
+        $completedPayload = [
+            'exercises' => [
+                [
+                    'exercise_id' => $context['exercise']->id,
+                    'completed' => true,
+                    'sets' => [
+                        ['reps' => 10, 'completed' => true],
+                    ],
+                ],
+            ],
+        ];
+
+        $firstResponse = $this
+            ->withHeaders($headers)
+            ->patchJson('/api/workouts/' . $context['workout']->id, $completedPayload);
+
+        $firstResponse->assertOk();
+        $firstResponse->assertJsonPath('gamification.events.0.reason', 'awarded');
+        $firstResponse->assertJsonPath('gamification.events.0.awarded_xp', 10);
+        $sessionInstanceId = $firstResponse->json('gamification.events.0.session_instance_id');
+
+        $this
+            ->withHeaders($headers)
+            ->patchJson('/api/workouts/' . $context['workout']->id, [
+                'exercises' => [
+                    [
+                        'exercise_id' => $context['exercise']->id,
+                        'completed' => false,
+                        'sets' => [
+                            ['reps' => 10, 'completed' => false],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertOk();
+
+        $retryResponse = $this
+            ->withHeaders($headers)
+            ->patchJson('/api/workouts/' . $context['workout']->id, $completedPayload);
+
+        $retryResponse->assertOk();
+        $retryResponse->assertJsonPath('gamification.events.0.reason', 'already_awarded_in_session');
+        $retryResponse->assertJsonPath('gamification.events.0.awarded_xp', 0);
+        $retryResponse->assertJsonPath('gamification.events.0.xp_gained', 0);
+        $retryResponse->assertJsonPath('gamification.profile.total_xp', 10);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $this->assertDatabaseCount('exercise_completion_logs', 1);
+
+            if (is_string($sessionInstanceId) && $sessionInstanceId !== '') {
+                $this->assertDatabaseHas('exercise_completion_logs', [
+                    'student_id' => $context['student']->id,
+                    'exercise_id' => $context['exercise']->id,
+                    'session_instance_id' => $sessionInstanceId,
+                ]);
+            }
         } finally {
             tenancy()->end();
         }

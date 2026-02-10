@@ -62,6 +62,8 @@ class WorkoutToday extends Component
             return;
         }
 
+        $this->workout->ensureSessionInstanceId();
+
         $this->exercisesData = $this->enrichExercises($this->workout->exercises_data ?? []);
 
         // Inicializar valores en vivo
@@ -154,13 +156,15 @@ class WorkoutToday extends Component
                 if ($exerciseId) {
                     $exercise = Exercise::find($exerciseId);
                     if ($exercise) {
-                        // Verificar si ya fue completado hoy ANTES de disparar evento
+                        $sessionInstanceId = $this->workout->ensureSessionInstanceId();
+
+                        // Verificar si ya fue premiado en esta sesión antes de disparar evento.
                         $alreadyCompleted = \App\Models\Tenant\ExerciseCompletionLog::where('student_id', $this->student->id)
                             ->where('exercise_id', $exerciseId)
-                            ->whereDate('completed_date', now()->toDateString())
+                            ->where('session_instance_id', $sessionInstanceId)
                             ->exists();
 
-                        // Solo procesar si NO fue completado hoy (anti-farming)
+                        // Solo procesar si NO fue premiado en esta sesión.
                         if (!$alreadyCompleted) {
                             // Store old level and tier before event
                             $oldLevel = $this->student->gamificationProfile?->current_level ?? 0;

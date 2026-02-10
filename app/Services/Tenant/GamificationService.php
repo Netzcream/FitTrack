@@ -2,29 +2,25 @@
 
 namespace App\Services\Tenant;
 
-use App\Models\Tenant\Student;
 use App\Models\Tenant\Exercise;
-use App\Models\Tenant\Workout;
-use App\Models\Tenant\StudentGamificationProfile;
 use App\Models\Tenant\ExerciseCompletionLog;
+use App\Models\Tenant\Student;
+use App\Models\Tenant\StudentGamificationProfile;
+use App\Models\Tenant\Workout;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
- * Servicio central del sistema de gamificación
- *
- * Responsabilidades:
- * - Procesar completado de ejercicios
- * - Otorgar XP con validación anti-farming
- * - Actualizar niveles y tiers automáticamente
- * - Gestionar perfiles de gamificación
+ * Core service for the gamification workflow.
  */
 class GamificationService
 {
     /**
-     * Procesa el completado de un ejercicio y otorga XP si corresponde
+     * Processes exercise completion and awards XP once per session.
      *
-     * @throws \Exception Si hay error en la validación o persistencia
+     * @throws \Exception
      */
     public function processExerciseCompletion(
         Student $student,
@@ -34,23 +30,21 @@ class GamificationService
     ): ?ExerciseCompletionLog {
         $completedAt = $completedAt ?? now();
         $completedDate = $completedAt->toDateString();
+        $sessionInstanceId = $this->resolveSessionInstanceId($workout);
 
-        // Validación anti-farming: verificar si ya fue completado hoy
-        if ($this->wasExerciseCompletedToday($student->id, $exercise->id, $completedAt)) {
-            Log::info('Ejercicio ya completado hoy (anti-farming)', [
+        if ($this->wasExerciseCompletedInSession($student->id, $exercise->id, $sessionInstanceId)) {
+            Log::info('Exercise already awarded in the same session', [
                 'student_id' => $student->id,
                 'exercise_id' => $exercise->id,
-                'date' => $completedDate,
+                'session_instance_id' => $sessionInstanceId,
             ]);
 
-            return null; // No otorgar XP
+            return null;
         }
 
-        // Obtener el nivel del ejercicio
         $exerciseLevel = $exercise->level ?? 'beginner';
         $xpEarned = ExerciseCompletionLog::getXpForExerciseLevel($exerciseLevel);
 
-        // Crear snapshot del ejercicio para auditoría
         $exerciseSnapshot = [
             'name' => $exercise->name,
             'category' => $exercise->category,
@@ -58,31 +52,40 @@ class GamificationService
             'equipment' => $exercise->equipment,
         ];
 
-        // Transacción para garantizar consistencia
         return DB::transaction(function () use (
             $student,
             $exercise,
             $workout,
             $completedDate,
+            $sessionInstanceId,
             $xpEarned,
             $exerciseLevel,
             $exerciseSnapshot
         ) {
-            // 1. Registrar el log de completado (con unique constraint en DB)
-            $log = ExerciseCompletionLog::create([
-                'student_id' => $student->id,
-                'exercise_id' => $exercise->id,
-                'workout_id' => $workout?->id,
-                'completed_date' => $completedDate,
-                'xp_earned' => $xpEarned,
-                'exercise_level' => $exerciseLevel,
-                'exercise_snapshot' => $exerciseSnapshot,
-            ]);
+            if ($this->wasExerciseCompletedInSession($student->id, $exercise->id, $sessionInstanceId)) {
+                return null;
+            }
 
-            // 2. Obtener o crear el perfil de gamificación
+            try {
+                $log = ExerciseCompletionLog::create([
+                    'student_id' => $student->id,
+                    'exercise_id' => $exercise->id,
+                    'workout_id' => $workout?->id,
+                    'session_instance_id' => $sessionInstanceId,
+                    'completed_date' => $completedDate,
+                    'xp_earned' => $xpEarned,
+                    'exercise_level' => $exerciseLevel,
+                    'exercise_snapshot' => $exerciseSnapshot,
+                ]);
+            } catch (QueryException $exception) {
+                if ($this->isSessionDuplicateException($exception)) {
+                    return null;
+                }
+
+                throw $exception;
+            }
+
             $profile = $this->getOrCreateProfile($student);
-
-            // 3. Otorgar XP y recalcular nivel/tier
             $oldLevel = $profile->current_level;
             $oldTier = $profile->current_tier;
 
@@ -91,9 +94,8 @@ class GamificationService
             $profile->last_exercise_completed_at = $completedDate;
             $profile->save();
 
-            // 4. Log de progreso si hubo cambio de nivel/tier
             if ($profile->current_level !== $oldLevel) {
-                Log::info('¡Nivel up!', [
+                Log::info('Level up', [
                     'student_id' => $student->id,
                     'old_level' => $oldLevel,
                     'new_level' => $profile->current_level,
@@ -102,7 +104,7 @@ class GamificationService
             }
 
             if ($profile->current_tier !== $oldTier) {
-                Log::info('¡Cambio de tier!', [
+                Log::info('Tier changed', [
                     'student_id' => $student->id,
                     'old_tier' => $oldTier,
                     'new_tier' => $profile->current_tier,
@@ -115,7 +117,15 @@ class GamificationService
     }
 
     /**
-     * Verifica si un ejercicio ya fue completado por un alumno en una fecha específica
+     * Session-scoped idempotency check.
+     */
+    public function wasExerciseCompletedInSession(int $studentId, int $exerciseId, string $sessionInstanceId): bool
+    {
+        return ExerciseCompletionLog::wasExerciseCompletedInSession($studentId, $exerciseId, $sessionInstanceId);
+    }
+
+    /**
+     * Legacy helper preserved for compatibility.
      */
     public function wasExerciseCompletedToday(
         int $studentId,
@@ -126,7 +136,7 @@ class GamificationService
     }
 
     /**
-     * Obtiene o crea el perfil de gamificación de un alumno
+     * Gets or creates student gamification profile.
      */
     public function getOrCreateProfile(Student $student): StudentGamificationProfile
     {
@@ -144,7 +154,7 @@ class GamificationService
     }
 
     /**
-     * Obtiene el perfil de gamificación de un alumno (o null si no existe)
+     * Gets student profile or null when missing.
      */
     public function getProfile(Student $student): ?StudentGamificationProfile
     {
@@ -152,7 +162,7 @@ class GamificationService
     }
 
     /**
-     * Obtiene estadísticas de gamificación de un alumno
+     * Returns summarized gamification stats.
      */
     public function getStudentStats(Student $student): array
     {
@@ -187,7 +197,7 @@ class GamificationService
     }
 
     /**
-     * Obtiene el historial reciente de ejercicios completados
+     * Returns recent exercise completion logs.
      */
     public function getRecentCompletions(Student $student, int $limit = 10): \Illuminate\Database\Eloquent\Collection
     {
@@ -200,7 +210,7 @@ class GamificationService
     }
 
     /**
-     * Calcula cuánto XP necesita un alumno para alcanzar un nivel específico
+     * Computes missing XP to reach target level.
      */
     public function xpToReachLevel(Student $student, int $targetLevel): int
     {
@@ -211,7 +221,7 @@ class GamificationService
     }
 
     /**
-     * Obtiene la tabla de niveles y XP requerido (útil para debugging/admin)
+     * Returns level progression table for debug/admin use.
      */
     public function getLevelTable(int $maxLevel = 30): array
     {
@@ -231,5 +241,27 @@ class GamificationService
         }
 
         return $table;
+    }
+
+    private function resolveSessionInstanceId(?Workout $workout): string
+    {
+        if ($workout) {
+            return $workout->ensureSessionInstanceId();
+        }
+
+        return (string) Str::orderedUuid();
+    }
+
+    private function isSessionDuplicateException(QueryException $exception): bool
+    {
+        $sqlState = (string) ($exception->errorInfo[0] ?? '');
+        if ($sqlState !== '23000') {
+            return false;
+        }
+
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'session_instance_id')
+            || str_contains($message, 'exercise_completion_logs_student_session_exercise_unique');
     }
 }

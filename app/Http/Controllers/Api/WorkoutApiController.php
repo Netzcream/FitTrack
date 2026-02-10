@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\WorkoutStatus;
-use App\Events\Tenant\ExerciseCompleted;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Exercise;
 use App\Models\Tenant\ExerciseCompletionLog;
@@ -12,6 +11,7 @@ use App\Models\Tenant\StudentGamificationProfile;
 use App\Models\Tenant\StudentWeightEntry;
 use App\Models\Tenant\Workout;
 use App\Services\Api\WorkoutDataFormatter;
+use App\Services\Tenant\GamificationService;
 use App\Services\WorkoutOrchestrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +21,8 @@ class WorkoutApiController extends Controller
 {
     public function __construct(
         protected WorkoutOrchestrationService $orchestration,
-        protected WorkoutDataFormatter $workoutDataFormatter
+        protected WorkoutDataFormatter $workoutDataFormatter,
+        protected GamificationService $gamificationService
     ) {}
 
     /**
@@ -216,6 +217,9 @@ class WorkoutApiController extends Controller
 
         // 1) Sincronizar ejercicios y otorgar XP si aplica.
         if ($request->has('exercises')) {
+            // Garantiza run_id de sesión para deduplicación de XP por sesión.
+            $workout->ensureSessionInstanceId();
+
             $incomingExercises = collect($request->input('exercises', []))
                 ->filter(fn ($row) => is_array($row))
                 ->values();
@@ -588,6 +592,7 @@ class WorkoutApiController extends Controller
     private function processCompletedExercises(Student $student, Workout $workout, array $completedExercises): array
     {
         $events = [];
+        $sessionInstanceId = $workout->ensureSessionInstanceId();
 
         // Reduce accidental duplicate toggles in the same payload.
         $uniqueExercises = collect($completedExercises)
@@ -614,6 +619,9 @@ class WorkoutApiController extends Controller
             if ($exerciseId === null) {
                 $events[] = [
                     'awarded' => false,
+                    'awarded_xp' => 0,
+                    'xp' => 0,
+                    'xp_gained' => 0,
                     'reason' => 'exercise_identifier_missing',
                 ];
                 continue;
@@ -625,42 +633,64 @@ class WorkoutApiController extends Controller
                 $events[] = [
                     'exercise_id' => $exerciseId,
                     'awarded' => false,
+                    'awarded_xp' => 0,
+                    'xp' => 0,
+                    'xp_gained' => 0,
                     'reason' => 'exercise_not_found',
                 ];
                 continue;
             }
 
-            $alreadyCompletedToday = ExerciseCompletionLog::query()
+            $alreadyAwardedInSession = ExerciseCompletionLog::query()
                 ->where('student_id', $student->id)
                 ->where('exercise_id', $exercise->id)
-                ->whereDate('completed_date', now()->toDateString())
+                ->where('session_instance_id', $sessionInstanceId)
                 ->exists();
 
-            if ($alreadyCompletedToday) {
+            if ($alreadyAwardedInSession) {
+                $profileCurrent = $this->formatGamificationProfile($student);
+
                 $events[] = [
                     'exercise_id' => $exercise->id,
                     'exercise_name' => $exercise->name,
                     'awarded' => false,
-                    'reason' => 'already_completed_today',
+                    'awarded_xp' => 0,
+                    'xp' => 0,
+                    'xp_gained' => 0,
+                    'reason' => 'already_awarded_in_session',
+                    'session_instance_id' => $sessionInstanceId,
+                    'current_xp' => (int) ($profileCurrent['xp_inside_level'] ?? 0),
+                    'total_xp' => (int) ($profileCurrent['total_xp'] ?? 0),
                 ];
                 continue;
             }
 
             $profileBefore = $this->formatGamificationProfile($student);
 
-            event(new ExerciseCompleted($student, $exercise, $workout));
+            $awardedLog = $this->gamificationService->processExerciseCompletion(
+                student: $student,
+                exercise: $exercise,
+                workout: $workout
+            );
 
             $student->refresh();
             $profileAfter = $this->formatGamificationProfile($student);
 
-            $xpGained = ExerciseCompletionLog::getXpForExerciseLevel($exercise->level ?? 'beginner');
+            $awardedXp = (int) ($awardedLog?->xp_earned ?? 0);
+            $wasAwarded = $awardedXp > 0;
 
             $events[] = [
                 'exercise_id' => $exercise->id,
                 'exercise_name' => $exercise->name,
                 'exercise_level' => $exercise->level,
-                'awarded' => true,
-                'xp_gained' => $xpGained,
+                'awarded' => $wasAwarded,
+                'reason' => $wasAwarded ? 'awarded' : 'already_awarded_in_session',
+                'awarded_xp' => $awardedXp,
+                'xp' => $awardedXp,
+                'xp_gained' => $awardedXp,
+                'session_instance_id' => $sessionInstanceId,
+                'current_xp' => (int) ($profileAfter['xp_inside_level'] ?? 0),
+                'total_xp' => (int) ($profileAfter['total_xp'] ?? 0),
                 'level_before' => $profileBefore['current_level'],
                 'level_after' => $profileAfter['current_level'],
                 'tier_before' => $profileBefore['current_tier'],
@@ -774,12 +804,14 @@ class WorkoutApiController extends Controller
             'active_workout' => $activeWorkout ? [
                 'id' => $activeWorkout->id,
                 'uuid' => $activeWorkout->uuid,
+                'session_instance_id' => $activeWorkout->session_instance_id,
                 'status' => $this->normalizeStatus($activeWorkout->status),
                 'plan_day' => $activeWorkout->plan_day,
                 'cycle_index' => $activeWorkout->cycle_index,
             ] : null,
             'requested_workout_id' => $workout?->id,
             'requested_workout_uuid' => $workout?->uuid,
+            'requested_session_instance_id' => $workout?->session_instance_id,
         ];
     }
 

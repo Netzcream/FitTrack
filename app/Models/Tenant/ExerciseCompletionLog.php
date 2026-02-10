@@ -15,6 +15,7 @@ class ExerciseCompletionLog extends Model
         'student_id',
         'exercise_id',
         'workout_id',
+        'session_instance_id',
         'completed_date',
         'xp_earned',
         'exercise_level',
@@ -63,7 +64,18 @@ class ExerciseCompletionLog extends Model
     /* -------------------------- Static Helpers -------------------------- */
 
     /**
-     * Verifica si un ejercicio ya fue completado por un alumno en una fecha específica
+     * Checks whether the exercise XP was already awarded in the same session.
+     */
+    public static function wasExerciseCompletedInSession(int $studentId, int $exerciseId, string $sessionInstanceId): bool
+    {
+        return self::where('student_id', $studentId)
+            ->where('exercise_id', $exerciseId)
+            ->where('session_instance_id', $sessionInstanceId)
+            ->exists();
+    }
+
+    /**
+     * Legacy helper preserved for backward compatibility.
      */
     public static function wasExerciseCompletedToday(int $studentId, int $exerciseId, ?\Carbon\Carbon $date = null): bool
     {
@@ -76,7 +88,7 @@ class ExerciseCompletionLog extends Model
     }
 
     /**
-     * Obtiene el XP correspondiente a un nivel de ejercicio
+     * Obtains XP value by exercise level.
      */
     public static function getXpForExerciseLevel(string $level): int
     {
@@ -84,7 +96,7 @@ class ExerciseCompletionLog extends Model
             'beginner', 'principiante' => 10,
             'intermediate', 'intermedio' => 15,
             'advanced', 'avanzado' => 20,
-            default => 10, // Por defecto, si no se especifica
+            default => 10,
         };
     }
 }
