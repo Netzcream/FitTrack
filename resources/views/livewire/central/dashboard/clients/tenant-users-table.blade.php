@@ -154,7 +154,7 @@
                 @empty
                     <tr>
                         <td colspan="100" class="px-6 py-4 text-sm text-center text-gray-500 dark:text-neutral-400">
-                            {{ __('Aún no hay usuarios en este tenant.') }}
+                            {{ __('Aún no hay usuarios.') }}
                         </td>
                     </tr>
                 @endforelse
@@ -218,7 +218,7 @@
                                     />
                                 @empty
                                     <p class="text-sm text-gray-500 dark:text-neutral-400">
-                                        {{ __('No hay roles disponibles en este tenant.') }}
+                                        {{ __('No hay roles disponibles.') }}
                                     </p>
                                 @endforelse
                             </div>
@@ -240,7 +240,7 @@
                             <div>
                                 <flux:heading size="lg">{{ __('Agregar nuevo usuario') }}</flux:heading>
                                 <flux:text class="mt-2">
-                                    {{ __('Completá los datos para crear un nuevo usuario dentro de este tenant.') }}
+                                    {{ __('Completá los datos para crear un nuevo usuario.') }}
                                 </flux:text>
                             </div>
 

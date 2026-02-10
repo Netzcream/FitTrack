@@ -37,7 +37,7 @@ return [
             'contact_email' => 'Correo electrónico de contacto',
             'push' => [
                 'title' => 'Push manual',
-                'subtitle' => 'Envia notificaciones push a los dispositivos activos del tenant.',
+                'subtitle' => 'Envia notificaciones push a los dispositivos activos.',
                 'target' => 'Destino',
                 'target_all' => 'Todos los dispositivos activos',
                 'target_device' => 'Un dispositivo especifico',
@@ -46,7 +46,7 @@ return [
                 'device_required' => 'Debes seleccionar un dispositivo.',
                 'device_not_found' => 'No se encontraron dispositivos activos para el destino elegido.',
                 'active_devices' => 'Dispositivos activos: :count',
-                'no_devices' => 'Todavia no hay dispositivos activos registrados para este tenant.',
+                'no_devices' => 'Todavia no hay dispositivos activos registrados.',
                 'title_label' => 'Titulo',
                 'message' => 'Mensaje',
                 'send' => 'Enviar push',

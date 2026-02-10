@@ -13,7 +13,7 @@ class MercadoPagoService
     {
         $token = tenant_config('payment_mp_access_token');
         if (!$token) {
-            throw new \RuntimeException('MercadoPago Access Token no configurado para este tenant');
+            throw new \RuntimeException('MercadoPago Access Token no configurado');
         }
 
         MercadoPagoConfig::setAccessToken($token);

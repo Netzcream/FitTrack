@@ -85,8 +85,11 @@
                 </flux:select>
 
                 @if ($push_target === 'device')
-                    <flux:select wire:model.defer="push_device_id" :label="__('tenant.configuration.notification.push.device')"
-                        @disabled($active_devices_count === 0)>
+                    <flux:select
+                        wire:model.defer="push_device_id"
+                        :label="__('tenant.configuration.notification.push.device')"
+                        :disabled="$active_devices_count === 0"
+                    >
                         <option value="">{{ __('tenant.configuration.notification.push.device_placeholder') }}</option>
                         @foreach ($push_devices as $device)
                             <option value="{{ $device['id'] }}">{{ $device['label'] }}</option>
@@ -121,7 +124,7 @@
             @endif
 
             <div class="flex justify-end">
-                <flux:button type="submit" @disabled($active_devices_count === 0)>
+                <flux:button type="submit" :disabled="$active_devices_count === 0">
                     {{ __('tenant.configuration.notification.push.send') }}
                 </flux:button>
             </div>
