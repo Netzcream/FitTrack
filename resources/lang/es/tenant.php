@@ -35,6 +35,27 @@ return [
             'title' => 'Notificaciones',
             'subtitle' => 'Gestiona las notificaciones de tu sitio',
             'contact_email' => 'Correo electrónico de contacto',
+            'push' => [
+                'title' => 'Push manual',
+                'subtitle' => 'Envia notificaciones push a los dispositivos activos del tenant.',
+                'target' => 'Destino',
+                'target_all' => 'Todos los dispositivos activos',
+                'target_device' => 'Un dispositivo especifico',
+                'device' => 'Dispositivo',
+                'device_placeholder' => 'Selecciona un dispositivo',
+                'device_required' => 'Debes seleccionar un dispositivo.',
+                'device_not_found' => 'No se encontraron dispositivos activos para el destino elegido.',
+                'active_devices' => 'Dispositivos activos: :count',
+                'no_devices' => 'Todavia no hay dispositivos activos registrados para este tenant.',
+                'title_label' => 'Titulo',
+                'message' => 'Mensaje',
+                'send' => 'Enviar push',
+                'disabled' => 'El envio push esta deshabilitado. Activa EXPO_PUSH_ENABLED para usar esta funcion.',
+                'tenant_not_available' => 'No se pudo resolver el tenant actual para enviar la notificacion.',
+                'sent_success' => 'Push enviado a :sent dispositivos.',
+                'sent_partial' => 'Push enviado a :sent dispositivos. Fallos: :errors.',
+                'send_failed' => 'No se pudo entregar el push al destino seleccionado.',
+            ],
         ],
         'appearance' => [
             'title' => 'Apariencia',
@@ -46,20 +67,20 @@ return [
         'landing' => [
 
             // Campos
-            'landing_whatsapp'   => 'WhatsApp',
-            'landing_instagram'  => 'Instagram',
-            'landing_facebook'   => 'Facebook',
-            'landing_youtube'    => 'YouTube',
-            'landing_twitter'    => 'Twitter / X',
-            'landing_tiktok'     => 'TikTok',
+            'landing_whatsapp' => 'WhatsApp',
+            'landing_instagram' => 'Instagram',
+            'landing_facebook' => 'Facebook',
+            'landing_youtube' => 'YouTube',
+            'landing_twitter' => 'Twitter / X',
+            'landing_tiktok' => 'TikTok',
 
             // Helpers
-            'helper_whatsapp'  => 'Ingresá solo el número, sin + ni espacios.',
+            'helper_whatsapp' => 'Ingresá solo el número, sin + ni espacios.',
             'helper_instagram' => 'Ingresá solo tu usuario, sin @.',
-            'helper_facebook'  => 'Ingresá solo el nombre de tu página o perfil.',
-            'helper_youtube'   => 'Ingresá el nombre de tu canal.',
-            'helper_twitter'   => 'Ingresá solo tu usuario, sin @.',
-            'helper_tiktok'    => 'Ingresá solo tu usuario.',
+            'helper_facebook' => 'Ingresá solo el nombre de tu página o perfil.',
+            'helper_youtube' => 'Ingresá el nombre de tu canal.',
+            'helper_twitter' => 'Ingresá solo tu usuario, sin @.',
+            'helper_tiktok' => 'Ingresá solo tu usuario.',
         ],
 
     ],
@@ -113,7 +134,6 @@ return [
             'subtitle_section' => 'Subtítulo de sección',
         ],
 
-
         'booklets' => [
             'title' => 'Confían en nosotros',
             'subtitle' => 'Muestra las marcas, clientes o aliados de tu sitio',
@@ -128,12 +148,9 @@ return [
             'title_section' => 'Título de sección',
             'subtitle_section' => 'Subtítulo de sección',
             'active' => 'Activo',
-            'show'   => 'Mostrar sección',
+            'show' => 'Mostrar sección',
 
         ],
-
-
-
 
     ],
 
@@ -150,7 +167,6 @@ return [
         'description' => 'Descripción',
         'footer' => 'Footer',
         'whatsapp' => 'WhatsApp',
-    ]
-
+    ],
 
 ];

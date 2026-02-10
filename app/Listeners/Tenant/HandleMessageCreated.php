@@ -11,13 +11,11 @@ use App\Models\Tenant\Device;
 use App\Models\Tenant\Message;
 use App\Models\Tenant\Student;
 use App\Models\User;
+use App\Services\Tenant\ExpoPushService;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class HandleMessageCreated implements ShouldQueue
 {
@@ -61,14 +59,15 @@ class HandleMessageCreated implements ShouldQueue
                 return;
             }
 
-            $pendingReceipts = $this->sendPushNotifications(
+            $pushResult = app(ExpoPushService::class)->send(
                 devices: $devices,
-                senderName: $this->resolveSenderName($message),
-                messageBody: (string) $message->body,
-                payload: $payload
+                title: $this->resolveSenderName($message),
+                body: (string) $message->body,
+                payload: $payload,
             );
 
-            if ($pendingReceipts !== []) {
+            $pendingReceipts = $pushResult['pending_receipts'] ?? [];
+            if (is_array($pendingReceipts) && $pendingReceipts !== []) {
                 ProcessExpoPushReceipts::dispatch($tenantId, $pendingReceipts)->delay(now()->addMinutes(2));
             }
         } finally {
@@ -187,122 +186,6 @@ class HandleMessageCreated implements ShouldQueue
         $tenantUser = User::query()->find((int) $message->sender_id);
 
         return (string) ($tenantUser?->name ?: 'Entrenador');
-    }
-
-    /**
-     * @param  Collection<int, Device>  $devices
-     * @param  array<string, mixed>  $payload
-     * @return array<string, int>
-     */
-    private function sendPushNotifications(Collection $devices, string $senderName, string $messageBody, array $payload): array
-    {
-        if (! config('services.expo.enabled', false)) {
-            return [];
-        }
-
-        $sendUrl = (string) config('services.expo.send_url', 'https://exp.host/--/api/v2/push/send');
-        $pendingReceipts = [];
-
-        foreach ($devices->chunk(100) as $deviceChunk) {
-            $chunk = $deviceChunk->values();
-
-            $messages = $chunk
-                ->map(function (Device $device) use ($senderName, $messageBody, $payload) {
-                    return [
-                        'to' => $device->expo_push_token,
-                        'title' => $senderName,
-                        'body' => Str::limit($messageBody, 120),
-                        'sound' => 'default',
-                        'priority' => 'high',
-                        'data' => $payload,
-                    ];
-                })
-                ->all();
-
-            $response = $this->expoRequest()->post($sendUrl, $messages);
-
-            if (! $response->ok()) {
-                Log::warning('Expo push send failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                continue;
-            }
-
-            $tickets = $response->json('data');
-            if (! is_array($tickets)) {
-                Log::warning('Expo push send returned an unexpected payload', [
-                    'body' => $response->body(),
-                ]);
-
-                continue;
-            }
-
-            foreach ($tickets as $index => $ticket) {
-                $device = $chunk->get($index);
-
-                if (! $device instanceof Device || ! is_array($ticket)) {
-                    continue;
-                }
-
-                $status = (string) data_get($ticket, 'status');
-
-                if ($status === 'ok') {
-                    $receiptId = data_get($ticket, 'id');
-                    if (is_string($receiptId) && $receiptId !== '') {
-                        $pendingReceipts[$receiptId] = (int) $device->id;
-                    }
-
-                    $device->forceFill([
-                        'last_error_code' => null,
-                        'last_error_at' => null,
-                    ])->save();
-
-                    continue;
-                }
-
-                $errorCode = (string) data_get($ticket, 'details.error', data_get($ticket, 'message', 'unknown'));
-                $this->markDeviceError($device, $errorCode);
-            }
-        }
-
-        return $pendingReceipts;
-    }
-
-    private function markDeviceError(Device $device, string $errorCode): void
-    {
-        if ($errorCode === 'DeviceNotRegistered') {
-            $device->forceFill([
-                'is_active' => false,
-                'deactivated_at' => now(),
-                'deactivation_reason' => 'DeviceNotRegistered',
-                'last_error_code' => $errorCode,
-                'last_error_at' => now(),
-            ])->save();
-
-            return;
-        }
-
-        $device->forceFill([
-            'last_error_code' => $errorCode,
-            'last_error_at' => now(),
-        ])->save();
-    }
-
-    private function expoRequest(): PendingRequest
-    {
-        $request = Http::asJson()
-            ->acceptJson()
-            ->timeout(10)
-            ->retry(2, 250);
-
-        $accessToken = (string) config('services.expo.access_token', '');
-        if ($accessToken !== '') {
-            $request = $request->withToken($accessToken);
-        }
-
-        return $request;
     }
 
     private function resolveSenderType(Message $message): ParticipantType
