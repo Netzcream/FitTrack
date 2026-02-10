@@ -91,6 +91,7 @@ class WorkoutOrchestrationService
         $existingWorkout = $assignment->workouts()
             ->where('student_id', $student->id)
             ->whereIn('status', [WorkoutStatus::IN_PROGRESS, WorkoutStatus::PENDING])
+            ->latest('updated_at')
             ->first();
 
         if ($existingWorkout) {

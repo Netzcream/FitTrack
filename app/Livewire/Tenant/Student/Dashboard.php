@@ -58,6 +58,7 @@ class Dashboard extends Component
         $this->activeWorkout = $this->assignment->workouts()
             ->where('student_id', $this->student->id)
             ->where('status', 'in_progress')
+            ->latest('updated_at')
             ->first();
 
         // Si no hay activo, obtener o crear para hoy

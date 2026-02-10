@@ -212,6 +212,9 @@ class WorkoutToday extends Component
      */
     public function completeWorkout(): void
     {
+        // Evita bloqueo UX cuando se completa rápido y el timer aún está en 0.
+        $this->durationMinutes = max(1, (int) $this->durationMinutes);
+
         $this->validate([
             'durationMinutes' => 'required|integer|min:1|max:500',
             'rating' => 'nullable|integer|min:1|max:5',

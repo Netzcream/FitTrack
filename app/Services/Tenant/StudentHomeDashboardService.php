@@ -61,6 +61,7 @@ class StudentHomeDashboardService
         $activeWorkout = $assignment->workouts()
             ->where('student_id', $student->id)
             ->where('status', 'in_progress')
+            ->latest('updated_at')
             ->first();
 
         // Si no hay activo, obtener o crear para hoy
