@@ -46,4 +46,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'expo' => [
+        'enabled' => env('EXPO_PUSH_ENABLED', false),
+        'send_url' => env('EXPO_PUSH_SEND_URL', 'https://exp.host/--/api/v2/push/send'),
+        'receipts_url' => env('EXPO_PUSH_RECEIPTS_URL', 'https://exp.host/--/api/v2/push/getReceipts'),
+        'access_token' => env('EXPO_PUSH_ACCESS_TOKEN'),
+    ],
+
 ];

@@ -38,6 +38,9 @@ class EventServiceProvider extends ServiceProvider
         ],
 
         // Tenant Events - Communication
+        \App\Events\Tenant\MessageCreated::class => [
+            \App\Listeners\Tenant\HandleMessageCreated::class,
+        ],
         \App\Events\Tenant\MessageSent::class => [
             \App\Listeners\Tenant\NotifyMessageRecipients::class,
         ],

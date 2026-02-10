@@ -144,6 +144,26 @@ class ApiDocsTest extends TestCase
         );
 
         $this->assertSame(
+            ['expo_push_token', 'platform'],
+            $response->json('paths./devices/register.post.requestBody.content.application/json.schema.required')
+        );
+
+        $this->assertSame(
+            ['ios', 'android', 'web'],
+            $response->json('paths./devices/register.post.requestBody.content.application/json.schema.properties.platform.enum')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/DeviceRegistration',
+            $response->json('paths./devices/register.post.responses.200.content.application/json.schema.$ref')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/DeviceRegistration',
+            $response->json('paths./devices/register.post.responses.201.content.application/json.schema.$ref')
+        );
+
+        $this->assertSame(
             '#/components/schemas/WeightEntry',
             $response->json('paths./weight.post.responses.200.content.application/json.schema.properties.data.$ref')
         );

@@ -3,11 +3,13 @@
 namespace Tests\Unit\Services\Tenant;
 
 use App\Enums\ParticipantType;
+use App\Events\Tenant\MessageCreated;
 use App\Models\Tenant\ConversationParticipant;
 use App\Models\Tenant\Student;
 use App\Models\User;
 use App\Services\Tenant\MessagingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -112,5 +114,43 @@ class MessagingServiceTest extends TestCase
 
         $tenantConversations = $service->getConversations(ParticipantType::TENANT, (string) $tenant->id, 15);
         $this->assertSame(1, $tenantConversations->total());
+    }
+
+    public function test_send_message_dispatches_message_created_event(): void
+    {
+        Notification::fake();
+        $tenant = $this->actingAsTenant();
+        Event::fake([MessageCreated::class]);
+
+        $studentUser = User::factory()->create();
+
+        $studentId = DB::table('students')->insertGetId([
+            'uuid' => (string) Str::orderedUuid(),
+            'user_id' => $studentUser->id,
+            'status' => 'active',
+            'email' => $studentUser->email,
+            'first_name' => 'Event',
+            'last_name' => 'Student',
+            'is_user_enabled' => true,
+            'billing_frequency' => 'monthly',
+            'account_status' => 'on_time',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $service = app(MessagingService::class);
+        $conversation = $service->findOrCreateConversation($studentId);
+
+        $service->sendMessage(
+            $conversation->id,
+            ParticipantType::STUDENT,
+            $studentId,
+            'Mensaje de prueba'
+        );
+
+        Event::assertDispatched(MessageCreated::class, function (MessageCreated $event) use ($tenant) {
+            return $event->messageId > 0
+                && $event->tenantId === (string) $tenant->id;
+        });
     }
 }

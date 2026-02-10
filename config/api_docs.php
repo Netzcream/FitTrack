@@ -16,6 +16,7 @@ return [
         ['name' => 'Weight', 'description' => 'Registros de peso'],
         ['name' => 'Progress', 'description' => 'Home, dashboard y progreso'],
         ['name' => 'Messaging', 'description' => 'Mensajeria alumno-entrenador'],
+        ['name' => 'Devices', 'description' => 'Registro de dispositivos para notificaciones push'],
     ],
 
     'components' => [
@@ -208,6 +209,20 @@ return [
                     'created_at' => ['type' => ['string', 'null']],
                     'updated_at' => ['type' => ['string', 'null']],
                 ],
+            ],
+            'DeviceRegistration' => [
+                'type' => 'object',
+                'additionalProperties' => true,
+                'properties' => [
+                    'id' => ['type' => 'integer'],
+                    'user_id' => ['type' => 'integer'],
+                    'tenant_id' => ['type' => 'string'],
+                    'platform' => ['type' => 'string', 'enum' => ['ios', 'android', 'web']],
+                    'expo_push_token' => ['type' => 'string'],
+                    'last_seen_at' => ['type' => ['string', 'null']],
+                    'is_active' => ['type' => 'boolean'],
+                ],
+                'required' => ['id', 'user_id', 'tenant_id', 'platform', 'expo_push_token', 'is_active'],
             ],
             'PaginatedMessages' => [
                 'type' => 'object',
@@ -1564,6 +1579,7 @@ return [
         '/messages/send' => [
             'post' => [
                 'summary' => 'Enviar mensaje',
+                'description' => 'Al crear el mensaje se dispara el trigger `message.new` por realtime y push al receptor. Payload: type, conversation_uuid, message_id, sender_type, sent_at.',
                 'requestBody' => [
                     'required' => true,
                     'content' => [
@@ -1690,6 +1706,69 @@ return [
                                     'required' => ['count'],
                                 ],
                                 'example' => ['count' => 3],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        '/devices/register' => [
+            'post' => [
+                'summary' => 'Registrar dispositivo para push notifications',
+                'description' => 'Guarda o actualiza el expo_push_token del usuario autenticado en el tenant actual.',
+                'requestBody' => [
+                    'required' => true,
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'required' => ['expo_push_token', 'platform'],
+                                'properties' => [
+                                    'expo_push_token' => [
+                                        'type' => 'string',
+                                        'description' => 'Token Expo del dispositivo. Formato ExponentPushToken[...] o ExpoPushToken[...]',
+                                    ],
+                                    'platform' => [
+                                        'type' => 'string',
+                                        'enum' => ['ios', 'android', 'web'],
+                                    ],
+                                    'last_seen_at' => [
+                                        'type' => 'string',
+                                        'format' => 'date-time',
+                                    ],
+                                ],
+                            ],
+                            'example' => [
+                                'expo_push_token' => 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]',
+                                'platform' => 'android',
+                                'last_seen_at' => '2026-02-10T15:20:00Z',
+                            ],
+                        ],
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'Dispositivo actualizado',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => ['$ref' => '#/components/schemas/DeviceRegistration'],
+                            ],
+                        ],
+                    ],
+                    '201' => [
+                        'description' => 'Dispositivo creado',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => ['$ref' => '#/components/schemas/DeviceRegistration'],
+                            ],
+                        ],
+                    ],
+                    '422' => [
+                        'description' => 'Validation Error',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => ['$ref' => '#/components/schemas/ValidationError'],
                             ],
                         ],
                     ],

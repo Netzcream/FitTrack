@@ -23,7 +23,7 @@ class MessagingService
                 ->where('student_id', $studentId)
                 ->first();
 
-            if (!$conversation) {
+            if (! $conversation) {
                 $conversation = Conversation::create([
                     'type' => ConversationType::TENANT_STUDENT,
                     'student_id' => $studentId,
@@ -70,8 +70,11 @@ class MessagingService
                 $this->markAsRead($conversationId, $senderType, $senderId);
             }
 
-            // Fire event for notifications
-            event(new \App\Events\Tenant\MessageSent($message));
+            // Fire event for realtime + push notifications
+            event(new \App\Events\Tenant\MessageCreated(
+                messageId: (int) $message->id,
+                tenantId: tenancy()->initialized ? (string) tenancy()->tenant?->id : null
+            ));
 
             return $message;
         });
@@ -192,7 +195,7 @@ class MessagingService
             ->where('student_id', $studentId)
             ->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             return null;
         }
 

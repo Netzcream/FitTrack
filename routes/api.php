@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,6 +97,11 @@ Route::middleware([\App\Http\Middleware\Api\ApiTenancy::class])->group(function 
         Route::post('/read', [\App\Http\Controllers\Api\MessagingController::class, 'markAsRead']);
         Route::post('/mute', [\App\Http\Controllers\Api\MessagingController::class, 'toggleMute']);
         Route::get('/unread-count', [\App\Http\Controllers\Api\MessagingController::class, 'unreadCount']);
+    });
+
+    // Devices (Expo Push tokens)
+    Route::prefix('devices')->group(function () {
+        Route::post('/register', [\App\Http\Controllers\Api\DeviceController::class, 'register']);
     });
 
 });
