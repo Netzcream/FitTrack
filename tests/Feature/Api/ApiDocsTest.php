@@ -17,6 +17,7 @@ class ApiDocsTest extends TestCase
 
         $this->assertNotEmpty($response->json('paths./home.get.parameters'));
         $this->assertNotNull($response->json('paths./workouts/{id}.get'));
+        $this->assertNotNull($response->json('paths./profile/preferences.patch'));
 
         $this->assertSame(
             ['email', 'password'],
@@ -29,6 +30,11 @@ class ApiDocsTest extends TestCase
         );
 
         $this->assertSame(
+            'object',
+            $response->json('paths./profile.patch.requestBody.content.application/json.schema.properties.notifications.type')
+        );
+
+        $this->assertSame(
             'boolean',
             $response->json('paths./messages/mute.post.requestBody.content.application/json.schema.properties.mute.type')
         );
@@ -36,6 +42,11 @@ class ApiDocsTest extends TestCase
         $this->assertSame(
             '#/components/schemas/StudentProfile',
             $response->json('paths./profile.get.responses.200.content.application/json.schema.properties.data.$ref')
+        );
+
+        $this->assertSame(
+            ['number', 'null'],
+            $response->json('components.schemas.StudentProfile.properties.imc.type')
         );
 
         $this->assertNotNull(

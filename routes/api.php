@@ -52,6 +52,7 @@ Route::middleware([\App\Http\Middleware\Api\ApiTenancy::class])->group(function 
     // Perfil del estudiante
     Route::get('/profile', [\App\Http\Controllers\Api\StudentApiController::class, 'show']);
     Route::patch('/profile', [\App\Http\Controllers\Api\StudentApiController::class, 'update']);
+    Route::patch('/profile/preferences', [\App\Http\Controllers\Api\StudentApiController::class, 'updatePreferences']);
 
     // Planes de entrenamiento
     Route::get('/plans', [\App\Http\Controllers\Api\TrainingPlanApiController::class, 'index']);

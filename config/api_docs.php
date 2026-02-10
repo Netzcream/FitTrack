@@ -53,9 +53,19 @@ return [
                     'birth_date' => ['type' => ['string', 'null']],
                     'gender' => ['type' => ['string', 'null']],
                     'height_cm' => ['type' => ['number', 'null']],
-                    'weight_kg' => ['type' => ['number', 'null']],
+                    'weight_kg' => [
+                        'type' => ['number', 'null'],
+                        'description' => 'Ultimo peso registrado (tabla student_weight_entries), con fallback a data.weight_kg.',
+                    ],
+                    'imc' => [
+                        'type' => ['number', 'null'],
+                        'description' => 'IMC calculado con height_cm y weight_kg efectivo.',
+                    ],
                     'language' => ['type' => ['string', 'null']],
-                    'notifications' => ['type' => ['array', 'object', 'null']],
+                    'notifications' => [
+                        'type' => ['object', 'null'],
+                        'additionalProperties' => ['type' => 'boolean'],
+                    ],
                     'training_experience' => ['type' => ['string', 'null']],
                     'days_per_week' => ['type' => ['integer', 'null']],
                 ],
@@ -472,9 +482,18 @@ return [
                                     'height_cm' => ['type' => 'number', 'minimum' => 50, 'maximum' => 300],
                                     'weight_kg' => ['type' => 'number', 'minimum' => 20, 'maximum' => 500],
                                     'language' => ['type' => 'string', 'maxLength' => 10],
-                                    'notifications' => ['type' => 'array', 'items' => ['type' => 'string']],
+                                    'notifications' => ['type' => 'object', 'additionalProperties' => ['type' => 'boolean']],
                                     'training_experience' => ['type' => 'string', 'maxLength' => 100],
                                     'days_per_week' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 7],
+                                    'contact' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'phone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                            'timezone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                            'language' => ['type' => ['string', 'null'], 'maxLength' => 10],
+                                        ],
+                                        'additionalProperties' => false,
+                                    ],
                                 ],
                             ],
                         ],
@@ -483,6 +502,82 @@ return [
                 'responses' => [
                     '200' => [
                         'description' => 'Perfil actualizado',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'message' => ['type' => 'string'],
+                                        'data' => ['$ref' => '#/components/schemas/StudentProfile'],
+                                    ],
+                                    'required' => ['message', 'data'],
+                                ],
+                            ],
+                        ],
+                    ],
+                    '422' => [
+                        'description' => 'Datos invalidos',
+                        'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/ValidationError']]],
+                    ],
+                ],
+            ],
+        ],
+
+        '/profile/preferences' => [
+            'patch' => [
+                'summary' => 'Actualizar contacto y notificaciones',
+                'description' => 'Endpoint dedicado para preferencias de contacto (telefono, timezone, idioma) y notificaciones.',
+                'requestBody' => [
+                    'required' => true,
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'contact' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'phone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                            'timezone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                            'language' => ['type' => ['string', 'null'], 'maxLength' => 10],
+                                        ],
+                                        'additionalProperties' => false,
+                                    ],
+                                    'phone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                    'timezone' => ['type' => ['string', 'null'], 'maxLength' => 50],
+                                    'language' => ['type' => ['string', 'null'], 'maxLength' => 10],
+                                    'notifications' => [
+                                        'type' => 'object',
+                                        'additionalProperties' => ['type' => 'boolean'],
+                                        'description' => 'Preferencias por canal/evento. Ejemplo: new_plan, session_reminder.',
+                                    ],
+                                ],
+                                'anyOf' => [
+                                    ['required' => ['contact']],
+                                    ['required' => ['phone']],
+                                    ['required' => ['timezone']],
+                                    ['required' => ['language']],
+                                    ['required' => ['notifications']],
+                                ],
+                            ],
+                            'example' => [
+                                'contact' => [
+                                    'phone' => '+54 11 5555 5555',
+                                    'timezone' => 'America/Argentina/Buenos_Aires',
+                                    'language' => 'es',
+                                ],
+                                'notifications' => [
+                                    'new_plan' => true,
+                                    'session_reminder' => true,
+                                    'weekly_summary' => false,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'responses' => [
+                    '200' => [
+                        'description' => 'Preferencias actualizadas',
                         'content' => [
                             'application/json' => [
                                 'schema' => [
