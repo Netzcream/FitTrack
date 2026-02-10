@@ -12,7 +12,9 @@ use App\Models\Tenant\StudentPlanAssignment;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\Workout;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WorkoutApiParityTest extends TestCase
@@ -356,6 +358,52 @@ class WorkoutApiParityTest extends TestCase
         $response->assertJsonPath('data.physical_activity.set_progress.completed', 0);
         $response->assertJsonPath('data.xp_summary.base_total_if_all_exercises_rewarded', 10);
         $response->assertJsonPath('data.xp_summary.available_to_earn_now_total', 10);
+    }
+
+    public function test_show_workout_returns_full_images_collection_from_exercise_media(): void
+    {
+        $context = $this->createWorkoutContext(WorkoutStatus::IN_PROGRESS);
+        $headers = $this->apiHeaders($context['token'], $context['tenant']->id);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $disk = (string) config('media-library.disk_name', 'public');
+            Storage::fake($disk);
+
+            $exercise = Exercise::findOrFail($context['exercise']->id);
+            $exercise->addMedia(UploadedFile::fake()->image('exercise-1.jpg'))->toMediaCollection('images');
+            $exercise->addMedia(UploadedFile::fake()->image('exercise-2.jpg'))->toMediaCollection('images');
+
+            $workout = Workout::findOrFail($context['workout']->id);
+            $workout->update([
+                'exercises_data' => [
+                    [
+                        'exercise_id' => $exercise->id,
+                        'name' => $exercise->name,
+                        'completed' => false,
+                        'image_url' => $exercise->getFirstMediaUrl('images'),
+                        'sets' => [
+                            ['reps' => 10, 'completed' => false],
+                        ],
+                    ],
+                ],
+            ]);
+        } finally {
+            tenancy()->end();
+        }
+
+        $response = $this
+            ->withHeaders($headers)
+            ->getJson('/api/workouts/' . $context['workout']->id);
+
+        $response->assertOk();
+
+        $images = $response->json('data.exercises.0.images');
+        $this->assertIsArray($images);
+        $this->assertCount(2, $images);
+        $this->assertNotEmpty($images[0]['url'] ?? null);
+        $this->assertNotEmpty($images[1]['url'] ?? null);
+        $this->assertSame($images[0]['url'], $response->json('data.exercises.0.image_url'));
     }
 
     /**

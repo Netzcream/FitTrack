@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Models\Tenant\Exercise;
 use App\Models\Tenant\ExerciseCompletionLog;
 use App\Models\Tenant as CentralTenant;
 use App\Models\Tenant\Workout;
@@ -13,13 +14,18 @@ use Illuminate\Support\Facades\URL;
 class WorkoutDataFormatter
 {
     /**
+     * @var array<int, array<int, array{url: string, thumb: string}>>
+     */
+    private array $exerciseImagesCache = [];
+
+    /**
      * Formatea un workout bajo un contrato uniforme para toda la API.
      */
     public function format(Workout $workout): array
     {
         $workout->loadMissing('planAssignment', 'student');
 
-        $rawExercisesData = $workout->exercises_data;
+        $rawExercisesData = $this->hydrateExerciseImages($workout->exercises_data);
         $pdfUrl = $this->resolveWorkoutPdfUrl($workout);
         $exercisesData = $this->attachPdfUrlToExercises($rawExercisesData, $pdfUrl);
         $sessionXpLogs = $this->loadSessionExerciseXpLogs($workout, $exercisesData);
@@ -226,6 +232,12 @@ class WorkoutDataFormatter
             return [];
         }
 
+        $images = is_array($ex['images'] ?? null) ? array_values($ex['images']) : [];
+        $imageUrl = $ex['image_url'] ?? data_get($images, '0.url');
+        if (!is_string($imageUrl) || trim($imageUrl) === '') {
+            $imageUrl = null;
+        }
+
         $sets = $this->normalizeSets($ex['sets'] ?? []);
         $setsTotal = count($sets);
         $setsCompleted = (int) collect($sets)->filter(fn (array $set) => (bool) ($set['completed'] ?? false))->count();
@@ -256,8 +268,8 @@ class WorkoutDataFormatter
             'category' => $ex['category'] ?? null,
             'level' => $ex['level'] ?? null,
             'equipment' => $ex['equipment'] ?? null,
-            'image_url' => $ex['image_url'] ?? null,
-            'images' => $ex['images'] ?? [],
+            'image_url' => $imageUrl,
+            'images' => $images,
             'pdf_url' => $ex['pdf_url'] ?? null,
             'completed' => $isCompleted,
             'detail' => $ex['detail'] ?? null,
@@ -402,6 +414,111 @@ class WorkoutDataFormatter
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * Ensure each exercise payload returns the full media gallery when exercise_id is available.
+     */
+    private function hydrateExerciseImages(mixed $exercisesData): mixed
+    {
+        if (!is_array($exercisesData) || !array_is_list($exercisesData)) {
+            return $exercisesData;
+        }
+
+        $exerciseIds = collect($exercisesData)
+            ->map(function ($exercise): ?int {
+                if (!is_array($exercise)) {
+                    return null;
+                }
+
+                return $this->extractNumericExerciseId($exercise);
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($exerciseIds->isEmpty()) {
+            return $exercisesData;
+        }
+
+        $missingExerciseIds = $exerciseIds
+            ->filter(fn (int $exerciseId): bool => !array_key_exists($exerciseId, $this->exerciseImagesCache))
+            ->values();
+
+        if ($missingExerciseIds->isNotEmpty()) {
+            $exerciseMap = Exercise::query()
+                ->with('media')
+                ->whereIn('id', $missingExerciseIds->all())
+                ->get()
+                ->keyBy('id');
+
+            foreach ($missingExerciseIds as $exerciseId) {
+                /** @var Exercise|null $exercise */
+                $exercise = $exerciseMap->get($exerciseId);
+                $this->exerciseImagesCache[$exerciseId] = $this->buildExerciseImagesPayload($exercise);
+            }
+        }
+
+        return collect($exercisesData)
+            ->map(function ($exercise) {
+                if (!is_array($exercise)) {
+                    return $exercise;
+                }
+
+                $exerciseId = $this->extractNumericExerciseId($exercise);
+                if ($exerciseId === null) {
+                    return $exercise;
+                }
+
+                $images = $this->exerciseImagesCache[$exerciseId] ?? [];
+                if ($images === []) {
+                    return $exercise;
+                }
+
+                $exercise['images'] = $images;
+                $exercise['image_url'] = is_string($exercise['image_url'] ?? null) && trim((string) $exercise['image_url']) !== ''
+                    ? (string) $exercise['image_url']
+                    : ($images[0]['url'] ?? null);
+
+                return $exercise;
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{url: string, thumb: string}>
+     */
+    private function buildExerciseImagesPayload(?Exercise $exercise): array
+    {
+        if (!$exercise) {
+            return [];
+        }
+
+        return $exercise->getMedia('images')
+            ->map(function ($media): array {
+                return [
+                    'url' => $media->getFullUrl(),
+                    'thumb' => $media->getFullUrl('thumb'),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function extractNumericExerciseId(array $exercise): ?int
+    {
+        $candidate = $exercise['exercise_id'] ?? $exercise['id'] ?? null;
+
+        if (is_int($candidate)) {
+            return $candidate;
+        }
+
+        if (is_string($candidate) && ctype_digit($candidate)) {
+            return (int) $candidate;
+        }
+
+        return null;
     }
 
     /**

@@ -83,6 +83,21 @@ class ApiDocsTest extends TestCase
         );
 
         $this->assertSame(
+            '#/components/schemas/WorkoutExercise',
+            $response->json('components.schemas.Workout.properties.exercises.items.$ref')
+        );
+
+        $this->assertSame(
+            'array',
+            $response->json('components.schemas.WorkoutExercise.properties.images.type')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/WorkoutExerciseImage',
+            $response->json('components.schemas.WorkoutExercise.properties.images.items.$ref')
+        );
+
+        $this->assertSame(
             'awarded',
             $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.awarded_xp.value.gamification.events.0.reason')
         );
