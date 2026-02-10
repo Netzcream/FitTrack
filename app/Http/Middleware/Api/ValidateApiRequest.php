@@ -19,7 +19,14 @@ class ValidateApiRequest
     public function handle(Request $request, Closure $next): Response
     {
         // Skipear autenticación para rutas públicas
-        if ($request->is('api/auth/login', 'api/auth/register', 'auth/login', 'auth/register')) {
+        if ($request->is(
+            'api/auth/login',
+            'api/auth/register',
+            'auth/login',
+            'auth/register',
+            'api/docs',
+            'docs'
+        )) {
             return $next($request);
         }
 
@@ -77,5 +84,4 @@ class ValidateApiRequest
         return $next($request);
     }
 }
-
 

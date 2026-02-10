@@ -33,6 +33,11 @@ class AddBrandingToResponse
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Mantener la spec OpenAPI limpia en /api/docs.
+        if ($request->is('api/docs', 'docs')) {
+            return $next($request);
+        }
+
         $response = $next($request);
 
         // Solo procesar respuestas JSON

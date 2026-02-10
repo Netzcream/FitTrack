@@ -40,4 +40,22 @@ class AddBrandingToResponseTest extends TestCase
 
         $this->assertSame('ok', $response->getContent());
     }
+
+    public function test_it_skips_branding_for_api_docs_route(): void
+    {
+        $middleware = new AddBrandingToResponse();
+        $request = Request::create('/api/docs', 'GET');
+
+        $response = $middleware->handle($request, function () {
+            return response()->json([
+                'openapi' => '3.0.3',
+            ]);
+        });
+
+        $payload = json_decode($response->getContent(), true);
+
+        $this->assertSame('3.0.3', $payload['openapi'] ?? null);
+        $this->assertArrayNotHasKey('branding', $payload);
+        $this->assertArrayNotHasKey('trainer', $payload);
+    }
 }
