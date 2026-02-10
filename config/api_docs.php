@@ -1065,6 +1065,20 @@ return [
                     ],
                 ],
                 'responses' => [
+                    '200' => [
+                        'description' => 'Peso registrado (compatibilidad)',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'message' => ['type' => 'string'],
+                                        'data' => ['$ref' => '#/components/schemas/WeightEntry'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                     '201' => [
                         'description' => 'Peso registrado',
                         'content' => [
@@ -1440,6 +1454,14 @@ return [
                     ],
                 ],
                 'responses' => [
+                    '200' => [
+                        'description' => 'Mensaje creado (compatibilidad)',
+                        'content' => [
+                            'application/json' => [
+                                'schema' => ['$ref' => '#/components/schemas/Message'],
+                            ],
+                        ],
+                    ],
                     '201' => [
                         'description' => 'Mensaje creado',
                         'content' => [

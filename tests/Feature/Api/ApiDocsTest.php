@@ -102,6 +102,26 @@ class ApiDocsTest extends TestCase
             $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.already_awarded_in_session.value.gamification.events.0.xp_gained')
         );
 
+        $this->assertSame(
+            '#/components/schemas/Message',
+            $response->json('paths./messages/send.post.responses.200.content.application/json.schema.$ref')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/Message',
+            $response->json('paths./messages/send.post.responses.201.content.application/json.schema.$ref')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/WeightEntry',
+            $response->json('paths./weight.post.responses.200.content.application/json.schema.properties.data.$ref')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/WeightEntry',
+            $response->json('paths./weight.post.responses.201.content.application/json.schema.properties.data.$ref')
+        );
+
         $response->assertJsonMissingPath('branding');
         $response->assertJsonMissingPath('trainer');
     }
