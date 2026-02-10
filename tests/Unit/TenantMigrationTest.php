@@ -84,6 +84,10 @@ class TenantMigrationTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode, 'Tenant migrations should run without error on MySQL test DB.');
+        $this->assertTrue(
+            Schema::connection('tenant_test')->hasTable('notifications'),
+            'notifications table should exist in tenant databases'
+        );
 
         // Cleanup: drop the test tenant database
         DB::statement("DROP DATABASE IF EXISTS `{$testTenantDb}`");
