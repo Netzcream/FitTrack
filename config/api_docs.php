@@ -75,10 +75,22 @@ return [
                     'id' => ['type' => ['integer', 'string', 'null']],
                     'exercise_id' => ['type' => ['integer', 'string', 'null']],
                     'name' => ['type' => ['string', 'null']],
-                    'description' => ['type' => ['string', 'null']],
-                    'category' => ['type' => ['string', 'null']],
-                    'level' => ['type' => ['string', 'null']],
-                    'equipment' => ['type' => ['string', 'null']],
+                    'description' => [
+                        'type' => ['string', 'null'],
+                        'description' => 'Si viene null en exercises_data, la API intenta hidratarla desde la entidad Exercise.',
+                    ],
+                    'category' => [
+                        'type' => ['string', 'null'],
+                        'description' => 'Si viene null/vacia en exercises_data, la API intenta hidratarla desde la entidad Exercise.',
+                    ],
+                    'level' => [
+                        'type' => ['string', 'null'],
+                        'description' => 'Si viene null/vacio en exercises_data, la API intenta hidratarlo desde la entidad Exercise.',
+                    ],
+                    'equipment' => [
+                        'type' => ['string', 'null'],
+                        'description' => 'Si viene null/vacio en exercises_data, la API intenta hidratarlo desde la entidad Exercise.',
+                    ],
                     'image_url' => ['type' => ['string', 'null']],
                     'images' => [
                         'type' => 'array',

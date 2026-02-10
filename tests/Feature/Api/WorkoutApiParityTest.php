@@ -406,6 +406,61 @@ class WorkoutApiParityTest extends TestCase
         $this->assertSame($images[0]['url'], $response->json('data.exercises.0.image_url'));
     }
 
+    public function test_show_workout_hydrates_description_from_exercise_when_payload_description_is_null(): void
+    {
+        $context = $this->createWorkoutContext(WorkoutStatus::IN_PROGRESS);
+        $headers = $this->apiHeaders($context['token'], $context['tenant']->id);
+
+        tenancy()->initialize($context['tenant']);
+        try {
+            $exercise = Exercise::findOrFail($context['exercise']->id);
+            $exercise->update([
+                'description' => 'Empuja la barra en banco plano con control',
+                'category' => 'Pecho',
+                'level' => 'intermediate',
+                'equipment' => 'barra',
+            ]);
+
+            $workout = Workout::findOrFail($context['workout']->id);
+            $workout->update([
+                'exercises_data' => [
+                    [
+                        'exercise_id' => $exercise->id,
+                        'name' => $exercise->name,
+                        'day' => 1,
+                        'order' => 1,
+                        'detail' => '5x10',
+                        'notes' => 'Ritmo 2-1-2',
+                        'meta' => ['source' => 'seed'],
+                        'description' => null,
+                        'category' => 'Pecho',
+                        'level' => 'intermediate',
+                        'completed' => false,
+                        'sets' => [
+                            ['reps' => 10, 'completed' => false],
+                        ],
+                    ],
+                ],
+            ]);
+        } finally {
+            tenancy()->end();
+        }
+
+        $response = $this
+            ->withHeaders($headers)
+            ->getJson('/api/workouts/' . $context['workout']->id);
+
+        $response->assertOk();
+        $response->assertJsonPath(
+            'data.exercises.0.description',
+            'Empuja la barra en banco plano con control'
+        );
+        $response->assertJsonPath(
+            'data.exercises_data.0.description',
+            'Empuja la barra en banco plano con control'
+        );
+    }
+
     /**
      * @return array{
      *   tenant: Tenant,

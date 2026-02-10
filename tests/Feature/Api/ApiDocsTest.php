@@ -98,6 +98,11 @@ class ApiDocsTest extends TestCase
         );
 
         $this->assertSame(
+            'Si viene null en exercises_data, la API intenta hidratarla desde la entidad Exercise.',
+            $response->json('components.schemas.WorkoutExercise.properties.description.description')
+        );
+
+        $this->assertSame(
             'awarded',
             $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.awarded_xp.value.gamification.events.0.reason')
         );

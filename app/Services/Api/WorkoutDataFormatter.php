@@ -19,13 +19,18 @@ class WorkoutDataFormatter
     private array $exerciseImagesCache = [];
 
     /**
+     * @var array<int, array{name: ?string, description: ?string, category: ?string, level: ?string, equipment: ?string}>
+     */
+    private array $exerciseMetadataCache = [];
+
+    /**
      * Formatea un workout bajo un contrato uniforme para toda la API.
      */
     public function format(Workout $workout): array
     {
         $workout->loadMissing('planAssignment', 'student');
 
-        $rawExercisesData = $this->hydrateExerciseImages($workout->exercises_data);
+        $rawExercisesData = $this->hydrateExerciseData($workout->exercises_data);
         $pdfUrl = $this->resolveWorkoutPdfUrl($workout);
         $exercisesData = $this->attachPdfUrlToExercises($rawExercisesData, $pdfUrl);
         $sessionXpLogs = $this->loadSessionExerciseXpLogs($workout, $exercisesData);
@@ -417,9 +422,9 @@ class WorkoutDataFormatter
     }
 
     /**
-     * Ensure each exercise payload returns the full media gallery when exercise_id is available.
+     * Hydrate exercise metadata and full media gallery when exercise_id is available.
      */
-    private function hydrateExerciseImages(mixed $exercisesData): mixed
+    private function hydrateExerciseData(mixed $exercisesData): mixed
     {
         if (!is_array($exercisesData) || !array_is_list($exercisesData)) {
             return $exercisesData;
@@ -456,6 +461,7 @@ class WorkoutDataFormatter
                 /** @var Exercise|null $exercise */
                 $exercise = $exerciseMap->get($exerciseId);
                 $this->exerciseImagesCache[$exerciseId] = $this->buildExerciseImagesPayload($exercise);
+                $this->exerciseMetadataCache[$exerciseId] = $this->buildExerciseMetadataPayload($exercise);
             }
         }
 
@@ -470,11 +476,26 @@ class WorkoutDataFormatter
                     return $exercise;
                 }
 
-                $images = $this->exerciseImagesCache[$exerciseId] ?? [];
-                if ($images === []) {
-                    return $exercise;
+                $metadata = $this->exerciseMetadataCache[$exerciseId] ?? null;
+                if (is_array($metadata)) {
+                    if ($this->isNullOrBlank($exercise['name'] ?? null) && $metadata['name'] !== null) {
+                        $exercise['name'] = $metadata['name'];
+                    }
+                    if ($this->isNullOrBlank($exercise['description'] ?? null) && $metadata['description'] !== null) {
+                        $exercise['description'] = $metadata['description'];
+                    }
+                    if ($this->isNullOrBlank($exercise['category'] ?? null) && $metadata['category'] !== null) {
+                        $exercise['category'] = $metadata['category'];
+                    }
+                    if ($this->isNullOrBlank($exercise['level'] ?? null) && $metadata['level'] !== null) {
+                        $exercise['level'] = $metadata['level'];
+                    }
+                    if ($this->isNullOrBlank($exercise['equipment'] ?? null) && $metadata['equipment'] !== null) {
+                        $exercise['equipment'] = $metadata['equipment'];
+                    }
                 }
 
+                $images = $this->exerciseImagesCache[$exerciseId] ?? [];
                 $exercise['images'] = $images;
                 $exercise['image_url'] = is_string($exercise['image_url'] ?? null) && trim((string) $exercise['image_url']) !== ''
                     ? (string) $exercise['image_url']
@@ -504,6 +525,40 @@ class WorkoutDataFormatter
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array{name: ?string, description: ?string, category: ?string, level: ?string, equipment: ?string}
+     */
+    private function buildExerciseMetadataPayload(?Exercise $exercise): array
+    {
+        return [
+            'name' => $this->normalizeNullableString($exercise?->name),
+            'description' => $this->normalizeNullableString($exercise?->description),
+            'category' => $this->normalizeNullableString($exercise?->category),
+            'level' => $this->normalizeNullableString($exercise?->level),
+            'equipment' => $this->normalizeNullableString($exercise?->equipment),
+        ];
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    private function isNullOrBlank(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        return is_string($value) && trim($value) === '';
     }
 
     private function extractNumericExerciseId(array $exercise): ?int
