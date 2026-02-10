@@ -18,6 +18,90 @@ class ApiDocsTest extends TestCase
         $this->assertNotEmpty($response->json('paths./home.get.parameters'));
         $this->assertNotNull($response->json('paths./workouts/{id}.get'));
 
+        $this->assertSame(
+            ['email', 'password'],
+            $response->json('paths./auth/login.post.requestBody.content.application/json.schema.required')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('paths./workouts/{id}/complete.post.requestBody.content.application/json.schema.properties.duration_minutes.type')
+        );
+
+        $this->assertSame(
+            'boolean',
+            $response->json('paths./messages/mute.post.requestBody.content.application/json.schema.properties.mute.type')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/StudentProfile',
+            $response->json('paths./profile.get.responses.200.content.application/json.schema.properties.data.$ref')
+        );
+
+        $this->assertNotNull(
+            $response->json('paths./home.get.responses.200.content.application/json.schema.properties.data.properties.student')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('paths./weight/change.get.responses.200.content.application/json.schema.properties.data.oneOf.0.properties.period_days.type')
+        );
+
+        $this->assertSame(
+            [
+                'awarded',
+                'already_awarded_in_session',
+                'exercise_identifier_missing',
+                'exercise_not_found',
+            ],
+            $response->json('components.schemas.GamificationEvent.properties.reason.enum')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('components.schemas.GamificationEvent.properties.awarded_xp.type')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('components.schemas.GamificationEvent.properties.xp.type')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('components.schemas.GamificationEvent.properties.xp_gained.type')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('components.schemas.GamificationPatchProfile.properties.current_xp.type')
+        );
+
+        $this->assertSame(
+            'integer',
+            $response->json('components.schemas.GamificationPatchProfile.properties.total_xp.type')
+        );
+
+        $this->assertSame(
+            'awarded',
+            $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.awarded_xp.value.gamification.events.0.reason')
+        );
+
+        $this->assertSame(
+            15,
+            $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.awarded_xp.value.gamification.events.0.awarded_xp')
+        );
+
+        $this->assertSame(
+            'already_awarded_in_session',
+            $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.already_awarded_in_session.value.gamification.events.0.reason')
+        );
+
+        $this->assertSame(
+            0,
+            $response->json('paths./workouts/{id}.patch.responses.200.content.application/json.examples.already_awarded_in_session.value.gamification.events.0.xp_gained')
+        );
+
         $response->assertJsonMissingPath('branding');
         $response->assertJsonMissingPath('trainer');
     }

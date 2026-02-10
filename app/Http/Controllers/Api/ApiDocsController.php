@@ -11,6 +11,11 @@ use Throwable;
 
 class ApiDocsController extends Controller
 {
+    /**
+     * @var array<string, mixed>
+     */
+    private array $docsConfig = [];
+
     public function index(): JsonResponse
     {
         return response()->json(
@@ -22,10 +27,17 @@ class ApiDocsController extends Controller
     }
 
     /**
-     * Construye un documento OpenAPI 3.0 basico a partir de las rutas reales.
+     * Construye un documento OpenAPI 3.0 desde rutas reales + detalles manuales.
+     *
+     * La lista de rutas se obtiene de Laravel para no desincronizar.
+     * El detalle fino (request/response por endpoint) se define en config/api_docs.php.
+     *
+     * @return array<string, mixed>
      */
     private function buildOpenApiSpec(): array
     {
+        $this->docsConfig = config('api_docs', []);
+
         $paths = [];
 
         /** @var RoutingRoute $route */
@@ -35,11 +47,11 @@ class ApiDocsController extends Controller
             }
 
             $path = $this->normalizePath((string) $route->uri());
-
             $methods = array_values(array_diff($route->methods(), ['HEAD', 'OPTIONS']));
             sort($methods);
 
             foreach ($methods as $method) {
+                $method = strtoupper($method);
                 $paths[$path][strtolower($method)] = $this->buildOperation($route, $path, $method);
             }
         }
@@ -47,45 +59,49 @@ class ApiDocsController extends Controller
         ksort($paths);
 
         $baseApiUrl = rtrim(url('/api'), '/');
+        $defaultInfo = [
+            'title' => sprintf('%s API', config('app.name', 'FitTrack')),
+            'version' => (string) env('APP_VERSION', '1.0.0'),
+            'description' => 'Documentacion JSON autogenerada desde rutas registradas en Laravel.',
+        ];
 
-        return [
-            'openapi' => '3.0.3',
-            'info' => [
-                'title' => sprintf('%s API', config('app.name', 'FitTrack')),
-                'version' => (string) env('APP_VERSION', '1.0.0'),
-                'description' => 'Documentacion JSON autogenerada desde rutas registradas en Laravel.',
+        $defaultComponents = [
+            'securitySchemes' => [
+                'bearerAuth' => [
+                    'type' => 'http',
+                    'scheme' => 'bearer',
+                    'bearerFormat' => 'Sanctum token',
+                ],
             ],
+            'parameters' => [
+                'TenantHeader' => [
+                    'name' => 'X-Tenant-ID',
+                    'in' => 'header',
+                    'required' => true,
+                    'description' => 'ID del tenant donde vive el token y datos del alumno.',
+                    'schema' => [
+                        'type' => 'string',
+                    ],
+                    'example' => 'your-tenant-id',
+                ],
+            ],
+        ];
+
+        $spec = [
+            'openapi' => '3.0.3',
+            'info' => array_replace($defaultInfo, (array) ($this->docsConfig['info'] ?? [])),
             'servers' => [
                 [
                     'url' => $baseApiUrl,
                     'description' => 'Base URL principal de la API',
                 ],
             ],
-            'components' => [
-                'securitySchemes' => [
-                    'bearerAuth' => [
-                        'type' => 'http',
-                        'scheme' => 'bearer',
-                        'bearerFormat' => 'Sanctum token',
-                    ],
-                ],
-                'parameters' => [
-                    'TenantHeader' => [
-                        'name' => 'X-Tenant-ID',
-                        'in' => 'header',
-                        'required' => true,
-                        'description' => 'ID del tenant donde vive el token y datos del alumno.',
-                        'schema' => [
-                            'type' => 'string',
-                        ],
-                        'example' => 'your-tenant-id',
-                    ],
-                ],
-            ],
-            'security' => [
-                ['bearerAuth' => []],
-            ],
-            'x-fittrack' => [
+            'components' => array_replace_recursive(
+                $defaultComponents,
+                (array) ($this->docsConfig['components'] ?? [])
+            ),
+            'security' => (array) ($this->docsConfig['security'] ?? [['bearerAuth' => []]]),
+            'x-fittrack' => array_replace_recursive([
                 'generated_at' => now()->toIso8601String(),
                 'documentation_url' => url('/api/docs'),
                 'public_endpoints' => [
@@ -96,9 +112,20 @@ class ApiDocsController extends Controller
                     'Authorization' => 'Bearer {token}',
                     'X-Tenant-ID' => '{tenant-id}',
                 ],
-            ],
+                'response_enrichment' => [
+                    'applies_to' => 'all_json_api_responses_except_/docs',
+                    'appended_fields' => ['branding', 'trainer'],
+                    'note' => 'Estas claves se agregan por middleware en runtime.',
+                ],
+            ], (array) ($this->docsConfig['x-fittrack'] ?? [])),
             'paths' => $paths,
         ];
+
+        if (isset($this->docsConfig['tags']) && is_array($this->docsConfig['tags'])) {
+            $spec['tags'] = $this->docsConfig['tags'];
+        }
+
+        return $spec;
     }
 
     private function shouldDocumentRoute(RoutingRoute $route): bool
@@ -128,6 +155,9 @@ class ApiDocsController extends Controller
         return $uri;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function buildOperation(RoutingRoute $route, string $path, string $method): array
     {
         $actionName = $route->getActionName();
@@ -142,9 +172,9 @@ class ApiDocsController extends Controller
             'operationId' => $this->buildOperationId($method, $path),
             'summary' => $doc['summary'] ?? $this->fallbackSummary($controllerMethod, $method, $path),
             'description' => $doc['description'] ?? null,
-            'parameters' => $this->buildParameters($path, $requiresTenantHeader),
+            'parameters' => $this->buildDefaultParameters($path, $requiresTenantHeader),
             'security' => $requiresAuth ? [['bearerAuth' => []]] : [],
-            'responses' => $this->buildResponses($path, $method, $requiresAuth, $requiresTenantHeader),
+            'responses' => $this->buildDefaultResponses($method, $requiresAuth, $requiresTenantHeader),
             'x-fittrack' => [
                 'controller_action' => $actionName,
                 'requires_auth' => $requiresAuth,
@@ -152,20 +182,8 @@ class ApiDocsController extends Controller
             ],
         ];
 
-        if (in_array($method, ['POST', 'PUT', 'PATCH'], true) && $path !== '/auth/logout') {
-            $operation['requestBody'] = [
-                'required' => false,
-                'content' => [
-                    'application/json' => [
-                        'schema' => [
-                            'type' => 'object',
-                        ],
-                    ],
-                ],
-            ];
-        }
-
-        return $operation;
+        $overrides = $this->getOperationOverrides($path, strtolower($method));
+        return $this->applyOperationOverrides($operation, $overrides);
     }
 
     /**
@@ -240,7 +258,10 @@ class ApiDocsController extends Controller
         ];
     }
 
-    private function buildParameters(string $path, bool $requiresTenantHeader): array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildDefaultParameters(string $path, bool $requiresTenantHeader): array
     {
         $parameters = [];
 
@@ -267,19 +288,15 @@ class ApiDocsController extends Controller
         return $parameters;
     }
 
-    private function buildResponses(string $path, string $method, bool $requiresAuth, bool $requiresTenantHeader): array
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function buildDefaultResponses(string $method, bool $requiresAuth, bool $requiresTenantHeader): array
     {
         $responses = [
             '200' => ['description' => 'OK'],
+            '404' => ['description' => 'Not Found'],
         ];
-
-        if ($path === '/weight' && $method === 'POST') {
-            $responses['201'] = ['description' => 'Created'];
-        }
-
-        if ($path === '/messages/send' && $method === 'POST') {
-            $responses['201'] = ['description' => 'Created'];
-        }
 
         if ($requiresTenantHeader) {
             $responses['400'] = ['description' => 'Missing X-Tenant-ID header'];
@@ -289,13 +306,133 @@ class ApiDocsController extends Controller
             $responses['401'] = ['description' => 'Unauthorized'];
         }
 
-        $responses['404'] = ['description' => 'Not Found'];
-
         if (in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
             $responses['422'] = ['description' => 'Validation Error'];
         }
 
         return $responses;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getOperationOverrides(string $path, string $method): array
+    {
+        $operations = (array) ($this->docsConfig['operations'] ?? []);
+        $pathOverrides = $operations[$path] ?? null;
+
+        if (!is_array($pathOverrides)) {
+            return [];
+        }
+
+        $operationOverrides = $pathOverrides[$method] ?? null;
+
+        return is_array($operationOverrides) ? $operationOverrides : [];
+    }
+
+    /**
+     * @param array<string, mixed> $operation
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private function applyOperationOverrides(array $operation, array $overrides): array
+    {
+        if (isset($overrides['parameters']) && is_array($overrides['parameters'])) {
+            $operation['parameters'] = $this->mergeParameters(
+                (array) ($operation['parameters'] ?? []),
+                $overrides['parameters']
+            );
+            unset($overrides['parameters']);
+        }
+
+        foreach (['summary', 'description', 'operationId', 'tags', 'security', 'responses'] as $key) {
+            if (array_key_exists($key, $overrides)) {
+                $operation[$key] = $overrides[$key];
+                unset($overrides[$key]);
+            }
+        }
+
+        if (array_key_exists('requestBody', $overrides)) {
+            if ($overrides['requestBody'] === null) {
+                unset($operation['requestBody']);
+            } else {
+                $operation['requestBody'] = $overrides['requestBody'];
+            }
+            unset($overrides['requestBody']);
+        }
+
+        if ($overrides !== []) {
+            $operation = array_replace_recursive($operation, $overrides);
+        }
+
+        return $operation;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $defaults
+     * @param array<int, array<string, mixed>> $overrides
+     * @return array<int, array<string, mixed>>
+     */
+    private function mergeParameters(array $defaults, array $overrides): array
+    {
+        $indexed = [];
+        $order = [];
+
+        foreach ($defaults as $parameter) {
+            if (!is_array($parameter)) {
+                continue;
+            }
+
+            $key = $this->parameterKey($parameter);
+            if ($key === null) {
+                continue;
+            }
+
+            $indexed[$key] = $parameter;
+            $order[] = $key;
+        }
+
+        foreach ($overrides as $parameter) {
+            if (!is_array($parameter)) {
+                continue;
+            }
+
+            $key = $this->parameterKey($parameter);
+            if ($key === null) {
+                continue;
+            }
+
+            if (!array_key_exists($key, $indexed)) {
+                $order[] = $key;
+            }
+
+            $indexed[$key] = $parameter;
+        }
+
+        $merged = [];
+        foreach ($order as $key) {
+            if (isset($indexed[$key])) {
+                $merged[] = $indexed[$key];
+            }
+        }
+
+        return $merged;
+    }
+
+    /**
+     * @param array<string, mixed> $parameter
+     */
+    private function parameterKey(array $parameter): ?string
+    {
+        if (isset($parameter['$ref']) && is_string($parameter['$ref'])) {
+            return '$ref:' . $parameter['$ref'];
+        }
+
+        if (!isset($parameter['name'], $parameter['in'])) {
+            return null;
+        }
+
+        return (string) $parameter['in'] . ':' . (string) $parameter['name'];
     }
 
     private function resolveTag(string $path): string

@@ -729,6 +729,7 @@ class WorkoutApiController extends Controller
         if (!$profile) {
             return [
                 'has_profile' => false,
+                'current_xp' => 0,
                 'total_xp' => 0,
                 'current_level' => 0,
                 'current_tier' => 0,
@@ -746,9 +747,11 @@ class WorkoutApiController extends Controller
 
         $xpForCurrentLevel = StudentGamificationProfile::calculateXpRequiredForLevel((int) $profile->current_level);
         $xpForNextLevel = (int) $profile->xp_for_next_level;
+        $xpInsideLevel = max(0, (int) $profile->total_xp - $xpForCurrentLevel);
 
         return [
             'has_profile' => true,
+            'current_xp' => $xpInsideLevel,
             'total_xp' => (int) $profile->total_xp,
             'current_level' => (int) $profile->current_level,
             'current_tier' => (int) $profile->current_tier,
@@ -757,7 +760,7 @@ class WorkoutApiController extends Controller
             'level_progress_percent' => (int) $profile->level_progress_percent,
             'xp_for_current_level' => $xpForCurrentLevel,
             'xp_for_next_level' => $xpForNextLevel,
-            'xp_inside_level' => max(0, (int) $profile->total_xp - $xpForCurrentLevel),
+            'xp_inside_level' => $xpInsideLevel,
             'xp_required_inside_level' => max(0, $xpForNextLevel - $xpForCurrentLevel),
             'total_exercises_completed' => (int) $profile->total_exercises_completed,
             'last_exercise_completed_at' => $profile->last_exercise_completed_at?->toDateString(),
