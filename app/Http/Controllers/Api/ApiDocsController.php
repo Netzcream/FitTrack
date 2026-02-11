@@ -85,6 +85,84 @@ class ApiDocsController extends Controller
                     'example' => 'your-tenant-id',
                 ],
             ],
+            'schemas' => [
+                'Branding' => [
+                    'type' => 'object',
+                    'additionalProperties' => true,
+                    'properties' => [
+                        'brand_name' => ['type' => ['string', 'null']],
+                        'trainer_email' => ['type' => ['string', 'null']],
+                        'trainer_name' => ['type' => ['string', 'null']],
+                        'logo_url' => ['type' => ['string', 'null']],
+                        'logo_light_url' => ['type' => ['string', 'null']],
+                        'favicon_url' => ['type' => ['string', 'null']],
+                        'primary_color' => ['type' => ['string', 'null']],
+                        'secondary_color' => ['type' => ['string', 'null']],
+                        'accent_color' => ['type' => ['string', 'null']],
+                        'color_base' => ['type' => ['string', 'null']],
+                        'color_dark' => ['type' => ['string', 'null']],
+                        'color_light' => ['type' => ['string', 'null']],
+                        'footer_text_color' => ['type' => ['string', 'null']],
+                        'footer_background_color' => ['type' => ['string', 'null']],
+                        'css_variables' => [
+                            'type' => ['object', 'null'],
+                            'additionalProperties' => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+                'Trainer' => [
+                    'type' => 'object',
+                    'additionalProperties' => true,
+                    'properties' => [
+                        'name' => ['type' => ['string', 'null']],
+                        'email' => ['type' => ['string', 'null']],
+                        'brand_name' => ['type' => ['string', 'null']],
+                        'primary_color' => ['type' => ['string', 'null']],
+                        'secondary_color' => ['type' => ['string', 'null']],
+                        'accent_color' => ['type' => ['string', 'null']],
+                        'logo_url' => ['type' => ['string', 'null']],
+                        'logo_light_url' => ['type' => ['string', 'null']],
+                        'favicon_url' => ['type' => ['string', 'null']],
+                        'contact' => [
+                            'type' => ['object', 'null'],
+                            'additionalProperties' => true,
+                            'properties' => [
+                                'email' => ['type' => ['string', 'null']],
+                                'support_email' => ['type' => ['string', 'null']],
+                                'whatsapp' => ['type' => ['string', 'null']],
+                                'instagram' => ['type' => ['string', 'null']],
+                                'facebook' => ['type' => ['string', 'null']],
+                                'youtube' => ['type' => ['string', 'null']],
+                                'twitter' => ['type' => ['string', 'null']],
+                                'tiktok' => ['type' => ['string', 'null']],
+                            ],
+                        ],
+                        'theme' => [
+                            'type' => ['object', 'null'],
+                            'additionalProperties' => true,
+                            'properties' => [
+                                'color_base' => ['type' => ['string', 'null']],
+                                'color_dark' => ['type' => ['string', 'null']],
+                                'color_light' => ['type' => ['string', 'null']],
+                                'footer_text_color' => ['type' => ['string', 'null']],
+                                'footer_background_color' => ['type' => ['string', 'null']],
+                                'css_variables' => [
+                                    'type' => ['object', 'null'],
+                                    'additionalProperties' => ['type' => 'string'],
+                                ],
+                            ],
+                        ],
+                        'tenant' => [
+                            'type' => ['object', 'null'],
+                            'additionalProperties' => true,
+                            'properties' => [
+                                'id' => ['type' => ['string', 'null']],
+                                'name' => ['type' => ['string', 'null']],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $spec = [
@@ -115,7 +193,11 @@ class ApiDocsController extends Controller
                 'response_enrichment' => [
                     'applies_to' => 'all_json_api_responses_except_/docs',
                     'appended_fields' => ['branding', 'trainer'],
-                    'note' => 'Estas claves se agregan por middleware en runtime.',
+                    'schema_refs' => [
+                        'branding' => '#/components/schemas/Branding',
+                        'trainer' => '#/components/schemas/Trainer',
+                    ],
+                    'note' => 'Estas claves se agregan por middleware en runtime (incluye branding.favicon_url).',
                 ],
             ], (array) ($this->docsConfig['x-fittrack'] ?? [])),
             'paths' => $paths,

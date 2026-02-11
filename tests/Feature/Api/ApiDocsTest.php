@@ -164,6 +164,26 @@ class ApiDocsTest extends TestCase
         );
 
         $this->assertSame(
+            ['string', 'null'],
+            $response->json('components.schemas.Branding.properties.favicon_url.type')
+        );
+
+        $this->assertSame(
+            ['string', 'null'],
+            $response->json('components.schemas.Trainer.properties.favicon_url.type')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/Branding',
+            $response->json('x-fittrack.response_enrichment.schema_refs.branding')
+        );
+
+        $this->assertSame(
+            '#/components/schemas/Trainer',
+            $response->json('x-fittrack.response_enrichment.schema_refs.trainer')
+        );
+
+        $this->assertSame(
             '#/components/schemas/WeightEntry',
             $response->json('paths./weight.post.responses.200.content.application/json.schema.properties.data.$ref')
         );

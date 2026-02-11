@@ -61,6 +61,7 @@ class BrandingService
         $trainerName = self::getTrainerName($tenant, $brandName);
         $logoUrl = self::getLogoUrl($tenant);
         $logoLightUrl = self::getLogoLightUrl($tenant, $logoUrl);
+        $faviconUrl = self::getFaviconUrl($tenant);
 
         $colorBase = self::getColorBase();
         $colorDark = self::getColorDark();
@@ -74,6 +75,7 @@ class BrandingService
             'trainer_name' => $trainerName,
             'logo_url' => $logoUrl,
             'logo_light_url' => $logoLightUrl,
+            'favicon_url' => $faviconUrl,
             'primary_color' => self::getPrimaryColor($colorBase),
             'secondary_color' => self::getSecondaryColor($colorDark),
             'accent_color' => self::getAccentColor($colorLight),
@@ -116,6 +118,7 @@ class BrandingService
             'accent_color' => $branding['accent_color'],
             'logo_url' => $branding['logo_url'],
             'logo_light_url' => $branding['logo_light_url'],
+            'favicon_url' => $branding['favicon_url'],
             'contact' => [
                 'email' => $trainerEmail,
                 'support_email' => self::getContactEmail(),
@@ -252,6 +255,30 @@ class BrandingService
 
         $fallback = $fallbackLogoUrl ?? self::getLogoUrl($tenant);
         return self::normalizeTenantMediaUrl($fallback, $tenant);
+    }
+
+    /**
+     * Obtener URL del favicon
+     */
+    public static function getFaviconUrl($tenant = null): ?string
+    {
+        $tenant ??= self::getCurrentTenant();
+
+        $fromConfig = self::cleanString(tenant_config('favicon_url'));
+        if ($fromConfig !== null) {
+            return self::normalizeTenantMediaUrl($fromConfig, $tenant);
+        }
+
+        try {
+            $fromMedia = self::cleanString($tenant->config?->getFirstMediaUrl('favicon'));
+            if ($fromMedia !== null) {
+                return self::normalizeTenantMediaUrl($fromMedia, $tenant);
+            }
+        } catch (\Throwable $e) {
+            // fallback below
+        }
+
+        return null;
     }
 
     /**
@@ -398,6 +425,7 @@ class BrandingService
             'trainer_name' => self::DEFAULT_BRAND_NAME,
             'logo_url' => null,
             'logo_light_url' => null,
+            'favicon_url' => null,
             'primary_color' => self::DEFAULT_COLOR_BASE,
             'secondary_color' => self::DEFAULT_COLOR_DARK,
             'accent_color' => self::DEFAULT_COLOR_LIGHT,
@@ -426,6 +454,7 @@ class BrandingService
             'accent_color' => $branding['accent_color'],
             'logo_url' => null,
             'logo_light_url' => null,
+            'favicon_url' => null,
             'contact' => [
                 'email' => null,
                 'support_email' => self::DEFAULT_SUPPORT_EMAIL,

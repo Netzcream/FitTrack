@@ -1,1 +1,1 @@
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/fittrack-icon-only.png') }}" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/fittrack-logo.svg') }}" />

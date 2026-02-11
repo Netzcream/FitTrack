@@ -6,7 +6,7 @@
     <title>FitTrack para Personal Trainers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/fittrack-icon-only.png') }}" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/fittrack-logo.svg') }}" />
 
 
 

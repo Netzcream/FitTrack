@@ -23,6 +23,8 @@ class AddBrandingToResponseTest extends TestCase
 
         $this->assertArrayHasKey('branding', $payload);
         $this->assertArrayHasKey('trainer', $payload);
+        $this->assertArrayHasKey('favicon_url', $payload['branding']);
+        $this->assertArrayHasKey('favicon_url', $payload['trainer']);
         $this->assertArrayHasKey('contact', $payload['trainer']);
         $this->assertArrayHasKey('primary_color', $payload['trainer']);
     }
