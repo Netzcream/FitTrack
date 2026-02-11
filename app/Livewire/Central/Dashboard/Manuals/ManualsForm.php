@@ -9,6 +9,7 @@ use App\Models\Central\Manual;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Log;
 
 #[Layout('components.layouts.app')]
 class ManualsForm extends Component
@@ -106,7 +107,7 @@ class ManualsForm extends Component
                         ->toMediaCollection('icon');
                 } catch (\Throwable $e) {
                     $failedFiles[] = $this->icon->getClientOriginalName();
-                    \Log::error('Error al subir icono: ' . $e->getMessage());
+                    Log::error('Error al subir icono: ' . $e->getMessage());
                 }
             }
 
@@ -126,7 +127,7 @@ class ManualsForm extends Component
                                 ->toMediaCollection('attachments');
                         } catch (\Throwable $e) {
                             $failedFiles[] = $attachment->getClientOriginalName();
-                            \Log::error('Error al subir archivo adjunto: ' . $e->getMessage(), [
+                            Log::error('Error al subir archivo adjunto: ' . $e->getMessage(), [
                                 'file' => $attachment->getClientOriginalName(),
                                 'index' => $index
                             ]);
@@ -144,7 +145,7 @@ class ManualsForm extends Component
                             $media->delete();
                         }
                     } catch (\Throwable $e) {
-                        \Log::error('Error al eliminar archivo: ' . $e->getMessage(), ['media_id' => $mediaId]);
+                        Log::error('Error al eliminar archivo: ' . $e->getMessage(), ['media_id' => $mediaId]);
                     }
                 }
             }
@@ -215,7 +216,7 @@ class ManualsForm extends Component
                     $this->pendingAttachments[] = $file;
                 }
             } catch (\Throwable $e) {
-                \Log::warning('Archivo temporal no válido o inaccesible', [
+                Log::warning('Archivo temporal no válido o inaccesible', [
                     'error' => $e->getMessage()
                 ]);
             }

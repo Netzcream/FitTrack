@@ -1,20 +1,21 @@
 # FitTrack — Plataforma Web
 
-FitTrack es un sistema multi-tenant orientado a entrenadores personales. Permite gestionar alumnos, rutinas, métricas corporales, comunicación, progreso y administración comercial. Esta Web App corresponde a la vista del Owner, Entrenador y Alumno según sus roles.
+FitTrack es una plataforma SaaS multi-tenant para entrenadores personales. Permite gestionar alumnos, rutinas, métricas corporales, comunicación, progreso y administración comercial. Esta Web App cubre vistas de Owner, Entrenador y Alumno según sus roles.
 
 ---
 
 ## Descripción del proyecto
 
 La plataforma ofrece:
-- Gestión completa de alumnos.
-- Registro, actualización y análisis de métricas corporales.
-- Creación y edición de rutinas manuales.
-- Generación automática de rutinas mediante una API externa.
-- Visualización de progreso del alumno.
-- Administración de planes comerciales y medios de pago.
+- Gestion completa de alumnos.
+- Registro, actualizacion y analisis de metricas corporales.
+- Creacion y edicion de rutinas manuales.
+- Generacion automatica de rutinas mediante API externa.
+- Visualizacion de progreso del alumno.
+- Administracion de planes comerciales y medios de pago.
 - Acceso separado por roles: Owner, Entrenador y Alumno.
 - Arquitectura multi-tenant con bases de datos aisladas por entrenador.
+- API movil para app React Native / Next.go (20 endpoints).
 
 ---
 
@@ -25,92 +26,198 @@ La plataforma ofrece:
 - Node.js 18+
 - MariaDB 10.6+ o MySQL compatible
 - Extensiones PHP recomendadas: pdo_mysql, mbstring, openssl, curl, json, xml
-- Servidor con soporte HTTPS en producción
+- Servidor con soporte HTTPS en produccion
 
 ---
 
-## Instalación de dependencias
+## Manual de instalacion (local)
 
-1. Clonar el repositorio  
-   `git clone git@github.com:Netzcream/FitTrack.git`
-2. Ingresar a la carpeta  
-   `cd fittrack-web`
-3. Instalar dependencias PHP  
-   `composer install`
-4. Instalar dependencias frontend  
-   `npm install`
-5. Compilar assets  
-   `npm run build`
+### 1) Clonar el repositorio
+```
+git clone git@github.com:Netzcream/FitTrack.git
+cd FitTrack
+```
+
+### 2) Instalar dependencias
+```
+composer install
+npm install
+```
+
+### 3) Configurar entorno
+```
+copy .env.example .env
+```
+
+Configura la base central y el dominio principal de tenancy:
+```
+APP_NAME=FitTrack
+APP_ENV=local
+APP_URL=http://fittrack.test
+APP_DOMAIN=fittrack.test
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=fittrack_central
+DB_USERNAME=usuario
+DB_PASSWORD=clave
+
+TENANCY_PRIMARY_DOMAIN=fittrack.test
+```
+
+### 3.1) Virtual host y subdominios
+
+Necesitas un virtual host apuntando a 127.0.0.1 para el dominio principal y los subdominios.
+
+Apache (ejemplo):
+```
+<VirtualHost *:80>
+  ServerName fittrack.test
+  ServerAlias *.fittrack.test
+  DocumentRoot "C:/laragon/www/FitTrack/public"
+
+  <Directory "C:/laragon/www/FitTrack/public">
+    AllowOverride All
+    Require all granted
+  </Directory>
+</VirtualHost>
+```
+
+DNS local / hosts:
+- Fittrack principal: mapear `fittrack.test` -> 127.0.0.1
+- Subdominios: mapear `*.fittrack.test` -> 127.0.0.1 (requiere DNS local con wildcard) o agregar cada subdominio que uses (ej: `sabrina.fittrack.test`).
+
+### 4) Generar key y enlaces
+```
+php artisan key:generate
+php artisan storage:link
+```
+
+### 5) Migraciones
+```
+php artisan migrate
+php artisan tenants:migrate
+```
+
+Si necesitas datos de ejemplo:
+```
+php artisan db:seed
+php artisan tenants:seed
+```
+
+### 6) Compilar assets
+```
+npm run build
+```
 
 ---
 
-## Configuración del entorno
+## Como correr el proyecto en local
 
-1. Copiar el archivo de ejemplo  
-   `cp .env.example .env`
-2. Configurar base de datos central  
-   ```
-   DB_CONNECTION=mysql
-   DB_HOST=localhost
-   DB_PORT=3306
-   DB_DATABASE=fittrack_central
-   DB_USERNAME=usuario
-   DB_PASSWORD=clave
-   ```
-3. Configuración multi-tenant (Stancl Tenancy)  
-   Variables según el dominio usado:
-   ```
-   TENANCY_PRIMARY_DOMAIN=fittrack.test
-   ```
-4. Generar key de Laravel  
-   `php artisan key:generate`
-5. Crear link simbólico
-   `php artisan storage:link`
-6. Ejecutar migraciones  
-   `php artisan migrate`
+1. Iniciar servidor Laravel
+```
+php artisan serve
+```
+
+2. Iniciar compilacion de assets para desarrollo
+```
+npm run dev
+```
+
+3. Acceder desde navegador
+```
+http://fittrack.test
+```
+
+4. Acceso a tenants
+```
+http://<tenant>.fittrack.test
+```
 
 ---
 
-## Cómo correr el proyecto en local
+## Cron y queues
 
-1. Iniciar servidor Laravel  
-   `php artisan serve`
-2. Iniciar compilación de assets para desarrollo  
-   `npm run dev`
-3. Acceder desde navegador:  
-   `http://fittrack.test`
-4. Acceso a tenants:  
-   `http://<tenant>.fittrack.test`
+### Scheduler (cron)
+
+Linux/macOS:
+```
+* * * * * cd /ruta/a/FitTrack && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Windows (Task Scheduler):
+- Accion: `php artisan schedule:run`
+- Frecuencia: cada 1 minuto
+- Working directory: `C:\laragon\www\FitTrack`
+
+### Queue worker
+
+Con `QUEUE_CONNECTION=database`:
+```
+php artisan queue:work --tries=3 --timeout=90
+```
+
+Si la tabla de jobs no existe:
+```
+php artisan queue:table
+php artisan migrate
+```
 
 ---
 
 ## Variables de entorno necesarias
 
-- Configuración base de datos central  
-- Configuración de tenants  
-- Credenciales de correo para recuperar contraseña  
-  ```
-  MAIL_MAILER=smtp
-  MAIL_HOST=smtp.example.com
-  MAIL_PORT=587
-  MAIL_USERNAME=mail@example.com
-  MAIL_PASSWORD=password
-  MAIL_ENCRYPTION=tls
-  ```
+- Base de datos central y tenancy (`DB_*`, `DB_TENANT_*`, `APP_DOMAIN`, `TENANCY_PRIMARY_DOMAIN`).
+- Mail (SMTP):
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=mail@example.com
+MAIL_PASSWORD=password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=notifications@fittrack.test
+MAIL_FROM_NAME="FitTrack"
+```
+- Google SSO:
+```
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://fittrack.test/auth/google/callback
+```
+- OpenAI (si se usa generacion de rutinas):
+```
+OPENAI_API_KEY=
+OPENAI_ORGANIZATION=
+OPENAI_PROJECT=
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
+- Mercado Pago (pagos):
+```
+MERCADOPAGO_BASE_URL=https://api.mercadopago.com
+MERCADOPAGO_RUNTIME_ENV=local
+MERCADOPAGO_PUBLIC=
+MERCADOPAGO_ACCESS_TOKEN=
+```
+- Expo push (notificaciones):
+```
+EXPO_PUSH_ENABLED=false
+EXPO_PUSH_ACCESS_TOKEN=
+```
 
 ---
 
-## Librerías principales utilizadas
+## Librerias principales utilizadas
 
 - Laravel 12
 - Livewire 3
-- Tailwind CSS
+- Tailwind CSS 4
 - Flux UI Components
 - Spatie Permission
 - Stancl Tenancy
 - Laravel Sanctum
 - MariaDB / MySQL
-- Axios
 - Vite
 
 ---
@@ -133,29 +240,33 @@ routes/
 
 ---
 
-## Arquitectura técnica (resumen)
+## Arquitectura tecnica (resumen)
 
 - Multi-tenant basado en subdominios.
-- Bases separadas por tenant administradas dinámicamente.
-- Lógica compartida en un núcleo central.
+- Bases separadas por tenant administradas dinamicamente.
+- Logica compartida en un nucleo central.
 - Roles y permisos administrados por Spatie Permission.
-- API REST para sincronización con la app móvil.
+- API REST para sincronizacion con la app movil (20 endpoints).
 
 ---
 
 ## Estado actual del proyecto
 
-El proyecto se encuentra aún en etapa de desarrollo; se estima llegar a un MVP para el 2Q 2026.
+La API movil esta completa y documentada. El core web sigue en desarrollo activo con roadmap a MVP 2Q 2026.
 
 ---
 
-## 📚 Documentación
+## Documentacion
 
-**[👉 VER DOCUMENTACIÓN COMPLETA](documents/INICIO.md)** ← Punto de entrada
+Punto de entrada: [documents/INICIO.md](documents/INICIO.md)
 
-Toda la documentación está organizada en la carpeta `documents/`:
-- Guías de navegación y quick start
-- Análisis completo del estado actual  
-- Documentación de API (20 endpoints)
-- Guías de integración y configuración
-- Estándares de código y diagramas técnicos
+Indice general: [documents/DOCUMENTATION_INDEX.md](documents/DOCUMENTATION_INDEX.md)
+
+Documentos clave:
+- [documents/FINAL_STATUS.md](documents/FINAL_STATUS.md)
+- [documents/API_README.md](documents/API_README.md)
+- [documents/MOBILE_API_NEXTGO_COMPLETE.md](documents/MOBILE_API_NEXTGO_COMPLETE.md)
+- [documents/NEXTGO_INTEGRATION_CHECKLIST.md](documents/NEXTGO_INTEGRATION_CHECKLIST.md)
+- [documents/BRANDING_CONFIG_GUIDE.md](documents/BRANDING_CONFIG_GUIDE.md)
+
+Actualizado: Enero 2026
