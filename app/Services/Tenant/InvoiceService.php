@@ -2,7 +2,12 @@
 
 namespace App\Services\Tenant;
 
-use App\Models\Tenant\{Invoice, Student, StudentPlanAssignment};
+use App\Jobs\Tenant\ProcessExpoPushReceipts;
+use App\Models\Tenant\{Device, Invoice, Student, StudentPlanAssignment};
+use App\Models\User;
+use App\Notifications\InvoiceCreatedNotification;
+use App\Notifications\InvoicePaidNotification;
+use App\Services\Tenant\ExpoPushService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -18,7 +23,7 @@ class InvoiceService
         ?float $amount = null,
         array $metaOverrides = []
     ): Invoice {
-        return DB::transaction(function () use ($student, $planAssignment, $dueDate, $amount, $metaOverrides) {
+        $invoice = DB::transaction(function () use ($student, $planAssignment, $dueDate, $amount, $metaOverrides) {
             // Obtener el pricing del plan comercial
             $pricing = $this->resolvePlanPricing($student);
 
@@ -49,6 +54,10 @@ class InvoiceService
                 'meta' => $meta ?: null,
             ]);
         });
+
+        $this->notifyInvoiceCreated($invoice);
+
+        return $invoice;
     }
 
     /**
@@ -60,12 +69,36 @@ class InvoiceService
         ?string $externalReference = null,
         ?Carbon $paidAt = null
     ): Invoice {
+        if ($invoice->status === 'paid') {
+            $updates = [];
+
+            if ($paymentMethod !== '' && $invoice->payment_method !== $paymentMethod) {
+                $updates['payment_method'] = $paymentMethod;
+            }
+
+            if ($externalReference && $invoice->external_reference !== $externalReference) {
+                $updates['external_reference'] = $externalReference;
+            }
+
+            if (! $invoice->paid_at && $paidAt) {
+                $updates['paid_at'] = $paidAt;
+            }
+
+            if ($updates) {
+                $invoice->update($updates);
+            }
+
+            return $invoice;
+        }
+
         $invoice->update([
             'status' => 'paid',
             'paid_at' => $paidAt ?? now(),
             'payment_method' => $paymentMethod,
             'external_reference' => $externalReference ?? $invoice->external_reference,
         ]);
+
+        $this->notifyInvoicePaid($invoice);
 
         return $invoice;
     }
@@ -159,6 +192,95 @@ class InvoiceService
             'currency' => $selected['currency'] ?? 'ARS',
             'label' => $selected['label'] ?? null,
         ];
+    }
+
+    private function notifyInvoiceCreated(Invoice $invoice): void
+    {
+        $invoice->loadMissing('student', 'planAssignment.plan');
+        $student = $invoice->student;
+
+        if (! $student || ! $student->email) {
+            // Email requires a destination, but push might still be possible.
+        } else {
+            $student->notify(new InvoiceCreatedNotification(
+                $invoice,
+                $invoice->created_at?->toIso8601String()
+            ));
+        }
+
+        $this->sendInvoiceCreatedPush($invoice, $student);
+    }
+
+    private function notifyInvoicePaid(Invoice $invoice): void
+    {
+        $invoice->loadMissing('student', 'planAssignment.plan');
+        $student = $invoice->student;
+
+        if (! $student || ! $student->email) {
+            return;
+        }
+
+        $student->notify(new InvoicePaidNotification(
+            $invoice,
+            $invoice->paid_at?->toIso8601String()
+        ));
+    }
+
+    private function sendInvoiceCreatedPush(Invoice $invoice, ?Student $student): void
+    {
+        if (! $student) {
+            return;
+        }
+
+        $tenantId = tenancy()->initialized ? (string) tenancy()->tenant?->id : '';
+        if ($tenantId === '') {
+            return;
+        }
+
+        $userId = $student->user_id;
+        if (! $userId && $student->email) {
+            $userId = User::query()->where('email', $student->email)->value('id');
+        }
+
+        if (! $userId) {
+            return;
+        }
+
+        $devices = Device::query()
+            ->forTenant($tenantId)
+            ->active()
+            ->where('user_id', (int) $userId)
+            ->get();
+
+        if ($devices->isEmpty()) {
+            return;
+        }
+
+        $payload = [
+            'type' => 'invoice.new',
+            'invoice_id' => (int) $invoice->id,
+            'invoice_uuid' => (string) $invoice->uuid,
+            'amount' => (float) $invoice->amount,
+            'status' => (string) $invoice->status,
+            'due_date' => $invoice->due_date?->toIso8601String(),
+            'plan_name' => data_get($invoice->meta, 'plan_name')
+                ?? $invoice->planAssignment?->plan?->name
+                ?? $invoice->planAssignment?->name,
+            'action_url' => route('tenant.student.payments', [], false),
+            'created_at' => $invoice->created_at?->toIso8601String(),
+        ];
+
+        $pushResult = app(ExpoPushService::class)->send(
+            devices: $devices,
+            title: 'Nuevo invoice',
+            body: 'Se genero un nuevo invoice. Monto: ' . $invoice->formatted_amount,
+            payload: $payload,
+        );
+
+        $pendingReceipts = $pushResult['pending_receipts'] ?? [];
+        if (is_array($pendingReceipts) && $pendingReceipts !== []) {
+            ProcessExpoPushReceipts::dispatch($tenantId, $pendingReceipts)->delay(now()->addMinutes(2));
+        }
     }
 }
 

@@ -28,6 +28,6 @@ class ForgotPassword extends Component
             }
         );
 
-        session()->flash('status', __('A reset link will be sent if the account exists.'));
+        session()->flash('status', __('Se enviará un enlace de restablecimiento si la cuenta existe.'));
     }
 }

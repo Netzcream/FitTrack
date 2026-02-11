@@ -12,6 +12,11 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+        // Auth Events
+        \Illuminate\Auth\Events\PasswordReset::class => [
+            \App\Listeners\Tenant\NotifyStudentPasswordResetCompleted::class,
+        ],
+
         // Central Events
         \App\Events\TenantCreatedSuccessfully::class => [
             \App\Listeners\SendTenantWelcomeMail::class,
