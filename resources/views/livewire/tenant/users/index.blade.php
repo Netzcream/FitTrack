@@ -149,13 +149,13 @@
                                     {{ $user->student->full_name ?: $user->student->email }}
                                 </a>
                             @else
-                                <span class="text-gray-500 dark:text-neutral-400">—</span>
+                                <span class="text-gray-500 dark:text-neutral-400">-</span>
                             @endif
                         </td>
 
                         {{-- Alta --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : '—' }}
+                            {{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : '-' }}
                         </td>
 
                         {{-- Acciones --}}

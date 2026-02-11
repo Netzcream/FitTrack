@@ -21,8 +21,8 @@ Eliminamos **41 archivos redundantes**:
 
 ### 2. **Documentación Nueva** ✨
 Documentos esenciales creados:
-- **[documents/INICIO.md](INICIO.md)** — Tu punto de entrada
-- **[documents/ESTADO_ACTUAL_APLICACION.md](ESTADO_ACTUAL_APLICACION.md)** — Análisis completo
+- **[documents/INICIO.md](INICIO.md)** - Tu punto de entrada
+- **[documents/ESTADO_ACTUAL_APLICACION.md](ESTADO_ACTUAL_APLICACION.md)** - Análisis completo
 
 ### 3. **Estructura Final** 📁
 ```

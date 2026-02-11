@@ -1,4 +1,4 @@
-# FitTrack — Estado operativo
+# FitTrack - Estado operativo
 
 ## Resumen
 - API móvil lista (20 endpoints)

@@ -126,7 +126,7 @@
 
                         {{-- Creado --}}
                         <td class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $user->created_at_formatted ?? '—' }}
+                            {{ $user->created_at_formatted ?? '-' }}
                         </td>
 
                         {{-- Acciones --}}

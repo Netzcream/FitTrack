@@ -4,7 +4,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Ejercicios — Traducciones FitTrack
+    | Ejercicios - Traducciones FitTrack
     |--------------------------------------------------------------------------
     |
     | Textos usados en listados (index), formularios y acciones.

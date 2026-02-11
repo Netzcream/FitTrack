@@ -128,7 +128,7 @@
                                         <span class="text-xs text-gray-700 dark:text-neutral-200">{{ $executeTime->format('d/m/Y H:i:s') }}</span><br>
                                         <span class="text-xs text-gray-500 dark:text-neutral-400">{{ $executeTime->diffForHumans() }}</span>
                                     @else
-                                        <span class="text-xs text-gray-400 dark:text-neutral-500">—</span>
+                                        <span class="text-xs text-gray-400 dark:text-neutral-500">-</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">

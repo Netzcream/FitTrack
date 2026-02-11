@@ -47,7 +47,7 @@
                 <div class="grid grid-cols-4 text-[11px] text-neutral-500 dark:text-neutral-400">
                     <span class="text-left">{{ $scaleMin }} kg</span>
                     <span class="text-center">{{ $idealCenter }} kg</span>
-                    <span class="text-center">{{ $weight !== null ? $weight : '—' }} kg</span>
+                    <span class="text-center">{{ $weight !== null ? $weight : '-' }} kg</span>
                     <span class="text-right">{{ $scaleMax }} kg</span>
                 </div>
                 @if ($weight === null)

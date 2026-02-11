@@ -1,4 +1,4 @@
-# 🧩 Guía de desarrollo — *Models y Migrations* (Estándar FitTrack Unificado)
+# 🧩 Guía de desarrollo - *Models y Migrations* (Estándar FitTrack Unificado)
 
 > **Objetivo:** definir un estándar coherente y minimalista para la creación de **Models Eloquent y Migrations** en FitTrack.  
 > Se prioriza **claridad, consistencia y simplicidad** sobre complejidad innecesaria.  

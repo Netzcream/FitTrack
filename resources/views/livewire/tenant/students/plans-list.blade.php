@@ -22,12 +22,12 @@
                     </div>
 
                     <p class="text-sm text-gray-600 dark:text-neutral-400 mb-2">
-                        {{ $assignment->meta['version'] ?? '—' }}
+                        {{ $assignment->meta['version'] ?? '-' }}
                     </p>
 
                     <div class="text-xs text-gray-500 dark:text-neutral-500">
                         <p>
-                            <strong>Inicio:</strong> {{ $assignment->starts_at?->format('d/m/Y') ?? '—' }}
+                            <strong>Inicio:</strong> {{ $assignment->starts_at?->format('d/m/Y') ?? '-' }}
                             @if ($assignment->ends_at)
                                 | <strong>Fin:</strong> {{ $assignment->ends_at->format('d/m/Y') }}
                             @endif

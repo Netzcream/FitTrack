@@ -22,7 +22,7 @@ Guía centralizada para entender y usar la plataforma FitTrack.
 ## 🎯 Empezar Aquí
 
 ### 1. **[FINAL_STATUS.md](FINAL_STATUS.md)** ⭐
-**Estado actual de la aplicación** — Resumen ejecutivo de capacidades, endpoints y status
+**Estado actual de la aplicación** - Resumen ejecutivo de capacidades, endpoints y status
 
 - Qué está implementado
 - 20 endpoints disponibles  
@@ -36,7 +36,7 @@ Guía centralizada para entender y usar la plataforma FitTrack.
 ## 📖 Documentación Principal
 
 ### 2. **[API_README.md](API_README.md)** 📌
-**Índice central de la API** — Quick start y documentación de endpoints
+**Índice central de la API** - Quick start y documentación de endpoints
 
 - 20 endpoints por categoría
 - Ejemplos con curl
@@ -47,7 +47,7 @@ Guía centralizada para entender y usar la plataforma FitTrack.
 **Para:** Desarrolladores integrando la API mobile
 
 ### 3. **[MOBILE_API_NEXTGO_COMPLETE.md](MOBILE_API_NEXTGO_COMPLETE.md)** 📡
-**Referencia técnica completa** — Documentación exhaustiva de todos los endpoints
+**Referencia técnica completa** - Documentación exhaustiva de todos los endpoints
 
 - Autenticación (login/logout)
 - Perfil, Planes, Workouts, Peso, Progreso, Mensajes
@@ -59,7 +59,7 @@ Guía centralizada para entender y usar la plataforma FitTrack.
 **Para:** Desarrolladores implementando Next.go o app mobile
 
 ### 4. **[BRANDING_CONFIG_GUIDE.md](BRANDING_CONFIG_GUIDE.md)** 🎨
-**Guía de personalización** — Configurar logo, colores y datos del entrenador
+**Guía de personalización** - Configurar logo, colores y datos del entrenador
 
 - Dónde configurar branding (dashboard vs código)
 - Campos disponibles por entrenador
@@ -72,7 +72,7 @@ Guía centralizada para entender y usar la plataforma FitTrack.
 **Para:** Entrenadores configurando su marca + desarrolladores
 
 ### 5. **[NEXTGO_INTEGRATION_CHECKLIST.md](NEXTGO_INTEGRATION_CHECKLIST.md)** 🚀
-**Guía paso a paso de integración** — Checklist completo para implementar Next.go
+**Guía paso a paso de integración** - Checklist completo para implementar Next.go
 
 - Setup del proyecto (carpetas, dependencias)
 - Autenticación (hook + servicio)

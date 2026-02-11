@@ -58,7 +58,7 @@ class RunDeployScript extends Command
 
         $formatted = $endTime->format('d-m-Y H:i:s');
         $timeMessage = sprintf(
-            "🚀 Deploy finalizado — %s (Duración: %02d:%02d:%02d)",
+            "🚀 Deploy finalizado - %s (Duración: %02d:%02d:%02d)",
             $formatted,
             $duration->h,
             $duration->i,

@@ -528,7 +528,7 @@
 
                 <div class="space-y-4">
                     {{-- Peso actual --}}
-                    @if($lastWeightDisplay && $lastWeightDisplay !== '—')
+                    @if($lastWeightDisplay && $lastWeightDisplay !== '-')
                         <div class="rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
                             <div class="flex items-center gap-2 mb-1">
                                 <x-icons.lucide.weight class="w-4 h-4 text-purple-600 dark:text-purple-400" />

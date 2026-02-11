@@ -290,7 +290,7 @@ return [
 
     // --- Shared / UI helpers ---
     'search_placeholder_students' => 'Nombre, email, teléfono, documento…',
-    'select_option' => '— Seleccionar —',
+    'select_option' => '- Seleccionar -',
 
     // --- Sections ---
     'section_identity_contact' => 'Identificación y contacto',

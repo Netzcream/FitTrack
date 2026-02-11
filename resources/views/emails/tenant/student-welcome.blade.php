@@ -5,6 +5,9 @@
     $registrationUrl = $registrationUrl ?? '#';
     $logoUrl = $logoUrl ?? null;
     $brandUrl = $brandUrl ?? (config('app.url') ?? env('APP_URL', 'https://fittrack.com.ar'));
+    $colorBase = $colorBase ?? '#263d83';
+    $colorDark = $colorDark ?? '#1d2d5e';
+    $colorLight = $colorLight ?? '#f9fafb';
 @endphp
 
 @slot('header')
@@ -23,13 +26,16 @@ Tu entrenador creo tu cuenta en {{ $tenantName }}.
 
 Para activar tu acceso, primero debes definir tu clave.
 
-@component('mail::button', ['url' => $registrationUrl])
-Definir mi clave
-@endcomponent
+<p style="margin:24px 0; text-align:center;">
+    <a href="{{ $registrationUrl }}"
+       style="display:inline-block; background:{{ $colorDark }}; color:#ffffff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:8px;">
+        Definir mi clave
+    </a>
+</p>
 
 Luego podras ingresar y ver tus planes de entrenamiento, progreso y mensajes.
 
-Saludos,  
+Saludos,
 {{ $tenantName }}
 
 ---

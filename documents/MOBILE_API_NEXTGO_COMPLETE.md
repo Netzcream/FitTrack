@@ -1,4 +1,4 @@
-# FitTrack API — Next.go (Guía corta)
+# FitTrack API - Next.go (Guía corta)
 
 ## 1) Configuración básica
 - Base URL: `NEXT_PUBLIC_API_URL`

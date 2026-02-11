@@ -26,7 +26,7 @@
                                 {{ $student->full_name }}
                             </flux:heading>
                             <span class="text-sm text-gray-500 dark:text-neutral-400 font-normal leading-none mt-[2px]">
-                                — {{ __('students.training_plans_title') }}
+                                - {{ __('students.training_plans_title') }}
                             </span>
                         </div>
                         <div class="text-sm text-gray-500 dark:text-neutral-400">
@@ -145,7 +145,7 @@
 
                         {{-- Periodo --}}
                         <td class="align-middle px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ $plan->assigned_from?->format('d/m/Y') ?? '—' }}
+                            {{ $plan->assigned_from?->format('d/m/Y') ?? '-' }}
                             @if ($plan->assigned_until)
                                 → {{ $plan->assigned_until->format('d/m/Y') }}
                             @endif

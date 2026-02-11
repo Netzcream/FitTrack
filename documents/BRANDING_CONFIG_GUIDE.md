@@ -1,4 +1,4 @@
-# Branding — Configuración mínima
+# Branding - Configuración mínima
 
 El branding se guarda en la tabla `configuration` del tenant. Todas las respuestas API incluyen `branding`.
 

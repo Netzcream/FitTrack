@@ -1,11 +1,11 @@
 ---
-title: Guía de diseño de Index (listados) — Estándar Unificado
+title: Guía de diseño de Index (listados) - Estándar Unificado
 version: 2.2
 last_updated: 2026-01-02
 author: Up2U Team
 ---
 
-# Guía de diseño de *Index* (listados) — Estándar Unificado
+# Guía de diseño de *Index* (listados) - Estándar Unificado
 
 > **Objetivo**: alinear todos los listados (Students, Payments, Plans, Countries, Carriers, Airports, etc.) a **cómo los usamos hoy** con Livewire + Flux + **componentes reutilizables**.  
 > Esta versión incluye el componente `<x-index-filters>` para estandarizar filtros, junto con `<x-data-table>`, estilos/bordes consistentes, modal único para eliminar, `wire:key`, `divide-y`, y ejemplos completos de backend.
@@ -142,7 +142,7 @@ Este componente **estandariza los filtros** en todos los índices, proporcionand
 
 ---
 
-## 4) Filtros (coherentes con relaciones y enums) — Versión tradicional
+## 4) Filtros (coherentes con relaciones y enums) - Versión tradicional
 
 > **Nota:** Se recomienda usar `<x-index-filters>` (punto 3), pero si necesitas una implementación personalizada, aquí está el patrón tradicional:
 
@@ -267,12 +267,12 @@ Este componente **estandariza los filtros** en todos los índices, proporcionand
 
     {{-- FK: plan --}}
     <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-      {{ $item->commercialPlan?->name ?? '—' }}
+      {{ $item->commercialPlan?->name ?? '-' }}
     </td>
 
     {{-- Fecha --}}
     <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-      {{ $item->last_login_at?->format('d/m/Y H:i') ?? '—' }}
+      {{ $item->last_login_at?->format('d/m/Y H:i') ?? '-' }}
     </td>
 
     {{-- Acciones --}}
@@ -485,7 +485,7 @@ Este componente **estandariza los filtros** en todos los índices, proporcionand
 
 ---
 
-## 8) Back (Livewire) — Query, filtros, orden, borrado y paginación
+## 8) Back (Livewire) - Query, filtros, orden, borrado y paginación
 
 ```php
 namespace App\Livewire\Central\Airport;

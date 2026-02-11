@@ -162,17 +162,17 @@
 
                         {{-- Objetivo --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->goal ?? '—' }}
+                            {{ $plan->goal ?? '-' }}
                         </td>
 
                         {{-- Ejercicios --}}
                         <td class="align-top px-6 py-4 text-sm text-center text-gray-700 dark:text-neutral-300">
-                            {{ $countExercises > 0 ? $countExercises : '—' }}
+                            {{ $countExercises > 0 ? $countExercises : '-' }}
                         </td>
 
                         {{-- Duración --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $plan->duration ?: '—' }}
+                            {{ $plan->duration ?: '-' }}
                         </td>
 
                         {{-- Estado --}}
@@ -273,7 +273,7 @@
                                     <option value="">{{ __('common.choose_option') }}</option>
                                     @foreach ($students as $student)
                                         <option value="{{ $student['uuid'] }}">
-                                            {{ $student['full_name'] }} — {{ $student['email'] }}
+                                            {{ $student['full_name'] }} - {{ $student['email'] }}
                                         </option>
                                     @endforeach
                                 </flux:select>

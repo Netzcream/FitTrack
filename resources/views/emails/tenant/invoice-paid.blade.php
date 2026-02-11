@@ -26,7 +26,7 @@
     @endcomponent
 @endslot
 
-<div style="border-radius:10px; border:1px solid {{ $colorBase }}33; background: {{ $colorLight }}; padding:16px;">
+<div style="border-top:4px solid {{ $colorBase }}; padding-top:12px; margin-bottom:12px;">
     <p style="margin:0 0 8px 0; color:#111827; font-size:18px;"><strong>Hola {{ $studentFirstName }}!</strong></p>
     <p style="margin:0; color:#475569; font-size:15px;">
         Tu pago fue aplicado correctamente en {{ $tenantName }}.

@@ -9,7 +9,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @tailwind utilities;
 
-/* === CTA / Dashboard Cards — estilo FitTrack refinado === */
+/* === CTA / Dashboard Cards - estilo FitTrack refinado === */
 .student-card {
     @apply rounded-xl p-5 flex flex-col
            items-center text-center cursor-pointer transition-all duration-200;

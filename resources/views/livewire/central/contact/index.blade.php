@@ -101,11 +101,11 @@
               @if($contact->email)
                 <a href="mailto:{{ $contact->email }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $contact->email }}</a>
               @else
-                <span class="text-gray-400 dark:text-neutral-500">—</span>
+                <span class="text-gray-400 dark:text-neutral-500">-</span>
               @endif
             </td>
             <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-              {{ $contact->phone ?? '—' }}
+              {{ $contact->phone ?? '-' }}
             </td>
             <td class="align-top px-6 py-4 text-sm">
               <button type="button" wire:click="toggleRead('{{ $contact->id }}')"

@@ -1,4 +1,4 @@
-# FitTrack — Referencia técnica
+# FitTrack - Referencia técnica
 
 ## Stack
 - Laravel 12 + Livewire 3
@@ -16,11 +16,11 @@
 7. **Branding:** Automático en respuestas API
 
 ## Archivos clave
-- `app/Models/Central/` — Modelos compartidos
-- `app/Models/Tenant/` — Modelos por tenant
-- `app/Http/Controllers/Api/` — API REST
-- `app/Services/Tenant/` — Lógica de negocio
-- `routes/api.php` — 20 endpoints
+- `app/Models/Central/` - Modelos compartidos
+- `app/Models/Tenant/` - Modelos por tenant
+- `app/Http/Controllers/Api/` - API REST
+- `app/Services/Tenant/` - Lógica de negocio
+- `routes/api.php` - 20 endpoints
 
 ## Base de datos
 - Central: 1 DB

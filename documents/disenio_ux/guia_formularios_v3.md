@@ -1,12 +1,12 @@
 
-# Guía de Formularios — Estándar Unificado Luniqo · v3.0
+# Guía de Formularios - Estándar Unificado Luniqo · v3.0
 
 ## 0) Principios generales
 - Formularios alineados a la izquierda, ancho máximo `max-w-3xl`.
 - Header sticky obligatorio.
 - Footer compacto al final del contenido.
 - Flux obligatorio en todos los campos.
-- Sin `@error` ni `<label>` adicionales.# Guía de Formularios Simples — Estándar Unificado (Luniqo) · v2.2
+- Sin `@error` ni `<label>` adicionales.# Guía de Formularios Simples - Estándar Unificado (Luniqo) · v2.2
 
 **Alcance:** Formularios con pocos campos y baja lógica (alta frecuencia): creación/edición básica, asignaciones rápidas, cambios puntuales. Basado en Livewire + Flux + Tailwind.  
 **Fecha:** 2025-10-13  

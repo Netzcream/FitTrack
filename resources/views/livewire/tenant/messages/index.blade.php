@@ -108,13 +108,13 @@
                                     {{ $conversation->unread_count }}
                                 </span>
                             @else
-                                <span class="text-gray-400 dark:text-neutral-600">—</span>
+                                <span class="text-gray-400 dark:text-neutral-600">-</span>
                             @endif
                         </td>
 
                         {{-- Fecha --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400 text-center">
-                            {{ $conversation->last_message_at?->diffForHumans() ?? '—' }}
+                            {{ $conversation->last_message_at?->diffForHumans() ?? '-' }}
                         </td>
 
                         {{-- Acciones --}}

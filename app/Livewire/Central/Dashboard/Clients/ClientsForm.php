@@ -169,7 +169,7 @@ class ClientsForm extends Component
     public function getFullDomainProperty(): string
     {
         $root = env('APP_DOMAIN', 'fittrack.com.ar');
-        return $this->slug ? "{$this->slug}.{$root}" : "—";
+        return $this->slug ? "{$this->slug}.{$root}" : "-";
     }
 
 
@@ -296,7 +296,7 @@ class ClientsForm extends Component
         // Paso 2 (cuando corresponda): emitir SSL/provisionar
         event(new TenantCustomDomainAttached($this->client, $domain));
 
-        session()->flash('success', 'Dominio agregado: ' . $domain . ' — se iniciará la provisión de SSL.');
+        session()->flash('success', 'Dominio agregado: ' . $domain . ' - se iniciará la provisión de SSL.');
     }
 
     public function removeDomain(int $domainId): void

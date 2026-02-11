@@ -94,7 +94,7 @@
                                         {{ $payment->student?->first_name }} {{ $payment->student?->last_name }}
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-neutral-400">
-                                        {{ $payment->student?->email ?? '—' }}</div>
+                                        {{ $payment->student?->email ?? '-' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -106,7 +106,7 @@
 
                         {{-- Método --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $payment->method ? strtoupper($payment->method) : '—' }}
+                            {{ $payment->method ? strtoupper($payment->method) : '-' }}
                         </td>
 
                         {{-- Estado --}}
@@ -129,9 +129,9 @@
 
                         {{-- Fechas --}}
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ optional($payment->due_date)->format('d/m/Y') ?? '—' }}</td>
+                            {{ optional($payment->due_date)->format('d/m/Y') ?? '-' }}</td>
                         <td class="align-top px-6 py-4 text-sm text-gray-600 dark:text-neutral-400">
-                            {{ optional($payment->paid_at)->format('d/m/Y') ?? '—' }}</td>
+                            {{ optional($payment->paid_at)->format('d/m/Y') ?? '-' }}</td>
 
                         {{-- Acciones --}}
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">

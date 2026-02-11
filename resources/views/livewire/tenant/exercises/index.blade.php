@@ -127,7 +127,7 @@
                                         @endif
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-neutral-400 capitalize">
-                                        {{ $exercise->category ?? '—' }}
+                                        {{ $exercise->category ?? '-' }}
                                     </div>
                                 </div>
                             </div>
@@ -137,11 +137,11 @@
 
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200 capitalize">
-                            {{ $exercise->level ?? '—' }}
+                            {{ $exercise->level ?? '-' }}
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $exercise->equipment ?? '—' }}
+                            {{ $exercise->equipment ?? '-' }}
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-center">

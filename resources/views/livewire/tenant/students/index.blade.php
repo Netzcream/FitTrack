@@ -120,7 +120,7 @@
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $student->commercialPlan?->name ?? '—' }}
+                            {{ $student->commercialPlan?->name ?? '-' }}
                         </td>
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">

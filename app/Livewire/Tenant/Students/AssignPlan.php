@@ -83,8 +83,8 @@ class AssignPlan extends Component
                 '%s (v%s) - Desde %s hasta %s',
                 $current->name,
                 $current->meta['version'] ?? '1.0',
-                $current->starts_at?->format('d/m/Y') ?? '—',
-                $current->ends_at?->format('d/m/Y') ?? '—'
+                $current->starts_at?->format('d/m/Y') ?? '-',
+                $current->ends_at?->format('d/m/Y') ?? '-'
             );
         }
     }
@@ -100,8 +100,8 @@ class AssignPlan extends Component
                 '%s (v%s) - Desde %s hasta %s',
                 $futurePlan->name,
                 $futurePlan->meta['version'] ?? '1.0',
-                $futurePlan->starts_at?->format('d/m/Y') ?? '—',
-                $futurePlan->ends_at?->format('d/m/Y') ?? '—'
+                $futurePlan->starts_at?->format('d/m/Y') ?? '-',
+                $futurePlan->ends_at?->format('d/m/Y') ?? '-'
             );
         }
     }

@@ -66,7 +66,7 @@
                     @if($conversation->last_message_at)
                         {{ $conversation->last_message_at->diffForHumans() }}
                     @else
-                        —
+                        -
                     @endif
                 </td>
 
@@ -77,7 +77,7 @@
                             {{ $conversation->unread_count > 99 ? '99+' : $conversation->unread_count }}
                         </span>
                     @else
-                        <span class="text-gray-400 dark:text-neutral-500">—</span>
+                        <span class="text-gray-400 dark:text-neutral-500">-</span>
                     @endif
                 </td>
 

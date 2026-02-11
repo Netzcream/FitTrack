@@ -4,6 +4,9 @@
     $studentFirstName = $studentFirstName ?? 'Alumno';
     $logoUrl = $logoUrl ?? null;
     $brandUrl = $brandUrl ?? (config('app.url') ?? env('APP_URL', 'https://fittrack.com.ar'));
+    $colorBase = $colorBase ?? '#263d83';
+    $colorDark = $colorDark ?? '#1d2d5e';
+    $colorLight = $colorLight ?? '#f9fafb';
     $planName = $planName ?? 'Plan';
     $startsAt = $startsAt ?? null;
     $endsAt = $endsAt ?? null;
@@ -43,9 +46,12 @@ Te asignamos un nuevo plan: **{{ $planName }}**.
 **Duracion:** {{ $durationDays }} dias
 @endif
 
-@component('mail::button', ['url' => $planUrl])
-Ver mi plan
-@endcomponent
+<p style="margin:24px 0; text-align:center;">
+    <a href="{{ $planUrl }}"
+       style="display:inline-block; background:{{ $colorDark }}; color:#ffffff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:8px;">
+        Ver mi plan
+    </a>
+</p>
 
 @if($pdfUrl)
 Tambien podes descargarlo en PDF: [Descargar PDF]({{ $pdfUrl }})

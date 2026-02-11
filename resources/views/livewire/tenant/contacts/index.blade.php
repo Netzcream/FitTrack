@@ -75,7 +75,7 @@
 
 
                         <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                            {{ $contact->mobile ?? '—' }}
+                            {{ $contact->mobile ?? '-' }}
                         </td>
                         <td class="align-top px-6 py-4 text-end text-sm font-medium">
                             <span

@@ -247,8 +247,8 @@
                     $duration = $plan->duration;
                 }
             @endphp
-            <td><strong>Meta:</strong> {{ $goal ?? '—' }}</td>
-            <td><strong>Duración:</strong> {{ $duration ?? '—' }}</td>
+            <td><strong>Meta:</strong> {{ $goal ?? '-' }}</td>
+            <td><strong>Duración:</strong> {{ $duration ?? '-' }}</td>
         </tr>
         @php
             $startsAt = null;
@@ -264,7 +264,7 @@
         @if ($startsAt)
             <tr>
                 <td><strong>Desde:</strong> {{ $startsAt->format('d/m/Y') }}</td>
-                <td><strong>Hasta:</strong> {{ $endsAt ? $endsAt->format('d/m/Y') : '—' }}</td>
+                <td><strong>Hasta:</strong> {{ $endsAt ? $endsAt->format('d/m/Y') : '-' }}</td>
             </tr>
         @endif
     </table>
@@ -294,7 +294,7 @@
                                 <p class="meta">
                                     {{ ucfirst($category) }}
                                     @if ($detail)
-                                        — <strong>{{ $detail }}</strong>
+                                        - <strong>{{ $detail }}</strong>
                                     @endif
                                     @if ($description)
                                         <br><i>{{ $description }}</i>
@@ -374,7 +374,7 @@
     {{-- Pie de página --}}
     <footer>
         <span style="color: {{ $colorBase }}; font-weight:600;">FitTrack</span>
-        — generado el {{ now()->format('d/m/Y H:i') }}
+        - generado el {{ now()->format('d/m/Y H:i') }}
         @if (tenant()->name)
             para <strong>{{ tenant()->name }}</strong>
         @endif

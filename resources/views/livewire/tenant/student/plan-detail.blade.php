@@ -19,7 +19,7 @@
             @endif
         </div>
         <p class="text-sm text-gray-500">
-            Vigente desde {{ $assignment->starts_at?->format('d/m/Y') ?? '—' }}
+            Vigente desde {{ $assignment->starts_at?->format('d/m/Y') ?? '-' }}
             @if ($assignment->ends_at)
                 · hasta {{ $assignment->ends_at->format('d/m/Y') }}
             @endif
@@ -27,7 +27,7 @@
         <div class="flex flex-wrap gap-3 text-sm text-gray-600">
             <span>{{ $assignment->exercises_by_day->count() }} días</span>
             <span>{{ $assignment->exercises_by_day->flatten(1)->count() }} ejercicios</span>
-            <span>Objetivo: {{ $assignment->plan?->goal ?? '—' }}</span>
+            <span>Objetivo: {{ $assignment->plan?->goal ?? '-' }}</span>
         </div>
         <div>
             <a href="{{ route('tenant.student.download-plan', $assignment->uuid) }}"

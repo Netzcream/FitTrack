@@ -46,7 +46,7 @@
                 <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
                     <a href="//{{ $client->domains->first()->domain ?? '' }}" target="_blank"
                         class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                        {{ $client->domains->first()->domain ?? '—' }}
+                        {{ $client->domains->first()->domain ?? '-' }}
                     </a>
 
                     @if (count($client->domains) > 1)
@@ -57,11 +57,11 @@
                 </td>
 
                 <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                    {{ $client->plan?->name ?? '—' }}
+                    {{ $client->plan?->name ?? '-' }}
                 </td>
 
                 <td class="align-top px-6 py-4 text-sm text-gray-800 dark:text-neutral-200">
-                    {{ $client->tenancy_db_name ?? '—' }}
+                    {{ $client->tenancy_db_name ?? '-' }}
                 </td>
 
                 <td class="align-top px-6 py-4 text-sm">

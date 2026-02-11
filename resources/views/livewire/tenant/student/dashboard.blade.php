@@ -246,7 +246,7 @@
                                     <div>
                                         <p class="text-xs text-gray-500">Próximo día</p>
                                         <p class="text-xl font-bold" style="color: var(--ftt-color-base);">
-                                            {{ $todayWorkout->plan_day ?? '—' }}
+                                            {{ $todayWorkout->plan_day ?? '-' }}
                                         </p>
                                     </div>
                                 </div>
@@ -335,7 +335,7 @@
                                 <div class="flex-1">
                                     <p class="font-medium text-sm text-gray-900">{{ $plan['plan_name'] }}</p>
                                     <p class="text-xs text-gray-500 mt-1">
-                                        {{ $plan['starts_at']?->format('d/m/Y') ?? '—' }} → {{ $plan['ends_at']?->format('d/m/Y') ?? '—' }}
+                                        {{ $plan['starts_at']?->format('d/m/Y') ?? '-' }} → {{ $plan['ends_at']?->format('d/m/Y') ?? '-' }}
                                     </p>
                                     <div class="flex gap-1.5 items-center text-xs text-gray-600 mt-2">
                                         <span>{{ $plan['days_count'] }} días</span>

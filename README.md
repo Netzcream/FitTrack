@@ -1,4 +1,4 @@
-# FitTrack — Plataforma Web
+# FitTrack - Plataforma Web
 
 FitTrack es una plataforma SaaS multi-tenant para entrenadores personales. Permite gestionar alumnos, rutinas, métricas corporales, comunicación, progreso y administración comercial. Esta Web App cubre vistas de Owner, Entrenador y Alumno según sus roles.
 

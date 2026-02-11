@@ -32,7 +32,7 @@ rsync -az --delete \
 RSYNC_EXIT=$?
 
 if [ $RSYNC_EXIT -ne 0 ]; then
-    echo "⚠️ Rsync finalizó con código $RSYNC_EXIT — revisar posibles advertencias"
+    echo "⚠️ Rsync finalizó con código $RSYNC_EXIT - revisar posibles advertencias"
 else
     echo "✅ Rsync finalizado correctamente"
 fi

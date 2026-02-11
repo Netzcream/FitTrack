@@ -4,6 +4,9 @@
     $studentFirstName = $studentFirstName ?? 'Alumno';
     $logoUrl = $logoUrl ?? null;
     $brandUrl = $brandUrl ?? (config('app.url') ?? env('APP_URL', 'https://fittrack.com.ar'));
+    $colorBase = $colorBase ?? '#263d83';
+    $colorDark = $colorDark ?? '#1d2d5e';
+    $colorLight = $colorLight ?? '#f9fafb';
     $planName = $planName ?? 'Plan';
     $workoutUrl = $workoutUrl ?? '#';
     $pdfUrl = $pdfUrl ?? null;
@@ -28,9 +31,12 @@ Te recordamos tu sesion de hoy del plan **{{ $planName }}**.
 **Ultima sesion registrada:** {{ $lastCompletedAt }}
 @endif
 
-@component('mail::button', ['url' => $workoutUrl])
-Comenzar entrenamiento
-@endcomponent
+<p style="margin:24px 0; text-align:center;">
+    <a href="{{ $workoutUrl }}"
+       style="display:inline-block; background:{{ $colorDark }}; color:#ffffff; text-decoration:none; font-weight:600; padding:12px 20px; border-radius:8px;">
+        Comenzar entrenamiento
+    </a>
+</p>
 
 @if($pdfUrl)
 Si queres repasar el plan completo: [Descargar PDF]({{ $pdfUrl }})

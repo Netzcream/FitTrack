@@ -39,7 +39,7 @@
                         @if($contact->phone)
                             <a href="tel:{{ $contact->phone }}" class="hover:underline text-gray-900 dark:text-neutral-100">{{ $contact->phone }}</a>
                         @else
-                            <span class="text-gray-400 dark:text-neutral-500">—</span>
+                            <span class="text-gray-400 dark:text-neutral-500">-</span>
                         @endif
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-# FitTrack Mobile API — Uso práctico
+# FitTrack Mobile API - Uso práctico
 
 Esta guía muestra los flujos mínimos para integrar una app móvil.
 

@@ -40,7 +40,7 @@
                     @if($lastWeight)
                         {{ number_format($lastWeight, 1) }} kg
                     @else
-                        —
+                        -
                     @endif
                 </h2>
             </div>
@@ -283,7 +283,7 @@
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-gray-600">Duración promedio</span>
-                    <span class="font-semibold text-gray-900">{{ $avgDuration > 0 ? round($avgDuration) . ' min' : '—' }}</span>
+                    <span class="font-semibold text-gray-900">{{ $avgDuration > 0 ? round($avgDuration) . ' min' : '-' }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-gray-600">Evaluación promedio</span>
@@ -291,7 +291,7 @@
                         @if($avgRating)
                             {{ number_format($avgRating, 1) }}/5
                         @else
-                            —
+                            -
                         @endif
                     </span>
                 </div>

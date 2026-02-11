@@ -1,4 +1,4 @@
-# FitTrack — Inicio
+# FitTrack - Inicio
 
 Punto de entrada práctico para usar y extender FitTrack.
 
@@ -12,9 +12,9 @@ Punto de entrada práctico para usar y extender FitTrack.
 - Arquitectura general: [diagramas_arquitectura/](diagramas_arquitectura/)
 - Diagramas de componentes: [diagramas_componentes/](diagramas_componentes/)
 - Estándares UX/Modelos: [disenio_ux/](disenio_ux/)
-- Ejemplos puntuales: [examples/](examples/)# 📚 FitTrack — Documentación Centralizada
+- Ejemplos puntuales: [examples/](examples/)# 📚 FitTrack - Documentación Centralizada
 
-> **👈 EMPIEZA AQUÍ** — Punto de entrada único a toda la documentación
+> **👈 EMPIEZA AQUÍ** - Punto de entrada único a toda la documentación
 
 ---
 
@@ -63,10 +63,10 @@ Punto de entrada práctico para usar y extender FitTrack.
 
 ## 📁 Carpetas Complementarias
 
-- **`disenio_ux/`** — Guías de formularios, modelos, listados
-- **`diagramas_arquitectura/`** — Diagramas técnicos del sistema
-- **`diagramas_componentes/`** — Diagramas detallados
-- **`examples/`** — Ejemplos de código
+- **`disenio_ux/`** - Guías de formularios, modelos, listados
+- **`diagramas_arquitectura/`** - Diagramas técnicos del sistema
+- **`diagramas_componentes/`** - Diagramas detallados
+- **`examples/`** - Ejemplos de código
 
 ---
 

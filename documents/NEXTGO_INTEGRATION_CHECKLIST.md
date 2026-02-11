@@ -1,4 +1,4 @@
-# Next.go — Checklist de Integración
+# Next.go - Checklist de Integración
 
 ## Preparación
 - [ ] Backend FitTrack activo

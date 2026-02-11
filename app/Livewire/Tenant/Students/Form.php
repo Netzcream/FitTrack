@@ -110,7 +110,7 @@ class Form extends Component
             $this->loadWeightHistory();
         } else {
             // Para nuevo estudiante, inicializar lastWeightDisplay vacío
-            $this->lastWeightDisplay = '—';
+            $this->lastWeightDisplay = '-';
         }
 
         // Inicializar fecha con hoy
@@ -142,7 +142,7 @@ class Form extends Component
             $this->lastWeightDisplay = $this->weightHistory[0]['weight'] . ' kg (' . $this->weightHistory[0]['date'] . ')';
             $this->lastRecordedWeight = $this->weightHistory[0]['weight'];
         } else {
-            $this->lastWeightDisplay = $this->data['weight_kg'] ? round($this->data['weight_kg'], 1) . ' kg (inicial)' : '—';
+            $this->lastWeightDisplay = $this->data['weight_kg'] ? round($this->data['weight_kg'], 1) . ' kg (inicial)' : '-';
             $this->lastRecordedWeight = $this->data['weight_kg'] ? (float) $this->data['weight_kg'] : null;
         }
     }
