@@ -1,5 +1,4 @@
 /vendor/
-documents/*
 node_modules/
 npm-debug.log
 yarn-error.log
@@ -29,4 +28,7 @@ Homestead.json
 /storage/tenant*
 /storage
 .github/copilot-instructions.md
-/documents
+
+# Documentation folder - local only
+documents/
+
