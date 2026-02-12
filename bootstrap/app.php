@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'tenant.auth'      => \App\Http\Middleware\Tenant\TenantAuthenticate::class,
             'tenant.active'    => \App\Http\Middleware\EnsureTenantIsActive::class,
+            'tenant.guest'     => \App\Http\Middleware\Tenant\RedirectIfAuthenticated::class,
             'tenant.student.access' => \App\Http\Middleware\Tenant\EnsureStudentAccessEnabled::class,
             'validate.api'     => \App\Http\Middleware\Api\ValidateApiRequest::class,
         ]);
