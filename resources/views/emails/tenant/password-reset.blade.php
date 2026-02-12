@@ -8,6 +8,7 @@
     $colorLight = $colorLight ?? '#f9fafb';
     $resetUrl = $resetUrl ?? '#';
     $expireMinutes = $expireMinutes ?? 60;
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -38,7 +39,7 @@ Este enlace de restablecimiento expirara en **{{ $expireMinutes }} minutos**.
 
 Si no solicitaste este cambio, puedes ignorar este correo.
 
-Saludos,  
+Saludos,
 {{ $tenantName }}
 
 ---
@@ -49,6 +50,9 @@ Si no funciona el boton "Restablecer clave", copia y pega esta URL en tu navegad
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot

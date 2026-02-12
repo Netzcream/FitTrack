@@ -11,6 +11,7 @@
     $workoutUrl = $workoutUrl ?? '#';
     $pdfUrl = $pdfUrl ?? null;
     $lastCompletedAt = $lastCompletedAt ?? null;
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -44,6 +45,9 @@ Si queres repasar el plan completo: [Descargar PDF]({{ $pdfUrl }})
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot

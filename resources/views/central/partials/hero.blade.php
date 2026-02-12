@@ -12,11 +12,19 @@
                 <p class="text-lg sm:text-xl mb-8 text-slate-700">
                     Gestioná todos tus alumnos, rutinas y pagos en un solo lugar. Ahorrá tiempo, ofrecé más valor y hacé crecer tu negocio.
                 </p>
-                <a href="#registro"
-                   class="px-6 sm:px-7 py-3 rounded-xl text-lg font-bold shadow-lg transition
-                          bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-105 active:scale-95">
-                    Quiero evolucionar mi negocio
-                </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="#registro"
+                       class="px-6 sm:px-7 py-3 rounded-xl text-lg font-bold shadow-lg transition
+                              bg-indigo-600 hover:bg-indigo-700 text-white hover:scale-105 active:scale-95">
+                        Quiero evolucionar mi negocio
+                    </a>
+                    <a href="https://repository.netzcream.com.ar/fittrack/FitTrack.apk"
+                       class="px-6 sm:px-7 py-3 rounded-xl text-lg font-semibold shadow-lg transition
+                              bg-white text-indigo-700 border border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50"
+                       target="_blank" rel="noopener">
+                        Descargar app Android
+                    </a>
+                </div>
                 <div class="mt-6 flex gap-2 items-center">
                     <img src="https://placehold.co/40x40/4f46e5/fff?text=AP" class="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Testimonio 1" />
                     <img src="https://placehold.co/40x40/4f46e5/fff?text=SC" class="w-10 h-10 rounded-full border-2 border-indigo-100" alt="Testimonio 2" />

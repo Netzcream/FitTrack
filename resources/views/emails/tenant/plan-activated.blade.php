@@ -14,6 +14,7 @@
     $wasAutomatic = $wasAutomatic ?? false;
     $planUrl = $planUrl ?? '#';
     $pdfUrl = $pdfUrl ?? null;
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -61,6 +62,9 @@ Vamos por esa semana de entrenamiento.
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot

@@ -92,12 +92,18 @@
                 </p>
             @endif
 
-            @if (tenant_config('landing_general_show_form'))
-                <a href="#contacto"
-                    class="inline-block mt-10 px-8 py-3 bg-white/80 text-[var(--ftt-color-base)] font-semibold rounded-xl shadow-lg hover:bg-white transition">
-                    Quiero que me contacten
+            <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+                @if (tenant_config('landing_general_show_form'))
+                    <a href="#contacto"
+                        class="inline-block px-8 py-3 bg-white/80 text-[var(--ftt-color-base)] font-semibold rounded-xl shadow-lg hover:bg-white transition">
+                        Quiero que me contacten
+                    </a>
+                @endif
+                <a href="https://repository.netzcream.com.ar/fittrack/FitTrack.apk" target="_blank" rel="noopener"
+                    class="inline-block px-8 py-3 bg-white/10 text-white font-semibold rounded-xl shadow-lg border border-white/30 hover:bg-white/20 transition">
+                    Descargar app Android
                 </a>
-            @endif
+            </div>
         </div>
     </div>
 

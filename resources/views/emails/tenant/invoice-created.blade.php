@@ -15,6 +15,7 @@
     $invoiceNumber = $invoiceNumber ?? null;
     $createdAt = $createdAt ?? null;
     $paymentsUrl = $paymentsUrl ?? '#';
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -98,6 +99,9 @@ Si no funciona el boton "Ver pagos", copia y pega esta URL en tu navegador:
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot

@@ -8,6 +8,7 @@
     $colorBase = $colorBase ?? '#263d83';
     $colorDark = $colorDark ?? '#1d2d5e';
     $colorLight = $colorLight ?? '#f9fafb';
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -46,6 +47,9 @@ Si estas teniendo problemas al hacer clic en el boton "Definir mi clave", copia 
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot

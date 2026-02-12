@@ -8,6 +8,7 @@
     $colorDark = $colorDark ?? '#1d2d5e';
     $colorLight = $colorLight ?? '#f9fafb';
     $completedAt = $completedAt ?? null;
+    $androidAppUrl = $androidAppUrl ?? 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
 @endphp
 
 @slot('header')
@@ -37,6 +38,9 @@ Si no realizaste este cambio, contacta a tu entrenador lo antes posible.
 
 @slot('footer')
     @component('mail::footer')
+        <span style="display:block; margin-bottom:6px;">
+            Descarga la app Android: <a href="{{ $androidAppUrl }}">{{ $androidAppUrl }}</a>
+        </span>
         {{ date('Y') }} {{ $tenantName }}
     @endcomponent
 @endslot
