@@ -70,7 +70,7 @@
 
 
 
-    <div class="relative h-[800px] md:h-[600px] bg-cover bg-center flex items-center justify-center"
+    <div class="relative h-[720px] md:h-[560px] bg-cover bg-center flex items-center justify-center"
         style="background-image: url('{{ $coverUrl }}');">
 
         {{-- Overlay con gradiente sutil --}}
@@ -81,7 +81,7 @@
         {{-- Contenido centrado --}}
         <div class="relative z-10 text-center text-white px-6">
             @if (tenant_config('landing_title'))
-                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-lg">
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-3 drop-shadow-lg">
                     {{ tenant_config('landing_title') }}
                 </h1>
             @endif
@@ -92,15 +92,27 @@
                 </p>
             @endif
 
-            <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+            @php
+                $androidAppUrl = 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
+                $androidQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' . urlencode($androidAppUrl);
+            @endphp
+
+            <div class="mt-6 flex flex-col items-center justify-center gap-3">
                 @if (tenant_config('landing_general_show_form'))
                     <a href="#contacto"
                         class="inline-block px-8 py-3 bg-white/80 text-[var(--ftt-color-base)] font-semibold rounded-xl shadow-lg hover:bg-white transition">
                         Quiero que me contacten
                     </a>
                 @endif
-                <a href="https://repository.netzcream.com.ar/fittrack/FitTrack.apk" target="_blank" rel="noopener"
-                    class="inline-block px-8 py-3 bg-white/10 text-white font-semibold rounded-xl shadow-lg border border-white/30 hover:bg-white/20 transition">
+            </div>
+
+            <div class="mt-6 flex flex-col items-center gap-3">
+                <div class="rounded-lg bg-white/95 p-1.5">
+                    <img src="{{ $androidQrUrl }}" alt="QR descarga app Android"
+                        class="h-24 w-24 rounded-md" loading="lazy">
+                </div>
+                <a href="{{ $androidAppUrl }}" target="_blank" rel="noopener"
+                    class="inline-block px-5 py-2 bg-white/10 text-white font-semibold rounded-full shadow-lg hover:bg-white/20 transition">
                     Descargar app Android
                 </a>
             </div>
