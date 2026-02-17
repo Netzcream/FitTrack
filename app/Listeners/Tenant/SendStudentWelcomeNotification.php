@@ -44,7 +44,7 @@ class SendStudentWelcomeNotification implements ShouldQueue
                     return;
                 }
 
-                $token = Password::broker()->createToken($user);
+                $token = Password::createToken($user);
                 $registrationUrl = route('tenant.password.reset', [
                     'token' => $token,
                     'email' => $user->email,

@@ -119,4 +119,11 @@ return [
     'no_plans_assigned' => 'Este alumno aun no tiene planes asignados.',
     'cannot_delete_active_plan' => 'No puedes eliminar un plan activo.',
     'plan_deleted' => 'Plan eliminado correctamente.',
+
+    // Límites de plan
+    'limit_reached' => 'Has alcanzado el límite de :limit alumnos permitidos en tu plan :plan. Para agregar más alumnos, actualiza tu plan.',
+    'limit_reached_title' => 'Límite de alumnos alcanzado',
+    'limit_reached_description' => 'Has alcanzado el límite de :current/:limit alumnos en tu plan :plan.',
+    'upgrade_plan_cta' => 'Actualizar plan',
+    'contact_support' => 'Contactar soporte',
 ];

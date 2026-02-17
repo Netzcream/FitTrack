@@ -5,6 +5,7 @@ namespace Tests\Unit\Models\Tenant;
 use App\Models\Tenant\Workout;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\TrainingPlan;
+use App\Models\Tenant\StudentPlanAssignment;
 use Tests\TestCase;
 use Carbon\Carbon;
 
@@ -19,24 +20,28 @@ class WorkoutTest extends TestCase
 
         $student = Student::factory()->create();
         $plan = TrainingPlan::factory()->create();
+        $assignment = StudentPlanAssignment::factory()->create([
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
+        ]);
 
         $workout = Workout::factory()->create([
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
             'completed_at' => Carbon::now(),
         ]);
 
         // Assert in database
         $this->assertDatabaseHas('workouts', [
             'uuid' => $workout->uuid,
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
         ]);
 
         // Assert properties
         $this->assertNotNull($workout->uuid);
-        $this->assertEquals($student->uuid, $workout->student_uuid);
-        $this->assertEquals($plan->uuid, $workout->training_plan_uuid);
+        $this->assertEquals($student->id, $workout->student_id);
+        $this->assertEquals($assignment->id, $workout->student_plan_assignment_id);
     }
 
     /**
@@ -48,9 +53,13 @@ class WorkoutTest extends TestCase
         $tenantA = $this->actingAsTenant();
         $studentA = Student::factory()->create();
         $planA = TrainingPlan::factory()->create();
+        $assignmentA = StudentPlanAssignment::factory()->create([
+            'student_id' => $studentA->id,
+            'training_plan_id' => $planA->id,
+        ]);
         $workoutA = Workout::factory()->create([
-            'student_uuid' => $studentA->uuid,
-            'training_plan_uuid' => $planA->uuid,
+            'student_id' => $studentA->id,
+            'student_plan_assignment_id' => $assignmentA->id,
         ]);
 
         $this->assertEquals(1, Workout::count());
@@ -62,9 +71,13 @@ class WorkoutTest extends TestCase
         // Create in Tenant B
         $studentB = Student::factory()->create();
         $planB = TrainingPlan::factory()->create();
+        $assignmentB = StudentPlanAssignment::factory()->create([
+            'student_id' => $studentB->id,
+            'training_plan_id' => $planB->id,
+        ]);
         $workoutB = Workout::factory()->create([
-            'student_uuid' => $studentB->uuid,
-            'training_plan_uuid' => $planB->uuid,
+            'student_id' => $studentB->id,
+            'student_plan_assignment_id' => $assignmentB->id,
         ]);
 
         $this->assertEquals(1, Workout::count());
@@ -84,16 +97,20 @@ class WorkoutTest extends TestCase
 
         $student = Student::factory()->create(['first_name' => 'Juan']);
         $plan = TrainingPlan::factory()->create();
+        $assignment = StudentPlanAssignment::factory()->create([
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
+        ]);
 
         Workout::factory()->create([
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
         ]);
 
         // Find workouts by student
-        $workouts = Workout::where('student_uuid', $student->uuid)->get();
+        $workouts = Workout::where('student_id', $student->id)->get();
         $this->assertCount(1, $workouts);
-        $this->assertEquals($student->uuid, $workouts->first()->student_uuid);
+        $this->assertEquals($student->id, $workouts->first()->student_id);
     }
 
     /**
@@ -105,18 +122,22 @@ class WorkoutTest extends TestCase
 
         $student = Student::factory()->create();
         $plan = TrainingPlan::factory()->create();
-
-        Workout::factory()->count(3)->create([
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+        $assignment = StudentPlanAssignment::factory()->create([
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
         ]);
 
-        $studentWorkouts = Workout::where('student_uuid', $student->uuid)->get();
+        Workout::factory()->count(3)->create([
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
+        ]);
+
+        $studentWorkouts = Workout::where('student_id', $student->id)->get();
         $this->assertCount(3, $studentWorkouts);
 
         // All should belong to same student
         foreach ($studentWorkouts as $workout) {
-            $this->assertEquals($student->uuid, $workout->student_uuid);
+            $this->assertEquals($student->id, $workout->student_id);
         }
     }
 
@@ -129,10 +150,14 @@ class WorkoutTest extends TestCase
 
         $student = Student::factory()->create();
         $plan = TrainingPlan::factory()->create();
+        $assignment = StudentPlanAssignment::factory()->create([
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
+        ]);
 
         $workout = Workout::factory()->create([
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
         ]);
 
         // Assert created_at and updated_at exist
@@ -150,10 +175,14 @@ class WorkoutTest extends TestCase
 
         $student = Student::factory()->create();
         $plan = TrainingPlan::factory()->create();
+        $assignment = StudentPlanAssignment::factory()->create([
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
+        ]);
 
         $workout = Workout::factory()->create([
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'student_plan_assignment_id' => $assignment->id,
         ]);
 
         // Should exist
@@ -179,12 +208,25 @@ class WorkoutTest extends TestCase
         $plan1 = TrainingPlan::factory()->create(['name' => 'Plan 1']);
         $plan2 = TrainingPlan::factory()->create(['name' => 'Plan 2']);
 
-        Workout::factory()->count(2)->create(['training_plan_uuid' => $plan1->uuid]);
-        Workout::factory()->count(3)->create(['training_plan_uuid' => $plan2->uuid]);
+        $assignment1 = StudentPlanAssignment::factory()->create([
+            'training_plan_id' => $plan1->id,
+        ]);
+        $assignment2 = StudentPlanAssignment::factory()->create([
+            'training_plan_id' => $plan2->id,
+        ]);
 
-        // Find by plan
-        $plan1Workouts = Workout::where('training_plan_uuid', $plan1->uuid)->get();
-        $plan2Workouts = Workout::where('training_plan_uuid', $plan2->uuid)->get();
+        Workout::factory()->count(2)->create([
+            'student_plan_assignment_id' => $assignment1->id,
+            'student_id' => $assignment1->student_id,
+        ]);
+        Workout::factory()->count(3)->create([
+            'student_plan_assignment_id' => $assignment2->id,
+            'student_id' => $assignment2->student_id,
+        ]);
+
+        // Find by plan assignment
+        $plan1Workouts = Workout::where('student_plan_assignment_id', $assignment1->id)->get();
+        $plan2Workouts = Workout::where('student_plan_assignment_id', $assignment2->id)->get();
 
         $this->assertCount(2, $plan1Workouts);
         $this->assertCount(3, $plan2Workouts);

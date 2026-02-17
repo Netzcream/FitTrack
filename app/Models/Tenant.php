@@ -24,6 +24,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'data',
         'status',
         'commercial_plan_id',
+        'admin_email',
     ];
 
     protected $casts = [
@@ -187,6 +188,54 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function plan()
     {
         return $this->belongsTo(CommercialPlan::class, 'commercial_plan_id');
+    }
+
+    /**
+     * Obtiene el límite de estudiantes según el plan comercial.
+     */
+    public function getStudentLimit(): int
+    {
+        if (!$this->plan) {
+            return 5; // Sin plan asignado, límite de 5
+        }
+
+        return match($this->plan->slug) {
+            'starter' => 5,
+            'pro' => 999999,    // Ilimitado
+            'equipo' => 999999, // Ilimitado
+            default => 5,
+        };
+    }
+
+    /**
+     * Verifica si el tenant puede crear más estudiantes.
+     */
+    public function canCreateMoreStudents(): bool
+    {
+        $currentCount = \App\Models\Tenant\Student::count();
+        $limit = $this->getStudentLimit();
+
+        return $currentCount < $limit;
+    }
+
+    /**
+     * Obtiene el conteo actual y límite de estudiantes.
+     */
+    public function getStudentUsage(): array
+    {
+        $currentCount = \App\Models\Tenant\Student::count();
+        $limit = $this->getStudentLimit();
+        $available = max(0, $limit - $currentCount);
+        $isLimited = $limit < 999999;
+
+        return [
+            'current' => $currentCount,
+            'limit' => $limit,
+            'available' => $available,
+            'is_limited' => $isLimited,
+            'can_create' => $currentCount < $limit,
+            'percentage' => $limit > 0 ? round(($currentCount / $limit) * 100, 1) : 0,
+        ];
     }
 
     /**

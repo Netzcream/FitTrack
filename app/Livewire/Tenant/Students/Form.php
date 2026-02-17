@@ -85,6 +85,23 @@ class Form extends Component
 
     public function mount(?Student $student): void
     {
+        // Verificar límite de estudiantes para nuevos registros
+        if (!$student || !$student->exists) {
+            $tenant = tenancy()->tenant;
+            if ($tenant && !$tenant->canCreateMoreStudents()) {
+                $usage = $tenant->getStudentUsage();
+                $planName = $tenant->plan?->name ?? 'Starter';
+
+                session()->flash('error', __('students.limit_reached', [
+                    'limit' => $usage['limit'],
+                    'plan' => $planName,
+                ]));
+
+                redirect()->route('tenant.dashboard.students.index');
+                return;
+            }
+        }
+
         $this->plans = CommercialPlan::orderBy('name')->pluck('name', 'id')->toArray();
 
         if ($student && $student->exists) {
@@ -250,6 +267,27 @@ class Form extends Component
         $this->validate();
         $isNewStudent = ! $this->editMode;
 
+        // Verificar l\u00edmite de estudiantes para nuevos registros
+        if ($isNewStudent) {
+            $tenant = tenancy()->tenant;
+            if ($tenant && !$tenant->canCreateMoreStudents()) {
+                $usage = $tenant->getStudentUsage();
+                $planName = $tenant->plan?->name ?? 'Starter';
+
+                $errorMessage = __('students.limit_reached', [
+                    'limit' => $usage['limit'],
+                    'plan' => $planName,
+                ]);
+
+                session()->flash('error', $errorMessage);
+                $this->dispatch('toast', [
+                    'message' => $errorMessage,
+                    'type' => 'error',
+                ]);
+                return;
+            }
+        }
+
         $user = $this->ensureUser();
 
         $student = $this->student ?? new Student();
@@ -283,7 +321,7 @@ class Form extends Component
         $student->save();
 
         if ($isNewStudent) {
-            $token = Password::broker()->createToken($user);
+            $token = Password::createToken($user);
             $registrationUrl = route('tenant.password.reset', [
                 'token' => $token,
                 'email' => $user->email,

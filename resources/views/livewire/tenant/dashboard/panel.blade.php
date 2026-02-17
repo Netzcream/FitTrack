@@ -142,14 +142,24 @@
                 <h3 class="text-sm font-semibold mb-3">{{ __('site.quick_actions') }}</h3>
                 <div class="grid grid-cols-2 gap-3">
 
-                    {{-- Nuevo alumno (abre modal Flux) --}}
-                    <flux:modal.trigger name="create-student">
-                        <flux:button class="!h-auto w-full flex flex-col items-center justify-center py-6 text-center cursor-pointer"
-                            type="button">
-                            <flux:icon.user-plus class="size-6 mb-2" />
-                            <span class="text-sm font-medium">{{ __('site.new_student') }}</span>
-                        </flux:button>
-                    </flux:modal.trigger>
+                    {{-- Nuevo alumno (abre modal Flux o modal de límite) --}}
+                    @if($canCreateStudents)
+                        <flux:modal.trigger name="create-student">
+                            <flux:button class="!h-auto w-full flex flex-col items-center justify-center py-6 text-center cursor-pointer"
+                                type="button">
+                                <flux:icon.user-plus class="size-6 mb-2" />
+                                <span class="text-sm font-medium">{{ __('site.new_student') }}</span>
+                            </flux:button>
+                        </flux:modal.trigger>
+                    @else
+                        <flux:modal.trigger name="student-limit-reached">
+                            <flux:button class="!h-auto w-full flex flex-col items-center justify-center py-6 text-center cursor-pointer"
+                                type="button" variant="ghost">
+                                <flux:icon.user-plus class="size-6 mb-2" />
+                                <span class="text-sm font-medium">{{ __('site.new_student') }}</span>
+                            </flux:button>
+                        </flux:modal.trigger>
+                    @endif
 
                     {{-- Ir a alumnos --}}
                     <flux:button as="a" wire:navigate href="{{ route('tenant.dashboard.students.index') }}"
@@ -280,6 +290,48 @@
                 </form>
             </div>
         </flux:modal>
+
+        {{-- MODAL: Límite de estudiantes alcanzado --}}
+        @if(!$canCreateStudents && $studentUsage)
+        <flux:modal name="student-limit-reached" class="min-w-[28rem]">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">{{ __('students.limit_reached_title') }}</flux:heading>
+                    <flux:text class="mt-2">
+                        {{ __('students.limit_reached_description', [
+                            'current' => $studentUsage['current'],
+                            'limit' => $studentUsage['limit'],
+                            'plan' => tenancy()->tenant?->plan?->name ?? 'Starter',
+                        ]) }}
+                    </flux:text>
+                </div>
+
+                <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <flux:icon.triangle-alert class="size-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-amber-900 dark:text-amber-100">
+                                {{ __('students.limit_reached', [
+                                    'limit' => $studentUsage['limit'],
+                                    'plan' => tenancy()->tenant?->plan?->name ?? 'Starter',
+                                ]) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">{{ __('site.close') }}</flux:button>
+                    </flux:modal.close>
+                    <flux:button as="a" href="{{ route('tenant.dashboard.support.show') }}" variant="primary">
+                        {{ __('students.contact_support') }}
+                    </flux:button>
+                </div>
+            </div>
+        </flux:modal>
+        @endif
 
     </div>
 </div>

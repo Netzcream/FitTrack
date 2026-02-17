@@ -4,6 +4,7 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Spatie\Image\Enums\Fit;
 
 class Student extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia, Notifiable;
+    use HasFactory, SoftDeletes, InteractsWithMedia, Notifiable;
 
     protected $table = 'students';
 

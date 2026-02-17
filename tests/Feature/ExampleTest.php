@@ -11,7 +11,9 @@ class ExampleTest extends TestCase
 
     public function test_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+        ])->get('/');
 
         $response->assertStatus(200);
     }

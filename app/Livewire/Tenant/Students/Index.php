@@ -26,6 +26,10 @@ class Index extends Component
     public ?string $deleteUuid = null;
     public ?string $selectedStudentUuid = null;
 
+    // Propiedades para límite de estudiantes
+    public bool $canCreateStudents = true;
+    public ?array $studentUsage = null;
+
     /** @var array<string> */
     protected array $sortableColumns = ['first_name', 'last_name', 'email', 'status', 'last_login_at'];
 
@@ -97,6 +101,15 @@ class Index extends Component
     public function selectStudent(string $uuid): void
     {
         $this->selectedStudentUuid = $uuid;
+    }
+
+    public function mount(): void
+    {
+        $tenant = tenancy()->tenant;
+        if ($tenant) {
+            $this->canCreateStudents = $tenant->canCreateMoreStudents();
+            $this->studentUsage = $tenant->getStudentUsage();
+        }
     }
 
     #[On('plan-assigned')]

@@ -37,14 +37,14 @@ class AssignPlanServiceTest extends TestCase
 
         // Verify assignment created
         $this->assertNotNull($assignment);
-        $this->assertEquals($student->uuid, $assignment->student_uuid);
-        $this->assertEquals($plan->uuid, $assignment->training_plan_uuid);
+        $this->assertEquals($student->id, $assignment->student_id);
+        $this->assertEquals($plan->id, $assignment->training_plan_id);
         $this->assertTrue($assignment->is_current);
 
         // Verify in database
         $this->assertDatabaseHas('student_plan_assignments', [
-            'student_uuid' => $student->uuid,
-            'training_plan_uuid' => $plan->uuid,
+            'student_id' => $student->id,
+            'training_plan_id' => $plan->id,
         ]);
     }
 
@@ -96,8 +96,8 @@ class AssignPlanServiceTest extends TestCase
         $assignment = $this->service->assign($plan, $student, $startsAt, $endsAt);
 
         // Verify exercises_data is stored as JSON
-        $this->assertNotNull($assignment->exercises_data);
-        $this->assertIsString($assignment->exercises_data);
+        $this->assertNotNull($assignment->exercises_snapshot);
+        $this->assertIsArray($assignment->exercises_snapshot);
 
         // Snapshot should be captured at assignment time
         // Changes to plan later should not affect assignment

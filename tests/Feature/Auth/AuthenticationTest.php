@@ -14,7 +14,9 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered(): void
     {
-        $response = $this->get('/login');
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+        ])->get('/login');
 
         $response->assertStatus(200);
     }
@@ -30,7 +32,7 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect('/dashboard');
 
         $this->assertAuthenticated();
     }
@@ -53,7 +55,9 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/logout');
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+        ])->actingAs($user)->post('/logout');
 
         $response->assertRedirect('/');
 

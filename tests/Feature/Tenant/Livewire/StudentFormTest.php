@@ -6,6 +6,9 @@ use App\Models\Tenant;
 use App\Models\Tenant\Student;
 use App\Models\Tenant\TrainingPlan;
 use App\Models\Tenant\StudentPlanAssignment;
+use App\Livewire\Tenant\Students\Form as StudentForm;
+use App\Livewire\Tenant\Students\AssignPlan as AssignPlanComponent;
+use App\Livewire\Tenant\Students\Index as StudentIndex;
 use Livewire\Livewire;
 use Tests\TestCase;
 use Carbon\Carbon;
@@ -28,9 +31,7 @@ class StudentFormTest extends TestCase
     {
         $tenant = $this->actingAsTenant();
 
-        // Initialize Livewire component
-        // Component path format: 'Tenant.Students.StudentForm'
-        $response = Livewire::test('tenant.students.student-form')
+        $response = Livewire::test(StudentForm::class, ['student' => null])
             ->set('first_name', 'Juan')
             ->set('last_name', 'Pérez')
             ->set('email', 'juan@example.com')
@@ -51,7 +52,7 @@ class StudentFormTest extends TestCase
     {
         $this->actingAsTenant();
 
-        $response = Livewire::test('tenant.students.student-form')
+        $response = Livewire::test(StudentForm::class, ['student' => null])
             ->set('first_name', '')  // Empty required field
             ->call('save')
             ->assertHasErrors('first_name');  // Should have validation error
@@ -68,14 +69,15 @@ class StudentFormTest extends TestCase
         $planA = TrainingPlan::factory()->create(['name' => 'Plan A']);
 
         // Tenant A assigns plan
-        $response = Livewire::test('tenant.students.assign-plan')
-            ->set('student_uuid', $studentA->uuid)
-            ->set('training_plan_uuid', $planA->uuid)
-            ->call('assignPlan');
+        $response = Livewire::test(AssignPlanComponent::class, ['student' => $studentA])
+            ->set('training_plan_id', $planA->id)
+            ->set('starts_at', now()->format('Y-m-d'))
+            ->set('ends_at', now()->addWeeks(4)->format('Y-m-d'))
+            ->call('assign');
 
         $this->assertDatabaseHas('student_plan_assignments', [
-            'student_uuid' => $studentA->uuid,
-            'training_plan_uuid' => $planA->uuid,
+            'student_id' => $studentA->id,
+            'training_plan_id' => $planA->id,
         ]);
 
         // Switch to Tenant B
@@ -88,10 +90,11 @@ class StudentFormTest extends TestCase
         $studentB = Student::factory()->create();
         $planB = TrainingPlan::factory()->create(['name' => 'Plan B']);
 
-        Livewire::test('tenant.students.assign-plan')
-            ->set('student_uuid', $studentB->uuid)
-            ->set('training_plan_uuid', $planB->uuid)
-            ->call('assignPlan');
+        Livewire::test(AssignPlanComponent::class, ['student' => $studentB])
+            ->set('training_plan_id', $planB->id)
+            ->set('starts_at', now()->format('Y-m-d'))
+            ->set('ends_at', now()->addWeeks(4)->format('Y-m-d'))
+            ->call('assign');
 
         // Verify isolation
         $this->assertEquals(1, StudentPlanAssignment::count());
@@ -110,7 +113,7 @@ class StudentFormTest extends TestCase
         Student::factory()->count(5)->create();
 
         // Component should show 5 students
-        $response = Livewire::test('tenant.students.student-list');
+        $response = Livewire::test(StudentIndex::class);
         // Adjust assertion based on actual component
         // $response->assertSee('expected_student_name');
 
@@ -119,7 +122,7 @@ class StudentFormTest extends TestCase
         Student::factory()->count(3)->create();
 
         // Component in Tenant B should show 3 students (not 5)
-        $response = Livewire::test('tenant.students.student-list');
+        $response = Livewire::test(StudentIndex::class);
         // $response should reflect only 3 students
     }
 }

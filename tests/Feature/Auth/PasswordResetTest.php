@@ -17,7 +17,9 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_screen_can_be_rendered(): void
     {
-        $response = $this->get('/forgot-password');
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+        ])->get('/forgot-password');
 
         $response->assertStatus(200);
     }
@@ -46,7 +48,9 @@ class PasswordResetTest extends TestCase
             ->call('sendPasswordResetLink');
 
         Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
+            $response = $this->withServerVariables([
+                'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+            ])->get('/reset-password/'.$notification->token);
 
             $response->assertStatus(200);
 
@@ -73,7 +77,7 @@ class PasswordResetTest extends TestCase
 
             $response
                 ->assertHasNoErrors()
-                ->assertRedirect(route('login', absolute: false));
+                ->assertRedirect('/login');
 
             return true;
         });

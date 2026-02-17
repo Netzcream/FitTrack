@@ -3,6 +3,7 @@
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
@@ -12,6 +13,7 @@ use App\Enums\PlanAssignmentStatus;
 
 class StudentPlanAssignment extends Model
 {
+    use HasFactory;
     protected $table = 'student_plan_assignments';
 
     protected $fillable = [

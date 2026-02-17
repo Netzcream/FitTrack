@@ -16,7 +16,9 @@ class PasswordConfirmationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/confirm-password');
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => config('tenancy.central_domains')[0] ?? 'localhost',
+        ])->actingAs($user)->get('/confirm-password');
 
         $response->assertStatus(200);
     }
@@ -33,7 +35,7 @@ class PasswordConfirmationTest extends TestCase
 
         $response
             ->assertHasNoErrors()
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect('/dashboard');
     }
 
     public function test_password_is_not_confirmed_with_invalid_password(): void

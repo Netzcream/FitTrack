@@ -32,6 +32,25 @@ class Panel extends Component
 
     public function saveStudent()
     {
+        // Verificar límite de estudiantes
+        $tenant = tenancy()->tenant;
+        if ($tenant && !$tenant->canCreateMoreStudents()) {
+            $usage = $tenant->getStudentUsage();
+            $planName = $tenant->plan?->name ?? 'Starter';
+
+            $errorMessage = __('students.limit_reached', [
+                'limit' => $usage['limit'],
+                'plan' => $planName,
+            ]);
+
+            $this->dispatch('toast', [
+                'message' => $errorMessage,
+                'type' => 'error',
+            ]);
+            $this->dispatch('close-modal', 'create-student');
+            return;
+        }
+
         $data = $this->validate();
         $studentRole = Role::firstOrCreate(['name' => 'Alumno']);
 
@@ -56,7 +75,7 @@ class Panel extends Component
             'is_user_enabled' => true,
         ]);
 
-        $token = Password::broker()->createToken($user);
+        $token = Password::createToken($user);
         $registrationUrl = route('tenant.password.reset', [
             'token' => $token,
             'email' => $user->email,
@@ -194,6 +213,10 @@ class Panel extends Component
             }
         }
 
+        // Verificar si se puede crear más estudiantes
+        $canCreateStudents = $tenant ? $tenant->canCreateMoreStudents() : true;
+        $studentUsage = $tenant ? $tenant->getStudentUsage() : null;
+
         return view('livewire.tenant.dashboard.panel', compact(
             'publishedCount',
             // 'draftCount' removed
@@ -215,6 +238,8 @@ class Panel extends Component
             'hasAiAccess',
             'aiUsage',
             'aiChartData',
+            'canCreateStudents',
+            'studentUsage',
         ));
     }
 }

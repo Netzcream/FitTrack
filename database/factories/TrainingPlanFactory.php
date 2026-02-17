@@ -1,23 +1,15 @@
 <?php
 
-namespace Database\Factories\Tenant;
+namespace Database\Factories;
 
 use App\Models\Tenant\TrainingPlan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tenant\TrainingPlan>
- */
 class TrainingPlanFactory extends Factory
 {
     protected $model = TrainingPlan::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [

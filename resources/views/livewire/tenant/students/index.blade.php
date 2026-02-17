@@ -9,9 +9,17 @@
                     <flux:subheading size="lg" class="mb-6">{{ __('students.index_subheading') }}</flux:subheading>
                 </div>
 
-                <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary" icon="plus">
-                    {{ __('students.new_student') }}
-                </flux:button>
+                @if($canCreateStudents)
+                    <flux:button as="a" href="{{ route('tenant.dashboard.students.create') }}" variant="primary" icon="plus">
+                        {{ __('students.new_student') }}
+                    </flux:button>
+                @else
+                    <flux:modal.trigger name="student-limit-reached">
+                        <flux:button variant="primary" icon="plus">
+                            {{ __('students.new_student') }}
+                        </flux:button>
+                    </flux:modal.trigger>
+                @endif
             </div>
             <flux:separator variant="subtle" />
         </div>
@@ -234,9 +242,52 @@
                             @endif
                         @endif
                     </flux:modal>
+
+                    {{-- Modal: Límite de estudiantes alcanzado --}}
+                    @if(!$canCreateStudents && $studentUsage)
+                    <flux:modal name="student-limit-reached" class="min-w-[28rem]">
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">{{ __('students.limit_reached_title') }}</flux:heading>
+                                <flux:text class="mt-2">
+                                    {{ __('students.limit_reached_description', [
+                                        'current' => $studentUsage['current'],
+                                        'limit' => $studentUsage['limit'],
+                                        'plan' => tenancy()->tenant?->plan?->name ?? 'Starter',
+                                    ]) }}
+                                </flux:text>
+                            </div>
+
+                            <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <div class="flex items-start gap-3">
+                                    <flux:icon.triangle-alert class="size-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-amber-900 dark:text-amber-100">
+                                            {{ __('students.limit_reached', [
+                                                'limit' => $studentUsage['limit'],
+                                                'plan' => tenancy()->tenant?->plan?->name ?? 'Starter',
+                                            ]) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">{{ __('site.close') }}</flux:button>
+                                </flux:modal.close>
+                                <flux:button as="a" href="{{ route('tenant.dashboard.support.show') }}" variant="primary">
+                                    {{ __('students.contact_support') }}
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+                    @endif
                 </x-slot>
 
             </x-data-table>
         </section>
+
     </div>
 </div>
