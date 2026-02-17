@@ -71,7 +71,7 @@ abstract class TestCase extends BaseTestCase
      */
     public function inTenant(Tenant $tenant, callable $callback): mixed
     {
-        $previousTenant = tenancy()->initialized ? app('tenant') : null;
+        $previousTenant = tenancy()->initialized ? tenancy()->tenant : null;
 
         try {
             tenancy()->initialize($tenant);

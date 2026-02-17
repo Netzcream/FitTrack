@@ -101,7 +101,7 @@ class StudentManagementFeatureTest extends TestCase
         ]);
 
         // Retrieve and verify
-        $retrieved = Student::find($original->uuid);
+        $retrieved = Student::where('uuid', $original->uuid)->first();
         $this->assertEquals('Carlos', $retrieved->first_name);
         $this->assertEquals('carlos@test.com', $retrieved->email);
 
@@ -109,7 +109,7 @@ class StudentManagementFeatureTest extends TestCase
         $retrieved->first_name = 'Pablo';
         $retrieved->save();
 
-        $updated = Student::find($original->uuid);
+        $updated = Student::where('uuid', $original->uuid)->first();
         $this->assertEquals('Pablo', $updated->first_name);
     }
 }

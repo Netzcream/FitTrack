@@ -31,7 +31,7 @@ class StudentFormTest extends TestCase
     {
         $tenant = $this->actingAsTenant();
 
-        $response = Livewire::test(StudentForm::class, ['student' => null])
+        $response = Livewire::test(StudentForm::class)
             ->set('first_name', 'Juan')
             ->set('last_name', 'Pérez')
             ->set('email', 'juan@example.com')
@@ -52,7 +52,7 @@ class StudentFormTest extends TestCase
     {
         $this->actingAsTenant();
 
-        $response = Livewire::test(StudentForm::class, ['student' => null])
+        $response = Livewire::test(StudentForm::class)
             ->set('first_name', '')  // Empty required field
             ->call('save')
             ->assertHasErrors('first_name');  // Should have validation error
@@ -111,6 +111,7 @@ class StudentFormTest extends TestCase
     {
         $tenantA = $this->actingAsTenant();
         Student::factory()->count(5)->create();
+        $this->assertEquals(5, Student::count());
 
         // Component should show 5 students
         $response = Livewire::test(StudentIndex::class);
@@ -120,6 +121,11 @@ class StudentFormTest extends TestCase
         // Switch tenant
         $tenantB = $this->actingAsTenant();
         Student::factory()->count(3)->create();
+        $this->assertEquals(3, Student::count());
+
+        $this->inTenant($tenantA, function() {
+            $this->assertEquals(5, Student::count());
+        });
 
         // Component in Tenant B should show 3 students (not 5)
         $response = Livewire::test(StudentIndex::class);

@@ -158,7 +158,7 @@ class StudentTest extends TestCase
         $student = Student::factory()->create();
 
         // Initially no assignment
-        $this->assertNull($student->currentPlanAssignment());
+        $this->assertNull($student->currentPlanAssignment);
 
         // After creating assignment, it should be accessible
         // (Assuming Student has planAssignments() relationship and currentPlanAssignment() scope)

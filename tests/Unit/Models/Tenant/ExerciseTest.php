@@ -18,8 +18,6 @@ class ExerciseTest extends TestCase
         $exercise = Exercise::factory()->create([
             'name' => 'Sentadilla',
             'description' => 'Ejercicio para piernas',
-            'reps' => 10,
-            'sets' => 4,
         ]);
 
         // Assert in database
@@ -32,8 +30,6 @@ class ExerciseTest extends TestCase
         // Assert properties
         $this->assertNotNull($exercise->uuid);
         $this->assertEquals('Sentadilla', $exercise->name);
-        $this->assertEquals(10, $exercise->reps);
-        $this->assertEquals(4, $exercise->sets);
     }
 
     /**
@@ -108,13 +104,15 @@ class ExerciseTest extends TestCase
 
         $exercise = Exercise::factory()->create([
             'name' => 'Sentadilla',
-            'reps' => 12,
-            'sets' => 5,
+            'meta' => [
+                'reps' => 12,
+                'sets' => 5,
+            ],
         ]);
 
-        $retrieved = Exercise::find($exercise->uuid);
-        $this->assertEquals(12, $retrieved->reps);
-        $this->assertEquals(5, $retrieved->sets);
+        $retrieved = Exercise::where('uuid', $exercise->uuid)->first();
+        $this->assertEquals(12, $retrieved->meta['reps'] ?? null);
+        $this->assertEquals(5, $retrieved->meta['sets'] ?? null);
     }
 
     /**
@@ -148,24 +146,21 @@ class ExerciseTest extends TestCase
 
         $exercise = Exercise::factory()->create([
             'name' => 'Original Name',
-            'reps' => 10,
+            'meta' => [
+                'reps' => 10,
+            ],
         ]);
 
         // Update
         $exercise->update([
             'name' => 'New Name',
-            'reps' => 15,
-        ]);
-
-        // Assert in database
-        $this->assertDatabaseHas('exercises', [
-            'uuid' => $exercise->uuid,
-            'name' => 'New Name',
-            'reps' => 15,
+            'meta' => [
+                'reps' => 15,
+            ],
         ]);
 
         // Assert properties
         $this->assertEquals('New Name', $exercise->name);
-        $this->assertEquals(15, $exercise->reps);
+        $this->assertEquals(15, $exercise->meta['reps'] ?? null);
     }
 }

@@ -70,7 +70,7 @@ class AssignPlanServiceTest extends TestCase
         $this->assertTrue($assignment1->is_current);
 
         // Assign second plan (should replace first)
-        $assignment2 = $this->service->assign($plan2, $student, $startsAt2, $endsAt2);
+        $assignment2 = $this->service->assign($plan2, $student, $startsAt2, $endsAt2, true);
 
         // Verify second is current
         $this->assertTrue($assignment2->is_current);
