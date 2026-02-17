@@ -48,6 +48,7 @@
                     @livewire(\App\Livewire\Tenant\Student\MessageBadge::class)
                 </a>
                 <a href="{{ route('tenant.student.payments') }}">Pagos</a>
+                <a href="{{ route('tenant.student.profile') }}">Perfil</a>
 
                <form method="POST" action="{{ route('tenant.logout') }}">
                     @csrf
