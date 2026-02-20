@@ -19,6 +19,6 @@
             viewable
         />
 
-        <flux:button variant="primary" type="submit" class="w-full">{{ __('Confirm') }}</flux:button>
+        <flux:button variant="primary" type="submit" class="w-full tenant-primary">{{ __('Confirm') }}</flux:button>
     </form>
 </div>
