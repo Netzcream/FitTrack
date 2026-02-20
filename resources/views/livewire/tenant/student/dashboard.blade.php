@@ -119,6 +119,27 @@
         </a>
     </div>
 
+    @php
+        $androidAppUrl = 'https://repository.netzcream.com.ar/fittrack/FitTrack.apk';
+        $androidQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($androidAppUrl);
+    @endphp
+
+    <div class="bg-white rounded-xl p-6 flex flex-col sm:flex-row items-center gap-5"
+        style="border: 1px solid #e5e7eb; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);">
+        <div class="rounded-lg bg-gray-50 p-2 border border-gray-200">
+            <img src="{{ $androidQrUrl }}" alt="QR descarga app Android" class="h-28 w-28 rounded-md" loading="lazy">
+        </div>
+        <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900">Usas Android?</h3>
+            <p class="text-sm text-gray-600">Te recomendamos descargar la app para registrar entrenamientos mas rapido y tener todo a mano.</p>
+            <a href="{{ $androidAppUrl }}" target="_blank" rel="noopener"
+                class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                style="background-color: var(--ftt-color-base);">
+                Descargar app Android
+            </a>
+        </div>
+    </div>
+
     {{-- WORKOUT DE HOY + PROGRESO --}}
     @if ($assignment && $todayWorkout)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
