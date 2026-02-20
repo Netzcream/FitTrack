@@ -248,25 +248,4 @@ routes/
 - Roles y permisos administrados por Spatie Permission.
 - API REST para sincronizacion con la app movil (20 endpoints).
 
----
-
-## Estado actual del proyecto
-
-La API movil esta completa y documentada. El core web sigue en desarrollo activo con roadmap a MVP 2Q 2026.
-
----
-
-## Documentacion
-
-Punto de entrada: [documents/INICIO.md](documents/INICIO.md)
-
-Indice general: [documents/DOCUMENTATION_INDEX.md](documents/DOCUMENTATION_INDEX.md)
-
-Documentos clave:
-- [documents/FINAL_STATUS.md](documents/FINAL_STATUS.md)
-- [documents/API_README.md](documents/API_README.md)
-- [documents/MOBILE_API_NEXTGO_COMPLETE.md](documents/MOBILE_API_NEXTGO_COMPLETE.md)
-- [documents/NEXTGO_INTEGRATION_CHECKLIST.md](documents/NEXTGO_INTEGRATION_CHECKLIST.md)
-- [documents/BRANDING_CONFIG_GUIDE.md](documents/BRANDING_CONFIG_GUIDE.md)
-
 Actualizado: Enero 2026
