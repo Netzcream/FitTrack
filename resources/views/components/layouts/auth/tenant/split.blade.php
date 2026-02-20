@@ -24,12 +24,22 @@
         --lnq-text-footer: {{ $healthcare?->hcConfig('site_footer_text_color') ?? tenant_config('footer_text_color', '#000000') }};
         --lnq-bg-footer: {{ $healthcare?->hcConfig('site_footer_background_color') ?? tenant_config('footer_background_color', '#ffffff') }};
     }
+
+    .tenant-primary {
+        background-color: var(--lnq-color-base);
+        border-color: var(--lnq-color-base);
+        color: #ffffff;
+    }
+
+    .tenant-primary:hover {
+        background-color: var(--lnq-color-dark);
+        border-color: var(--lnq-color-dark);
+    }
 </style>
 
-<body class="min-h-screen antialiased"
-    style="background: linear-gradient(135deg, var(--lnq-color-dark), var(--lnq-color-base));">
+<body class="min-h-screen antialiased bg-slate-50">
     <div
-        class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
+        class="relative grid h-dvh flex-col place-items-stretch px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
 
         {{-- Columna izquierda (branding/quote) --}}
         <div class="relative hidden h-full flex-col p-10 text-white lg:flex border-e border-white/10">
@@ -66,16 +76,18 @@
 
 
         {{-- Columna derecha (form) --}}
-        <div class="w-full lg:p-8">
-            <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <div class="h-full w-full bg-white lg:p-8">
+            <div class="mx-auto flex min-h-full w-full flex-col justify-center space-y-6 sm:w-[350px] text-slate-900">
                 <a href="{{ route('tenant.landing') }}" class="z-20 flex flex-col items-center gap-2 font-medium "
                     wire:navigate>
-                    <span class="flex h-10 mb-6  items-center justify-center rounded-md">
-                        <x-tenant.app-logo-icon class="me-2 h-24 fill-current text-white" />
+                    <span class="flex h-10 mb-6 items-center justify-center rounded-md">
+                        <x-tenant.app-logo-icon class="me-2 h-24 fill-current text-[color:var(--lnq-color-base)]" />
                     </span>
 
                 </a>
-                {{ $slot }}
+                <div class="tenant-accent">
+                    {{ $slot }}
+                </div>
                 <style>
                     .tenant-accent a,
                     a.tenant-accent {

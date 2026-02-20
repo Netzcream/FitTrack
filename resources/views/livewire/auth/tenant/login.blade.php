@@ -49,7 +49,7 @@
             />
 
             @if (Route::has('tenant.password.request'))
-                <flux:link class="absolute end-0 top-0 text-sm"
+                <flux:link class="absolute end-0 top-0 text-sm tenant-accent"
                            :href="route('tenant.password.request')" wire:navigate>
                     {{ __('site.forgot_password') }}
                 </flux:link>
@@ -60,7 +60,7 @@
         <flux:checkbox wire:model="remember" :label="__('site.remember_me')" />
 
         <div class="flex items-center justify-end">
-            <flux:button variant="primary" type="submit" class="w-full">
+            <flux:button variant="primary" type="submit" class="w-full tenant-primary">
                 {{ __('site.login_button') }}
             </flux:button>
         </div>
@@ -75,7 +75,7 @@
             as="a"
             href="{{ route('tenant.google.redirect', array_filter(['redirect' => request()->query('redirect')])) }}"
             variant="filled"
-            class="w-full !bg-white hover:!bg-gray-50 !text-gray-700 !border-0"
+            class="w-full !bg-white hover:!bg-gray-50 !text-gray-700 !border !border-gray-300 hover:!border-gray-400"
         >
             <img src="{{ config('app.url') }}/images/google.svg" alt="Google" class="w-5 h-5" />
             {{ __('site.login_google') }}
@@ -83,7 +83,7 @@
     @endif
 
     @if (Route::has('tenant.register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600">
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 tenant-accent">
             {{ __('site.no_account') }}
             <flux:link :href="route('tenant.register')" wire:navigate>
                 {{ __('site.sign_up') }}

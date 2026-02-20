@@ -29,7 +29,7 @@
             />
 
             @if (Route::has('tenant.password.request'))
-                <flux:link class="absolute end-0 top-0 text-sm" :href="route('tenant.password.request')" wire:navigate>
+                <flux:link class="absolute end-0 top-0 text-sm tenant-accent" :href="route('tenant.password.request')" wire:navigate>
                     {{ __('Forgot your password?') }}
                 </flux:link>
             @endif
@@ -39,12 +39,12 @@
         <flux:checkbox wire:model="remember" :label="__('Remember me')" />
 
         <div class="flex items-center justify-end">
-            <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
+            <flux:button variant="primary" type="submit" class="w-full tenant-primary">{{ __('Log in') }}</flux:button>
         </div>
     </form>
 
     @if (Route::has('tenant.register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600">
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 tenant-accent">
             {{ __('Don\'t have an account?') }}
             <flux:link :href="route('tenant.register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
