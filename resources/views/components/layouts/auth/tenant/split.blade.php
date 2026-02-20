@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     @include('tenant.partials.head', ['title' => 'Ingresar'])
+    <script>
+        // Tenant auth is always rendered in light mode.
+        document.documentElement.classList.remove('dark');
+        window.addEventListener('livewire:navigated', () => {
+            document.documentElement.classList.remove('dark');
+        });
+    </script>
 </head>
 
 <style>
@@ -25,7 +32,7 @@
         class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
 
         {{-- Columna izquierda (branding/quote) --}}
-        <div class="relative hidden h-full flex-col p-10 text-white lg:flex dark:border-e dark:border-neutral-800">
+        <div class="relative hidden h-full flex-col p-10 text-white lg:flex border-e border-white/10">
             {{-- Imagen de fondo full cover --}}
             @php
                 $cover = 'https://placehold.co/1920x1080?text=' . tenant()->name;

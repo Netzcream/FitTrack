@@ -67,7 +67,7 @@
     </form>
 
     @if (config('services.google.client_id'))
-        <div class="text-center text-sm text-white/60 -mb-2">
+        <div class="text-center text-sm text-zinc-500 -mb-2">
             {{ __('site.login_or') }}
         </div>
 
@@ -83,7 +83,7 @@
     @endif
 
     @if (Route::has('tenant.register'))
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600">
             {{ __('site.no_account') }}
             <flux:link :href="route('tenant.register')" wire:navigate>
                 {{ __('site.sign_up') }}
