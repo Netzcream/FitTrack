@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FitTrack</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #334155, #475569);
+        }
+        
+        .stage {
+            position: relative;
+            text-align: center;
+            z-index: 2;
+        }
+        /* Logo marca de agua esquina inferior derecha */
+        
+        .bg-logo {
+            position: absolute;
+            bottom: -120px;
+            right: -120px;
+            width: 700px;
+            opacity: 0.08;
+            filter: blur(6px);
+            animation: floatBg 12s ease-in-out infinite;
+            pointer-events: none;
+        }
+        /* Logo principal */
+        
+        .main-logo {
+            width: 140px;
+            animation: floatMain 4s ease-in-out infinite;
+        }
+        /* Texto */
+        
+        .brand {
+            margin-top: 28px;
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #ffffff;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.8s ease;
+        }
+        
+        .brand.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Animaciones */
+        
+        @keyframes floatMain {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+        
+        @keyframes floatBg {
+            0%,
+            100% {
+                transform: translate(0px, 0px) scale(1);
+            }
+            50% {
+                transform: translate(-20px, -20px) scale(1.02);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Marca de agua -->
+    <svg class="bg-logo" viewBox="0 0 256 256">
+  <rect x="0" y="0" width="256" height="256" rx="48" fill="#4F46E5"/>
+  <path
+    d="M88 64 L168 128 L88 192"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
+
+    <div class="stage">
+
+        <!-- Logo principal -->
+        <svg class="main-logo" viewBox="0 0 256 256">
+    <rect x="0" y="0" width="256" height="256" rx="48" fill="#4F46E5"/>
+    <path
+      d="M88 64 L168 128 L88 192"
+      fill="none"
+      stroke="#FFFFFF"
+      stroke-width="28"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+
+        <div id="brand" class="brand"></div>
+
+    </div>
+
+    <script>
+        const brand = document.getElementById("brand");
+
+        const texts = [
+            "Presentación FitTrack",
+            "Luciano Pujol",
+            "AS 2025/26",
+            "Escuela Davinci",
+            "FitTrack",
+            "Ya comenzamos..."
+        ];
+
+        let index = 0;
+
+        function showText() {
+            brand.classList.remove("visible");
+
+            setTimeout(() => {
+                brand.textContent = texts[index];
+                brand.classList.add("visible");
+
+                index = (index + 1) % texts.length;
+            }, 600); // tiempo de salida antes de cambiar texto
+        }
+
+        // primera ejecución
+        showText();
+
+        // ciclo
+        setInterval(showText, 3500);
+    </script>
+
+</body>
+
+</html>
