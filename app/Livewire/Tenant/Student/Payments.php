@@ -17,6 +17,7 @@ class Payments extends Component
 {
     public ?string $paymentError = null;
     public ?Invoice $pendingInvoice = null;
+    public ?Payment $pendingPayment = null;
 
     public function mount()
     {
@@ -25,6 +26,7 @@ class Payments extends Component
         if ($user && $user->student) {
             $invoiceService = new InvoiceService();
             $this->pendingInvoice = $invoiceService->getNextPendingForStudent($user->student);
+            $this->pendingPayment = $this->getNextPendingPaymentForStudent($user->student);
 
             // Detectar si venimos de Mercado Pago (back_url redirect)
             // Mercado Pago envía: ?payment_id=...&status=approved&external_reference=INV-{id}&merchant_order_id=...&preference_id=...
@@ -53,30 +55,59 @@ class Payments extends Component
             'all_params' => request()->query(),
         ]);
 
-        // Extraer invoice ID del external_reference (formato: INV-{id})
-        if (!$externalReference || !str_starts_with($externalReference, 'INV-')) {
+        if (!$externalReference) {
             return;
         }
 
-        $invoiceId = (int) str_replace('INV-', '', $externalReference);
-        $invoice = Invoice::find($invoiceId);
+        if (str_starts_with($externalReference, 'INV-')) {
+            $invoiceId = (int) str_replace('INV-', '', $externalReference);
+            $invoice = Invoice::find($invoiceId);
 
-        if (!$invoice) {
+            if (!$invoice) {
+                return;
+            }
+
+            // Procesar según el status
+            if ($status === 'approved' || $status === 'paid') {
+                $invoiceService->markAsPaid($invoice, 'mercadopago', $paymentId);
+                session()->flash('success', '¡Pago realizado exitosamente! Tu plan está activo.');
+            } elseif ($status === 'pending') {
+                session()->flash('warning', 'Tu pago está en proceso de confirmación. Te notificaremos cuando se complete.');
+            } else {
+                session()->flash('error', 'El pago no se pudo procesar. Intenta de nuevo.');
+            }
+
+            // Recargar el invoice pendiente después de procesar
+            $this->pendingInvoice = $invoiceService->getNextPendingForStudent(Auth::user()->student);
             return;
         }
 
-        // Procesar según el status
-        if ($status === 'approved' || $status === 'paid') {
-            $invoiceService->markAsPaid($invoice, 'mercadopago', $paymentId);
-            session()->flash('success', '¡Pago realizado exitosamente! Tu plan está activo.');
-        } elseif ($status === 'pending') {
-            session()->flash('warning', 'Tu pago está en proceso de confirmación. Te notificaremos cuando se complete.');
-        } else {
-            session()->flash('error', 'El pago no se pudo procesar. Intenta de nuevo.');
-        }
+        if (str_starts_with($externalReference, 'PAY-')) {
+            $paymentIdRef = (int) str_replace('PAY-', '', $externalReference);
+            $payment = Payment::find($paymentIdRef);
 
-        // Recargar el invoice pendiente después de procesar
-        $this->pendingInvoice = $invoiceService->getNextPendingForStudent(Auth::user()->student);
+            if (!$payment) {
+                return;
+            }
+
+            if ($status === 'approved' || $status === 'paid') {
+                $payment->update([
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'method' => 'mercadopago',
+                    'transaction_id' => $paymentId ?: $payment->transaction_id,
+                ]);
+                session()->flash('success', '¡Pago realizado exitosamente! Tu plan está activo.');
+            } elseif ($status === 'pending') {
+                $payment->update(['status' => 'pending']);
+                session()->flash('warning', 'Tu pago está en proceso de confirmación. Te notificaremos cuando se complete.');
+            } else {
+                $payment->update(['status' => 'rejected']);
+                session()->flash('error', 'El pago fue rechazado. Por favor intenta nuevamente.');
+            }
+
+            $this->pendingPayment = $this->getNextPendingPaymentForStudent(Auth::user()->student);
+        }
     }
 
     private function resolvePlanPricing(?Student $student): array
@@ -129,17 +160,23 @@ class Payments extends Component
         }
 
         try {
+            $mp = new MercadoPagoService();
             $invoiceService = new InvoiceService();
 
             // Buscar invoice pendiente o crear uno nuevo
             $invoice = $invoiceService->getNextPendingForStudent($student);
 
-            if (!$invoice) {
-                $invoice = $invoiceService->createForStudent($student, $student->currentPlanAssignment);
+            if ($invoice) {
+                $url = $mp->createInvoicePaymentLink($invoice);
+            } else {
+                $payment = $this->getNextPendingPaymentForStudent($student);
+                if ($payment) {
+                    $url = $mp->createPaymentLink($payment);
+                } else {
+                    $invoice = $invoiceService->createForStudent($student, $student->currentPlanAssignment);
+                    $url = $mp->createInvoicePaymentLink($invoice);
+                }
             }
-
-            $mp = new MercadoPagoService();
-            $url = $mp->createInvoicePaymentLink($invoice);
         } catch (MPApiException $e) {
             $apiResponse = $e->getApiResponse();
             Log::error('MercadoPago API error creating invoice payment link', [
@@ -160,9 +197,19 @@ class Payments extends Component
             return;
         }
 
-        $this->pendingInvoice = $invoice;
+        if (isset($invoice)) {
+            $this->pendingInvoice = $invoice;
+        }
         // Redirigir directamente a Mercado Pago con HTTPS en back_urls
         $this->redirect($url, navigate: false);
+    }
+
+    private function getNextPendingPaymentForStudent(Student $student): ?Payment
+    {
+        return Payment::where('student_id', $student->id)
+            ->whereIn('status', ['new', 'pending'])
+            ->orderBy('due_date', 'asc')
+            ->first();
     }
 
     public function render()
@@ -182,11 +229,12 @@ class Payments extends Component
         if ($student) {
             $invoiceService = new InvoiceService();
             $this->pendingInvoice = $invoiceService->getNextPendingForStudent($student);
+            $this->pendingPayment = $this->getNextPendingPaymentForStudent($student);
         }
 
         // Permitir pago por Mercado Pago SOLO si hay un invoice pendiente
         $canPayMercadopago = (
-            $this->pendingInvoice
+            $this->pendingInvoice || $this->pendingPayment
         ) && ($mercadopagoConfig['enabled'] ?? false)
             && !empty($mercadopagoConfig['access_token']);
 
@@ -216,6 +264,7 @@ class Payments extends Component
             'pricing' => $pricing,
             'canPayMercadopago' => $canPayMercadopago,
             'pendingInvoice' => $this->pendingInvoice,
+            'pendingPayment' => $this->pendingPayment,
             'invoices' => $invoices,
             'hasMoreInvoices' => $hasMoreInvoices,
         ]);

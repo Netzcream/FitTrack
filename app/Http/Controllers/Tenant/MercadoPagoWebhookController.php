@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Models\Tenant\Invoice;
+use App\Models\Tenant\{Invoice, Payment};
 use App\Services\Tenant\InvoiceService;
 
 class MercadoPagoWebhookController extends Controller
@@ -54,77 +54,134 @@ class MercadoPagoWebhookController extends Controller
             // Obtener external_reference para encontrar el invoice
             $externalReference = $mpPayment['external_reference'] ?? null;
 
-            if (!$externalReference || !str_starts_with($externalReference, 'INV-')) {
-                Log::warning('MercadoPago payment without valid external_reference', [
+            $status = $mpPayment['status'] ?? null;
+            $statusDetail = $mpPayment['status_detail'] ?? null;
+
+            if (!$externalReference) {
+                Log::warning('MercadoPago payment without external_reference', [
                     'payment_id' => $paymentId,
-                    'external_reference' => $externalReference,
                 ]);
                 return response()->json(['status' => 'ignored'], 200);
             }
 
-            // Extraer ID del invoice
-            $invoiceId = (int) str_replace('INV-', '', $externalReference);
-            $invoice = Invoice::find($invoiceId);
+            if (str_starts_with($externalReference, 'INV-')) {
+                // Extraer ID del invoice
+                $invoiceId = (int) str_replace('INV-', '', $externalReference);
+                $invoice = Invoice::find($invoiceId);
 
-            if (!$invoice) {
-                Log::error('Invoice not found from external_reference', [
-                    'external_reference' => $externalReference,
-                    'invoice_id' => $invoiceId,
+                if (!$invoice) {
+                    Log::error('Invoice not found from external_reference', [
+                        'external_reference' => $externalReference,
+                        'invoice_id' => $invoiceId,
+                    ]);
+                    return response()->json(['error' => 'invoice not found'], 404);
+                }
+
+                // Actualizar estado del invoice según el estado del pago
+                Log::info('Processing MercadoPago payment status', [
+                    'invoice_id' => $invoice->id,
+                    'payment_id' => $paymentId,
+                    'status' => $status,
+                    'status_detail' => $statusDetail,
                 ]);
-                return response()->json(['error' => 'invoice not found'], 404);
+
+                switch ($status) {
+                    case 'approved':
+                        if ($invoice->status !== 'paid') {
+                            $invoiceService->markAsPaid(
+                                $invoice,
+                                'mercadopago',
+                                $paymentId
+                            );
+                            Log::info('Invoice marked as paid', ['invoice_id' => $invoice->id]);
+                        }
+                        break;
+
+                    case 'pending':
+                    case 'in_process':
+                    case 'in_mediation':
+                        // Mantener como pendiente
+                        if ($invoice->status !== 'paid') {
+                            $invoice->update(['status' => 'pending']);
+                        }
+                        break;
+
+                    case 'rejected':
+                    case 'cancelled':
+                    case 'refunded':
+                    case 'charged_back':
+                        // Si estaba pagado y fue rechazado/reembolsado, marcar como pendiente
+                        if ($invoice->status === 'paid') {
+                            $invoice->update([
+                                'status' => 'pending',
+                                'paid_at' => null,
+                            ]);
+                            Log::warning('Invoice reverted from paid to pending', [
+                                'invoice_id' => $invoice->id,
+                                'reason' => $status,
+                            ]);
+                        }
+                        break;
+                }
+
+                return response()->json(['status' => 'processed'], 200);
             }
 
-            // Actualizar estado del invoice según el estado del pago
-            $status = $mpPayment['status'] ?? null;
-            $statusDetail = $mpPayment['status_detail'] ?? null;
+            if (str_starts_with($externalReference, 'PAY-')) {
+                $paymentIdRef = (int) str_replace('PAY-', '', $externalReference);
+                $payment = Payment::find($paymentIdRef);
 
-            Log::info('Processing MercadoPago payment status', [
-                'invoice_id' => $invoice->id,
-                'payment_id' => $paymentId,
-                'status' => $status,
-                'status_detail' => $statusDetail,
-            ]);
+                if (!$payment) {
+                    Log::error('Payment not found from external_reference', [
+                        'external_reference' => $externalReference,
+                        'payment_id' => $paymentIdRef,
+                    ]);
+                    return response()->json(['error' => 'payment not found'], 404);
+                }
 
-            switch ($status) {
-                case 'approved':
-                    if ($invoice->status !== 'paid') {
-                        $invoiceService->markAsPaid(
-                            $invoice,
-                            'mercadopago',
-                            $paymentId
-                        );
-                        Log::info('Invoice marked as paid', ['invoice_id' => $invoice->id]);
-                    }
-                    break;
+                Log::info('Processing MercadoPago payment status (legacy payment)', [
+                    'payment_id' => $payment->id,
+                    'mp_payment_id' => $paymentId,
+                    'status' => $status,
+                    'status_detail' => $statusDetail,
+                ]);
 
-                case 'pending':
-                case 'in_process':
-                case 'in_mediation':
-                    // Mantener como pendiente
-                    if ($invoice->status !== 'paid') {
-                        $invoice->update(['status' => 'pending']);
-                    }
-                    break;
+                switch ($status) {
+                    case 'approved':
+                        $payment->update([
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                            'method' => 'mercadopago',
+                            'transaction_id' => $paymentId,
+                        ]);
+                        break;
 
-                case 'rejected':
-                case 'cancelled':
-                case 'refunded':
-                case 'charged_back':
-                    // Si estaba pagado y fue rechazado/reembolsado, marcar como pendiente
-                    if ($invoice->status === 'paid') {
-                        $invoice->update([
-                            'status' => 'pending',
+                    case 'pending':
+                    case 'in_process':
+                    case 'in_mediation':
+                        $payment->update(['status' => 'pending']);
+                        break;
+
+                    case 'rejected':
+                    case 'cancelled':
+                    case 'refunded':
+                    case 'charged_back':
+                        $payment->update([
+                            'status' => 'rejected',
                             'paid_at' => null,
                         ]);
-                        Log::warning('Invoice reverted from paid to pending', [
-                            'invoice_id' => $invoice->id,
-                            'reason' => $status,
-                        ]);
-                    }
-                    break;
+                        break;
+                }
+
+                return response()->json(['status' => 'processed'], 200);
             }
 
-            return response()->json(['status' => 'processed'], 200);
+            Log::warning('MercadoPago payment with unsupported external_reference', [
+                'payment_id' => $paymentId,
+                'external_reference' => $externalReference,
+            ]);
+
+            return response()->json(['status' => 'ignored'], 200);
 
         } catch (\Throwable $e) {
             Log::error('Error processing MercadoPago webhook', [

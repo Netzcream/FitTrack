@@ -249,6 +249,8 @@
                                             <span wire:loading.remove wire:target="payWithMercadoPago">
                                                 @if ($pendingInvoice)
                                                     Pagar {{ $pendingInvoice->formatted_amount }}
+                                                @elseif ($pendingPayment)
+                                                    Pagar ARS {{ number_format((float) $pendingPayment->amount, 2, ',', '.') }}
                                                 @else
                                                     Pagar con Mercado Pago
                                                 @endif
@@ -270,7 +272,7 @@
                                             Pagar con Mercado Pago
                                         </button>
                                         <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                            No hay pagos pendientes en este momento.
+                                            No hay pagos pendientes en este momento o Mercado Pago no está configurado.
                                         </p>
                                     @endif
                                 </div>

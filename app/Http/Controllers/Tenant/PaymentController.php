@@ -182,58 +182,92 @@ class PaymentController extends Controller
             'all_params' => $request->query(),
         ]);
 
-        // Extraer el ID del invoice desde external_reference (formato: INV-{id})
-        $invoiceId = null;
         if ($externalReference && str_starts_with($externalReference, 'INV-')) {
             $invoiceId = (int) str_replace('INV-', '', $externalReference);
+            if (!$invoiceId) {
+                Log::warning('No invoice ID found in external reference', [
+                    'external_reference' => $externalReference,
+                ]);
+                return redirect()->route('tenant.student.payments')
+                    ->with('error', 'No se pudo procesar el pago: referencia inválida.');
+            }
+
+            $invoice = Invoice::find($invoiceId);
+            if (!$invoice) {
+                Log::warning('Invoice not found', ['invoice_id' => $invoiceId]);
+                return redirect()->route('tenant.student.payments')
+                    ->with('error', 'No se encontró el pago asociado.');
+            }
+
+            // Procesar según el estado del pago
+            if ($status === 'approved' || $status === 'paid') {
+                // Pago aprobado
+                $invoiceService->markAsPaid($invoice, 'mercadopago', $paymentId);
+
+                Log::info('Payment approved and marked as paid', [
+                    'invoice_id' => $invoiceId,
+                    'payment_id' => $paymentId,
+                ]);
+
+                return redirect()->route('tenant.student.payments')
+                    ->with('success', '¡Pago realizado exitosamente! Tu plan está activo.');
+            } elseif ($status === 'pending') {
+                // Pago pendiente (ej: transferencia bancaria)
+                Log::info('Payment pending', [
+                    'invoice_id' => $invoiceId,
+                    'payment_id' => $paymentId,
+                ]);
+
+                return redirect()->route('tenant.student.payments')
+                    ->with('warning', 'Tu pago está en proceso. Te notificaremos cuando se confirme.');
+            } else {
+                // Pago rechazado o error
+                Log::warning('Payment rejected or failed', [
+                    'invoice_id' => $invoiceId,
+                    'payment_id' => $paymentId,
+                    'status' => $status,
+                ]);
+
+                return redirect()->route('tenant.student.payments')
+                    ->with('error', 'El pago fue rechazado. Por favor intenta nuevamente.');
+            }
         }
 
-        if (!$invoiceId) {
-            Log::warning('No invoice ID found in external reference', [
-                'external_reference' => $externalReference,
-            ]);
-            return redirect()->route('tenant.student.payments')
-                ->with('error', 'No se pudo procesar el pago: referencia inválida.');
+        if ($externalReference && str_starts_with($externalReference, 'PAY-')) {
+            $paymentIdRef = (int) str_replace('PAY-', '', $externalReference);
+            $payment = Payment::find($paymentIdRef);
+            if (!$payment) {
+                Log::warning('Payment not found', ['payment_id' => $paymentIdRef]);
+                return redirect()->route('tenant.student.payments')
+                    ->with('error', 'No se encontró el pago asociado.');
+            }
+
+            if ($status === 'approved' || $status === 'paid') {
+                $payment->update([
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'method' => 'mercadopago',
+                    'transaction_id' => $paymentId ?: $payment->transaction_id,
+                ]);
+
+                return redirect()->route('tenant.student.payments')
+                    ->with('success', '¡Pago realizado exitosamente! Tu plan está activo.');
+            } elseif ($status === 'pending') {
+                $payment->update(['status' => 'pending']);
+                return redirect()->route('tenant.student.payments')
+                    ->with('warning', 'Tu pago está en proceso. Te notificaremos cuando se confirme.');
+            } else {
+                $payment->update(['status' => 'rejected']);
+                return redirect()->route('tenant.student.payments')
+                    ->with('error', 'El pago fue rechazado. Por favor intenta nuevamente.');
+            }
         }
 
-        $invoice = Invoice::find($invoiceId);
-        if (!$invoice) {
-            Log::warning('Invoice not found', ['invoice_id' => $invoiceId]);
-            return redirect()->route('tenant.student.payments')
-                ->with('error', 'No se encontró el pago asociado.');
-        }
+        Log::warning('No valid external reference found', [
+            'external_reference' => $externalReference,
+        ]);
 
-        // Procesar según el estado del pago
-        if ($status === 'approved' || $status === 'paid') {
-            // Pago aprobado
-            $invoiceService->markAsPaid($invoice, 'mercadopago', $paymentId);
-
-            Log::info('Payment approved and marked as paid', [
-                'invoice_id' => $invoiceId,
-                'payment_id' => $paymentId,
-            ]);
-
-            return redirect()->route('tenant.student.payments')
-                ->with('success', '¡Pago realizado exitosamente! Tu plan está activo.');
-        } elseif ($status === 'pending') {
-            // Pago pendiente (ej: transferencia bancaria)
-            Log::info('Payment pending', [
-                'invoice_id' => $invoiceId,
-                'payment_id' => $paymentId,
-            ]);
-
-            return redirect()->route('tenant.student.payments')
-                ->with('warning', 'Tu pago está en proceso. Te notificaremos cuando se confirme.');
-        } else {
-            // Pago rechazado o error
-            Log::warning('Payment rejected or failed', [
-                'invoice_id' => $invoiceId,
-                'payment_id' => $paymentId,
-                'status' => $status,
-            ]);
-
-            return redirect()->route('tenant.student.payments')
-                ->with('error', 'El pago fue rechazado. Por favor intenta nuevamente.');
-        }
+        return redirect()->route('tenant.student.payments')
+            ->with('error', 'No se pudo procesar el pago: referencia inválida.');
     }
 }
