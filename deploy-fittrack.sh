@@ -1,105 +1,153 @@
 #!/bin/bash
 
-# Configuración
+set -euo pipefail
+
 REPO_DIR="/home/netz8452/repositories/FitTrack"
 TARGET_DIR="/home/netz8452/fittrack.com.ar"
 BRANCH="main"
 
-echo "🚀 Deploy iniciado..."
+PHP_BIN="${PHP_BIN:-php}"
+COMPOSER_BIN="${COMPOSER_BIN:-composer}"
 
-# 1. Ir al repo
-cd "$REPO_DIR" || { echo "❌ No se pudo acceder al repositorio"; exit 1; }
+APP_WAS_PUT_DOWN=0
 
-echo "📥 Haciendo pull desde la rama $BRANCH..."
-git pull origin "$BRANCH" || { echo "❌ Falló el git pull"; exit 1; }
+log() {
+    echo "== $1 =="
+}
 
-# 2. Crear backup antes de sobrescribir (usando comando Laravel)
-echo "🔄 Creando backup..."
-cd "$TARGET_DIR" || { echo "❌ No se pudo acceder al directorio de Laravel"; exit 1; }
-sudo -u www-data php artisan app:backup || { echo "⚠️ Advertencia: el backup no se completó, pero continuamos el deploy"; }
-
-# Volver al repositorio
-cd "$REPO_DIR" || { echo "❌ No se pudo volver al repositorio"; exit 1; }
-
-# 3. Sincronizar archivos, excluyendo carpetas dinámicas
-echo "📂 Sincronizando hacia $TARGET_DIR preservando media y descargas..."
-rsync -az --delete \
-  --exclude ".git" \
-  --exclude "vendor" \
-  --exclude "storage" \
-  --exclude ".env" \
-  "$REPO_DIR/" "$TARGET_DIR/"
-RSYNC_EXIT=$?
-
-if [ $RSYNC_EXIT -ne 0 ]; then
-    echo "⚠️ Rsync finalizó con código $RSYNC_EXIT - revisar posibles advertencias"
-else
-    echo "✅ Rsync finalizado correctamente"
-fi
-
-# 4. Crear carpetas dinámicas si no existen
-mkdir -p "$TARGET_DIR/storage/app/public"
-mkdir -p "$TARGET_DIR/storage/app/descargas"
-
-# 5. Generar .env si no existe
-if [ ! -f "$TARGET_DIR/.env" ]; then
-    if [ -f "$TARGET_DIR/.env.deploy" ]; then
-        echo "📄 Creando .env desde .env.deploy"
-        cp "$TARGET_DIR/.env.deploy" "$TARGET_DIR/.env"
-    elif [ -f "$TARGET_DIR/.env.example" ]; then
-        echo "📄 Creando .env desde .env.example"
-        cp "$TARGET_DIR/.env.example" "$TARGET_DIR/.env"
-    else
-        echo "⚠️ No se encontró .env.deploy ni .env.example. Abortando."
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "ERROR: required command not found: $1"
         exit 1
     fi
-    echo "⚠️ Recordá editar la configuración del .env en $TARGET_DIR/.env"
+}
+
+artisan() {
+    "$PHP_BIN" artisan "$@"
+}
+
+bring_app_up() {
+    if [ "$APP_WAS_PUT_DOWN" -eq 1 ] && [ -f "$TARGET_DIR/artisan" ]; then
+        cd "$TARGET_DIR" || return
+        artisan up || true
+    fi
+}
+
+trap bring_app_up EXIT
+
+require_command git
+require_command rsync
+require_command "$PHP_BIN"
+require_command "$COMPOSER_BIN"
+
+log "Starting deployment"
+date
+
+log "Updating repository"
+cd "$REPO_DIR"
+git fetch origin "$BRANCH"
+git checkout "$BRANCH"
+git pull --ff-only origin "$BRANCH"
+
+mkdir -p "$TARGET_DIR"
+cd "$TARGET_DIR"
+
+if [ -f artisan ]; then
+    log "Putting app in maintenance mode"
+    artisan down --retry=60 --render="errors::503" || true
+    APP_WAS_PUT_DOWN=1
 fi
 
-echo "🔧 Ajustando permisos..."
-#sudo chown -R www-data:www-data "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
-#sudo chmod -R 775 "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
-chown -R www-data:www-data "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
+if [ -f "$TARGET_DIR/artisan" ]; then
+    log "Running tenant backup if available"
+    artisan app:backup-tenants || echo "WARNING: tenant backup failed, continuing deploy"
+fi
+
+log "Syncing files"
+rsync -az --delete \
+  --exclude ".git/" \
+  --exclude ".github/" \
+  --exclude ".cpanel.yml" \
+  --exclude ".env" \
+  --exclude "storage/" \
+  --exclude "vendor/" \
+  --exclude "node_modules/" \
+  --exclude ".idea/" \
+  --exclude ".vscode/" \
+  --exclude "documents/" \
+  --exclude "*.log" \
+  "$REPO_DIR/" "$TARGET_DIR/"
+
+cd "$TARGET_DIR"
+
+if [ ! -f .env ]; then
+    if [ -f .env.deploy ]; then
+        log "Creating .env from .env.deploy"
+        cp .env.deploy .env
+    elif [ -f .env.example ]; then
+        log "Creating .env from .env.example"
+        cp .env.example .env
+    else
+        echo "ERROR: .env is missing and no fallback file was found"
+        exit 1
+    fi
+fi
+
+log "Installing PHP dependencies"
+"$COMPOSER_BIN" install \
+  --no-interaction \
+  --prefer-dist \
+  --no-dev \
+  --optimize-autoloader
+
+log "Ensuring writable directories"
+mkdir -p \
+  storage/app/public \
+  storage/app/descargas \
+  storage/framework/cache \
+  storage/framework/sessions \
+  storage/framework/views \
+  storage/logs \
+  bootstrap/cache
+
+log "Ensuring storage symlink"
+if [ -L public/storage ]; then
+    echo "public/storage symlink already exists"
+else
+    if [ -e public/storage ]; then
+        rm -rf public/storage
+    fi
+    artisan storage:link || true
+fi
+
+log "Running database updates"
+artisan migrate --force
+artisan tenants:migrate --force
+artisan tenants:seed --class=TenantUpdateSeeder --force
+
+log "Refreshing caches"
+artisan optimize:clear
+artisan config:cache
+artisan route:cache
+artisan view:cache
+
+log "Fixing permissions for cPanel"
+find "$TARGET_DIR" -type d -exec chmod 755 {} \;
+find "$TARGET_DIR" -type f -exec chmod 644 {} \;
 chmod -R 775 "$TARGET_DIR/storage" "$TARGET_DIR/bootstrap/cache"
 
-# Refuerza permisos correctos en los logs para evitar archivos creados por root
-if [ -d "$TARGET_DIR/storage/logs" ]; then
-    chown -R www-data:www-data "$TARGET_DIR/storage/logs"
-    find "$TARGET_DIR/storage/logs" -type d -exec chmod 775 {} +
-    find "$TARGET_DIR/storage/logs" -type f -exec chmod 664 {} +
+if [ -d "$TARGET_DIR/public" ]; then
+    chmod 755 "$TARGET_DIR/public"
 fi
 
-# 7. Comandos Laravel
-cd "$TARGET_DIR" || { echo "❌ No se pudo acceder al directorio de Laravel"; exit 1; }
+if artisan list | grep -q "queue:restart"; then
+    log "Restarting queue workers"
+    artisan queue:restart || true
+fi
 
-mkdir -p "$TARGET_DIR/vendor"
-chown -R www-data:www-data "$TARGET_DIR/vendor"
-chown -R www-data:www-data "$TARGET_DIR"
+log "Bringing app up"
+artisan up
+APP_WAS_PUT_DOWN=0
 
-mkdir -p "$TARGET_DIR/storage/framework/cache"
-mkdir -p "$TARGET_DIR/storage/framework/sessions"
-mkdir -p "$TARGET_DIR/storage/framework/views"
-chown -R www-data:www-data "$TARGET_DIR/storage"
-
-echo "📦 Ejecutando Composer (sin dev)..."
-# Limpiar cache de Composer para evitar problemas
-runuser -u www-data -- env HOME=/tmp composer clear-cache
-
-# Instalar dependencias con opciones seguras para producción
-echo "  → Instalando dependencias..."
-runuser -u www-data -- env HOME=/tmp COMPOSER_MEMORY_LIMIT=-1 composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --prefer-dist \
-    --no-interaction \
-    --no-progress || { echo "❌ Composer falló"; exit 1; }
-
-echo "  ✓ Dependencias instaladas correctamente"
-
-echo "🔧 Artisan commands..."
-sudo -u www-data php artisan optimize:clear
-sudo -u www-data php artisan config:clear
-sudo -u www-data php artisan tenants:migrate --force
-sudo -u www-data php artisan tenants:seed --class=TenantUpdateSeeder --force
-sudo -u www-data php artisan queue:restart
-echo "✅ Deploy completado con éxito."
+log "Deployment finished successfully"
+date
