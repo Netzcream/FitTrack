@@ -17,6 +17,7 @@ use Stancl\Tenancy\Database\Models\Domain as TenancyDomain;
 use Illuminate\Validation\Rule;
 use App\Events\TenantCustomDomainAttached;
 use App\Enums\TenantStatus;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
 #[Layout('components.layouts.app')]
@@ -248,6 +249,29 @@ class ClientsForm extends Component
             $tenant->domains()->create([
                 'domain' => $subdomain,
             ]);
+
+            if ($this->database_already_exists) {
+                $migrateExitCode = Artisan::call('tenants:migrate', [
+                    '--tenants' => [$tenant->getTenantKey()],
+                    '--force' => true,
+                ]);
+
+                if ($migrateExitCode !== 0) {
+                    throw new \RuntimeException('Falló la migración inicial del tenant sobre la base existente.');
+                }
+
+                if (config('tenancy.seed_after_migration', true) && ! app()->environment('testing')) {
+                    $seedExitCode = Artisan::call('tenants:seed', [
+                        '--tenants' => [$tenant->getTenantKey()],
+                        '--force' => true,
+                    ]);
+
+                    if ($seedExitCode !== 0) {
+                        throw new \RuntimeException('Falló el seeding inicial del tenant sobre la base existente.');
+                    }
+                }
+            }
+
             $adminPassword = $validated['admin_password'];
             $adminMail = $validated['admin_email'];
             $tenant->run(function () use ($adminMail, $adminPassword) {
