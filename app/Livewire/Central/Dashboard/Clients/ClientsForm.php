@@ -229,6 +229,7 @@ class ClientsForm extends Component
                 'admin_email' => $validated['admin_email'],
                 'status' => $this->status,
                 'commercial_plan_id' => $this->commercial_plan_id,
+                'tenancy_create_database' => $this->database_already_exists ? false : null,
                 'tenancy_db_name' => $this->database_already_exists ? $validated['database_name'] : null,
                 'data' => [
                     'database' => [
