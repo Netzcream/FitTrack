@@ -56,9 +56,28 @@
 
     <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
         Si est&aacute; marcada, el sistema no intentar&aacute; crear ni eliminar la base de datos del tenant.
-        Usar&aacute; la base esperada para este slug:
-        <span class="font-mono">{{ config('tenancy.database.prefix', 'fittrack_') }}{{ $slug ?: 'slug' }}{{ config('tenancy.database.suffix', '') }}</span>
+        En ese caso ten&eacute;s que indicar el nombre exacto de la base ya creada en cPanel.
     </p>
+
+    @if ($database_already_exists)
+        <div class="mt-3">
+            <flux:label for="database_name">{{ __('Base de datos existente') }}</flux:label>
+            <flux:input
+                class="mt-2"
+                id="database_name"
+                wire:model.defer="database_name"
+                type="text"
+                placeholder="Ej: usuario_fittrack_demo"
+                maxlength="64"
+            />
+            <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
+                Ingres&aacute; el nombre real de la base, incluyendo el prefijo del usuario de cPanel.
+            </p>
+            @error('database_name')
+                <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
+        </div>
+    @endif
 </div>
 
 @if (config('demo.enabled'))
