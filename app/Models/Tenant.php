@@ -32,6 +32,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'data' => 'array',
         'status' => TenantStatus::class,
         'ssl_provisioned_at' => 'datetime',
+        'tenancy_create_database' => 'boolean',
     ];
 
     public function scopeWithStatus($query, TenantStatus $status)
