@@ -46,3 +46,23 @@
         <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
     @enderror
 </div>
+
+<div class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
+    <flux:checkbox
+        id="database_already_exists"
+        wire:model.defer="database_already_exists"
+        label="La base del tenant ya existe"
+    />
+
+    <p class="mt-2 text-sm text-gray-600 dark:text-neutral-400">
+        Si est&aacute; marcada, el sistema no intentar&aacute; crear ni eliminar la base de datos del tenant.
+        Usar&aacute; la base esperada para este slug:
+        <span class="font-mono">{{ config('tenancy.database.prefix', 'fittrack_') }}{{ $slug ?: 'slug' }}{{ config('tenancy.database.suffix', '') }}</span>
+    </p>
+</div>
+
+@if (config('demo.enabled'))
+    <div class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100">
+        El modo demo est&aacute; habilitado. No se permite crear nuevos tenants mientras esta opci&oacute;n est&eacute; activa.
+    </div>
+@endif

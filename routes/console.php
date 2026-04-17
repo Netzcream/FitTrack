@@ -22,3 +22,8 @@ Schedule::command('invoices:update-overdue')->dailyAt('00:20');
 
 // Recordatorios de sesion (solo dias habiles)
 Schedule::command('notifications:session-reminders')->weekdays()->hourlyAt(0);
+
+if (config('demo.enabled')) {
+    Schedule::command('demo:reset-tenant ' . config('demo.tenant_id'))
+        ->dailyAt(config('demo.reset_time', '01:00'));
+}

@@ -12,6 +12,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Arr;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
@@ -77,6 +78,18 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function mainDomain(): string
     {
         return $this->id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
+    }
+
+    public function tenantDatabaseName(): string
+    {
+        return (string) config('tenancy.database.prefix', 'fittrack_')
+            . $this->id
+            . (string) config('tenancy.database.suffix', '');
+    }
+
+    public function usesExistingDatabase(): bool
+    {
+        return (bool) Arr::get($this->data ?? [], 'database.use_existing', false);
     }
 
     protected static function getSslCertificateInfo(string $domain): ?array

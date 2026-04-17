@@ -8,15 +8,17 @@
                     <flux:subheading size="lg" class="mb-6">{{ __('central.clients_subtitle') }}</flux:subheading>
                 </div>
 
-                <flux:button
-                    as="a"
-                    href="{{ route('central.dashboard.clients.create') }}"
-                    variant="primary"
-                    icon="plus"
-                    wire:navigate
-                >
-                    {{ __('site.new') }}
-                </flux:button>
+                @unless (config('demo.enabled'))
+                    <flux:button
+                        as="a"
+                        href="{{ route('central.dashboard.clients.create') }}"
+                        variant="primary"
+                        icon="plus"
+                        wire:navigate
+                    >
+                        {{ __('site.new') }}
+                    </flux:button>
+                @endunless
             </div>
 
             <flux:separator variant="subtle" />
@@ -28,6 +30,5 @@
         </div>
     </div>
 </div>
-
 
 

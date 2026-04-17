@@ -44,6 +44,7 @@ class ClientsForm extends Component
     public ?string $slug_suggestion = null;
     public bool $slug_manually_edited = false;
     public $commercial_plan_id = null;
+    public bool $database_already_exists = false;
 
     // Si querés mostrar mensajes de error custom, podés agregar:
     public array $reservedSubdomains = ['www', 'admin', 'mail', 'api', 'ftp', 'cpanel', 'webmail', 'lunico', 'test'];
@@ -72,6 +73,7 @@ class ClientsForm extends Component
             $this->slug_suggestion = null;
             $this->slug_manually_edited = false;
             $this->admin_password = '';
+            $this->database_already_exists = false;
         }
     }
 
@@ -181,6 +183,11 @@ class ClientsForm extends Component
 
     public function save()
     {
+        if (! $this->client && config('demo.enabled')) {
+            $this->addError('name', 'El modo demo está habilitado. No se permite crear nuevos tenants.');
+            return;
+        }
+
         $validated = $this->validate();
 
         if ($this->client) {
@@ -212,6 +219,12 @@ class ClientsForm extends Component
                 'admin_email' => $validated['admin_email'],
                 'status' => $this->status,
                 'commercial_plan_id' => $this->commercial_plan_id,
+                'data' => [
+                    'database' => [
+                        'use_existing' => $this->database_already_exists,
+                        'name' => config('tenancy.database.prefix', 'fittrack_') . $id . config('tenancy.database.suffix', ''),
+                    ],
+                ],
             ]);
 
             $tenant->name = $this->name;

@@ -16,6 +16,7 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Livewire\Livewire;
 use App\Models\TenantConfiguration;
 use Livewire\Features\SupportFileUploads\FilePreviewController;
+use App\Models\Tenant;
 
 class TenancyServiceProvider extends ServiceProvider
 {
@@ -28,19 +29,24 @@ class TenancyServiceProvider extends ServiceProvider
             // Tenant events
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
-                JobPipeline::make(array_values(array_filter([
-                    Jobs\CreateDatabase::class,
-                    Jobs\MigrateDatabase::class,
-                    config('tenancy.seed_after_migration', true) && !app()->environment('testing')
-                        ? Jobs\SeedDatabase::class
-                        : null,
+                function (Events\TenantCreated $event) {
+                    $jobs = [];
 
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
+                    if (! $this->shouldSkipTenantDatabaseCreation($event->tenant)) {
+                        $jobs[] = Jobs\CreateDatabase::class;
+                    }
 
-                ])))->send(function (Events\TenantCreated $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                    $jobs[] = Jobs\MigrateDatabase::class;
+
+                    if (config('tenancy.seed_after_migration', true) && ! app()->environment('testing')) {
+                        $jobs[] = Jobs\SeedDatabase::class;
+                    }
+
+                    JobPipeline::make($jobs)
+                        ->send(fn (Events\TenantCreated $event) => $event->tenant)
+                        ->shouldBeQueued(false)
+                        ->toListener()($event);
+                },
 
                 function (Events\TenantCreated $event) {
                     TenantConfiguration::firstOrCreate([
@@ -55,11 +61,17 @@ class TenancyServiceProvider extends ServiceProvider
             Events\TenantUpdated::class => [],
             Events\DeletingTenant::class => [],
             Events\TenantDeleted::class => [
-                JobPipeline::make([
-                    Jobs\DeleteDatabase::class,
-                ])->send(function (Events\TenantDeleted $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                function (Events\TenantDeleted $event) {
+                    if ($this->shouldSkipTenantDatabaseCreation($event->tenant)) {
+                        return;
+                    }
+
+                    JobPipeline::make([
+                        Jobs\DeleteDatabase::class,
+                    ])->send(fn (Events\TenantDeleted $event) => $event->tenant)
+                        ->shouldBeQueued(false)
+                        ->toListener()($event);
+                },
             ],
 
             // Domain events
@@ -209,5 +221,10 @@ class TenancyServiceProvider extends ServiceProvider
         foreach (array_reverse($tenancyMiddleware) as $middleware) {
             $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
         }
+    }
+
+    protected function shouldSkipTenantDatabaseCreation(mixed $tenant): bool
+    {
+        return $tenant instanceof Tenant && $tenant->usesExistingDatabase();
     }
 }

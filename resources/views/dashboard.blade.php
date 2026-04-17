@@ -12,10 +12,12 @@
                 class="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-6 shadow-sm">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ __('Acciones rápidas') }}</h2>
                 <div class="flex flex-wrap gap-4">
-                    <flux:button as="a" href="{{ route('central.dashboard.clients.create') }}" icon="plus"
-                        wire:navigate>
-                        {{ __('Nuevo Entrenador') }}
-                    </flux:button>
+                    @unless (config('demo.enabled'))
+                        <flux:button as="a" href="{{ route('central.dashboard.clients.create') }}" icon="plus"
+                            wire:navigate>
+                            {{ __('Nuevo Entrenador') }}
+                        </flux:button>
+                    @endunless
 
                     <flux:button as="a" href="{{ route('central.dashboard.settings') }}" icon="cog"
                         wire:navigate>
