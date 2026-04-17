@@ -50,7 +50,7 @@
 <div class="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
     <flux:checkbox
         id="database_already_exists"
-        wire:model.defer="database_already_exists"
+        wire:model.live="database_already_exists"
         label="La base del tenant ya existe"
     />
 
