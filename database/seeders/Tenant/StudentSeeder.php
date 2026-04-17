@@ -3,6 +3,7 @@
 namespace Database\Seeders\Tenant;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Tenant\Student;
 use App\Models\User;
@@ -14,50 +15,62 @@ class StudentSeeder extends Seeder
     {
         $studentRole = Role::firstOrCreate(['name' => 'Alumno']);
 
+        $students = config('demo.enabled')
+            ? [
+                [
+                    'first_name' => 'Demo',
+                    'last_name'  => 'Student',
+                    'phone'      => '+54 9 11 0000 0000',
+                    'status'     => 'active',
+                    'goal'       => 'Explorar la plataforma',
+                    'email'      => 'demo_student@fittrack.com.ar',
+                    'password'   => 'demo1234',
+                ],
+            ]
+            : [
+                [
+                    'first_name' => 'Juan',
+                    'last_name'  => 'Perez',
+                    'phone'      => '+54 9 11 1234 5678',
+                    'status'     => 'active',
+                    'goal'       => 'Hipertrofia',
+                ],
+                [
+                    'first_name' => 'Maria',
+                    'last_name'  => 'Gonzalez',
+                    'phone'      => '+54 9 11 2345 6789',
+                    'status'     => 'active',
+                    'goal'       => 'Perdida de grasa',
+                ],
+                [
+                    'first_name' => 'Lucia',
+                    'last_name'  => 'Martinez',
+                    'phone'      => '+54 9 11 3456 7890',
+                    'status'     => 'paused',
+                    'goal'       => 'Mantenimiento',
+                ],
+                [
+                    'first_name' => 'Carlos',
+                    'last_name'  => 'Fernandez',
+                    'phone'      => '+54 9 11 4567 8901',
+                    'status'     => 'active',
+                    'goal'       => 'Rendimiento deportivo',
+                ],
+                [
+                    'first_name' => 'Sofia',
+                    'last_name'  => 'Lopez',
+                    'phone'      => '+54 9 11 5678 9012',
+                    'status'     => 'prospect',
+                    'goal'       => 'Salud general',
+                ],
+            ];
+
         // Obtener el email del administrador del tenant actual
         $adminEmail = tenancy()->tenant?->admin_email ?? 'admin@example.com';
 
-        $students = [
-            [
-                'first_name' => 'Juan',
-                'last_name'  => 'Perez',
-                'phone'      => '+54 9 11 1234 5678',
-                'status'     => 'active',
-                'goal'       => 'Hipertrofia',
-            ],
-            [
-                'first_name' => 'Maria',
-                'last_name'  => 'Gonzalez',
-                'phone'      => '+54 9 11 2345 6789',
-                'status'     => 'active',
-                'goal'       => 'Perdida de grasa',
-            ],
-            [
-                'first_name' => 'Lucia',
-                'last_name'  => 'Martinez',
-                'phone'      => '+54 9 11 3456 7890',
-                'status'     => 'paused',
-                'goal'       => 'Mantenimiento',
-            ],
-            [
-                'first_name' => 'Carlos',
-                'last_name'  => 'Fernandez',
-                'phone'      => '+54 9 11 4567 8901',
-                'status'     => 'active',
-                'goal'       => 'Rendimiento deportivo',
-            ],
-            [
-                'first_name' => 'Sofia',
-                'last_name'  => 'Lopez',
-                'phone'      => '+54 9 11 5678 9012',
-                'status'     => 'prospect',
-                'goal'       => 'Salud general',
-            ],
-        ];
-
         foreach ($students as $s) {
             // Generar email con plus addressing basado en el email del admin
-            $studentEmail = $this->generatePlusAddressingEmail($adminEmail, $s['first_name'], $s['last_name']);
+            $studentEmail = $s['email'] ?? $this->generatePlusAddressingEmail($adminEmail, $s['first_name'], $s['last_name']);
             $s['email'] = $studentEmail;
 
             $existingStudent = Student::withTrashed()
@@ -73,9 +86,16 @@ class StudentSeeder extends Seeder
                 ['email' => $studentEmail],
                 [
                     'name' => trim($s['first_name'] . ' ' . $s['last_name']),
-                    'password' => Str::random(20),
+                    'password' => isset($s['password']) ? Hash::make($s['password']) : Str::random(20),
                 ]
             );
+
+            if (isset($s['password'])) {
+                $user->forceFill([
+                    'name' => trim($s['first_name'] . ' ' . $s['last_name']),
+                    'password' => Hash::make($s['password']),
+                ])->save();
+            }
 
             if (! $user->hasRole($studentRole)) {
                 $user->assignRole($studentRole);
