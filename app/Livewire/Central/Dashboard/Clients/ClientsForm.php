@@ -222,29 +222,26 @@ class ClientsForm extends Component
             // Alta nueva, igual que el paso anterior
             //$id = Str::slug(Str::lower($this->name), '-');
             $id = $this->slug;
-
-            $tenant = Tenant::create([
-                'id' => $id,
-                'name' => $this->name,
-                'admin_email' => $validated['admin_email'],
-                'status' => $this->status,
-                'commercial_plan_id' => $this->commercial_plan_id,
-                'tenancy_create_database' => $this->database_already_exists ? false : null,
-                'tenancy_db_name' => $this->database_already_exists ? $validated['database_name'] : null,
-                'data' => [
-                    'database' => [
-                        'use_existing' => $this->database_already_exists,
-                        'name' => $this->database_already_exists
-                            ? $validated['database_name']
-                            : config('tenancy.database.prefix', 'fittrack_') . $id . config('tenancy.database.suffix', ''),
-                    ],
-                ],
-            ]);
-
+            $tenant = new Tenant();
+            $tenant->id = $id;
             $tenant->name = $this->name;
-            $tenant->admin_email = $this->admin_email;
+            $tenant->admin_email = $validated['admin_email'];
             $tenant->status = $this->status;
             $tenant->commercial_plan_id = $this->commercial_plan_id;
+            $tenant->data = [
+                'database' => [
+                    'use_existing' => $this->database_already_exists,
+                    'name' => $this->database_already_exists
+                        ? $validated['database_name']
+                        : config('tenancy.database.prefix', 'fittrack_') . $id . config('tenancy.database.suffix', ''),
+                ],
+            ];
+
+            if ($this->database_already_exists) {
+                $tenant->setInternal('db_name', $validated['database_name']);
+                $tenant->setInternal('create_database', false);
+            }
+
             $tenant->save();
 
             $subdomain = $id . '.' . env('APP_DOMAIN', 'fittrack.com.ar');
