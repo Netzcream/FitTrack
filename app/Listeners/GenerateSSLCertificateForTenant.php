@@ -16,8 +16,11 @@ class GenerateSSLCertificateForTenant
             'env' => app()->environment(),
         ]);
 
-        if (!app()->environment('production')) {
-            Log::info("[SSL] Skipping SSL generation for {$event->domain} (not production)");
+        if (!app()->environment('production') || ! config('infrastructure.manage_server_ssl')) {
+            Log::info("[SSL] Skipping SSL generation for {$event->domain}", [
+                'production' => app()->environment('production'),
+                'manage_server_ssl' => config('infrastructure.manage_server_ssl'),
+            ]);
             return;
         }
 

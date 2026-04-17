@@ -21,8 +21,12 @@ class ProvisionCustomDomainSsl
             return;
         }
 
-        if (! app()->isProduction()) {
-            Log::info("[SSL] Not production, skip", ['domain' => $event->domain]);
+        if (! app()->isProduction() || ! config('infrastructure.manage_server_ssl')) {
+            Log::info("[SSL] Skipping custom domain SSL provisioning", [
+                'domain' => $event->domain,
+                'production' => app()->isProduction(),
+                'manage_server_ssl' => config('infrastructure.manage_server_ssl'),
+            ]);
             return;
         }
 

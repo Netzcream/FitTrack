@@ -275,11 +275,20 @@ class ClientsForm extends Component
             $adminPassword = $validated['admin_password'];
             $adminMail = $validated['admin_email'];
             $tenant->run(function () use ($adminMail, $adminPassword) {
-                $user = \App\Models\User::create([
-                    'name' => 'Admin',
-                    'email' => $adminMail,
-                    'password' => \Illuminate\Support\Facades\Hash::make($adminPassword),
-                ]);
+                $user = \App\Models\User::firstOrCreate(
+                    ['email' => $adminMail],
+                    [
+                        'name' => 'Admin',
+                        'password' => \Illuminate\Support\Facades\Hash::make($adminPassword),
+                    ]
+                );
+
+                if (! $user->wasRecentlyCreated) {
+                    $user->forceFill([
+                        'name' => 'Admin',
+                        'password' => \Illuminate\Support\Facades\Hash::make($adminPassword),
+                    ])->save();
+                }
 
                 if (\Spatie\Permission\Models\Role::where('name', 'Admin')->exists()) {
                     $user->assignRole('Admin');

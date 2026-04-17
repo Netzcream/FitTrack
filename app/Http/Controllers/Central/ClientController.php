@@ -79,11 +79,21 @@ class ClientController extends Controller
         ]);
 
         $tenant->run(function () use ($tenant, $adminPassword) {
-            $user = User::create([
-                'name' => 'Admin',
-                'email' => $tenant->admin_email,
-                'password' => Hash::make($adminPassword),
-            ]);
+            $user = User::firstOrCreate(
+                ['email' => $tenant->admin_email],
+                [
+                    'name' => 'Admin',
+                    'password' => Hash::make($adminPassword),
+                ]
+            );
+
+            if (! $user->wasRecentlyCreated) {
+                $user->forceFill([
+                    'name' => 'Admin',
+                    'password' => Hash::make($adminPassword),
+                ])->save();
+            }
+
             if (Role::where('name', 'Admin')->exists()) {
                 $user->assignRole('Admin');
             }
@@ -157,7 +167,7 @@ class ClientController extends Controller
         $domain = $client->mainDomain();
         $client->delete(); // Soft-delete o logical delete
 
-        if (App::environment('production')) {
+        if (App::environment('production') && config('infrastructure.manage_server_ssl')) {
 
             // Eliminar certificado SSL
             if ($domain) {

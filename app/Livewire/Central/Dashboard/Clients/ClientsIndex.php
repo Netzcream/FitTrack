@@ -89,7 +89,7 @@ class ClientsIndex extends Component
         $domain = $client->mainDomain();
         $client->delete(); // Soft-delete o logical delete
 
-        if (App::environment('production')) {
+        if (App::environment('production') && config('infrastructure.manage_server_ssl')) {
 
             // Eliminar certificado SSL
             if ($domain) {
