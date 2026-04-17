@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuración
-REPO_DIR="/var/repository/fittrack.com.ar"
-TARGET_DIR="/var/www/fittrack.com.ar"
+REPO_DIR="/home/netz8452/repositories/FitTrack"
+TARGET_DIR="/home/netz8452/fittrack.com.ar"
 BRANCH="main"
 
 echo "🚀 Deploy iniciado..."
@@ -99,7 +99,6 @@ echo "  ✓ Dependencias instaladas correctamente"
 echo "🔧 Artisan commands..."
 sudo -u www-data php artisan optimize:clear
 sudo -u www-data php artisan config:clear
-sudo -u www-data php artisan migrate --force
 sudo -u www-data php artisan tenants:migrate --force
 sudo -u www-data php artisan tenants:seed --class=TenantUpdateSeeder --force
 sudo -u www-data php artisan queue:restart
