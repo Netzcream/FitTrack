@@ -66,7 +66,7 @@
     </main>
 
     <footer class="text-center text-xs py-4" style="background-color: #333; color: #ffffff;">
-        <div class="mb-2">(c) {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline">PRLX Studio</a></div>
+        <div class="mb-2">© {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline">PRLX Studio</a></div>
         FitTrack - {{ date('Y') }}. es una marca ficticia creada a fines ilustrativos. Todos los contenidos, servicios y datos publicados en este sitio son de carácter demostrativo.
     </footer>
 

@@ -8,7 +8,7 @@
       <span class="text-xs">FitTrack es una marca ficticia creada a fines ilustrativos. Todos los contenidos, servicios y datos publicados en este sitio son de carácter demostrativo.</span>
     </div>
 
-    <div class="mb-3 text-xs text-indigo-100">(c) {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline underline-offset-2">PRLX Studio</a></div>
+    <div class="mb-3 text-xs text-indigo-100">© {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline underline-offset-2">PRLX Studio</a></div>
 
     <div class="space-x-2">
       <a href="{{route('central.contact')}}"

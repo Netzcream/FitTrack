@@ -131,7 +131,7 @@
         <footer class="text-center text-xs py-6"
             style="color: {{ tenant_config('landing_footer_text_color', '#6a7282;') }}; background-color: {{ tenant_config('landing_footer_background_color', '#333') }};">
             {!! tenant_config('landing_footer') !!}
-            <div class="mt-2">(c) {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline">PRLX Studio</a></div>
+            <div class="mt-2">© {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline">PRLX Studio</a></div>
         </footer>
     @endif
 </x-layouts.tenant.guest>
