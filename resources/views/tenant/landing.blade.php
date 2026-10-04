@@ -235,6 +235,7 @@
 
 
         </div>
+        <div class="pb-4 text-center text-xs text-white/70">(c) {{ date('Y') }} · FitTrack · by <a href="https://prlx.studio" target="_blank" rel="noopener" class="underline underline-offset-2">PRLX Studio</a></div>
     </footer>
 
 
